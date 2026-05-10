@@ -151,7 +151,7 @@ const SignupForm = () => {
 
   const onSubmit: SubmitHandler<SignupFormValues> = (/* data */) => {
     // TODO: API 연동 시 교체
-    navigate("/signup/verify");
+    navigate("/signup/verify", { state: { email: emailValue } });
   };
 
   return (

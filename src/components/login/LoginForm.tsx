@@ -253,7 +253,7 @@ const LoginForm = () => {
 
       {/* 새 계정 만들기 */}
       <Button
-        onClick={() => navigate('/signup')}
+        onClick={handleSignup}
         variant="contained"
         sx={{ ...primaryButtonSx, mt: '21px' }}
         disableElevation
