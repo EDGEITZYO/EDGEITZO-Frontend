@@ -11,7 +11,7 @@ const Header = () => {
         borderColor: 'line.normal',
       }}
     >
-      <Toolbar sx={{ px: 3 }}>
+      <Toolbar sx={{ px: 3, height: 64, minHeight: '64px !important' }}>
         <Box
           sx={{
             width: 120,
