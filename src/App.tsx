@@ -1,5 +1,15 @@
-function App() {
-  return <></>
-}
+import { ThemeProvider, CssBaseline } from '@mui/material';
+import { RouterProvider } from 'react-router-dom';
+import router from './router';
+import theme from './styles/theme';
 
-export default App
+const App = () => {
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <RouterProvider router={router} />
+    </ThemeProvider>
+  );
+};
+
+export default App;
