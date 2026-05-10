@@ -66,7 +66,8 @@ const SignupVerifyPage = () => {
   const handleVerify = () => {
     // TODO: API 연동 시 교체
     // 임시 에러 표시
-    setVerifyError(true);
+    // setVerifyError(true);
+    navigate('/signup/complete', { state: { type: 'email' } });
   };
 
   const handleResend = () => {
