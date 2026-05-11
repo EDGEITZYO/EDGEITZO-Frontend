@@ -24,7 +24,7 @@ const Step4Job = ({ value, onChange, onNext }: Step4JobProps) => {
         displayEmpty
         value={value ?? ('' as unknown as JobOption)}
         onChange={handleChange}
-        renderValue={(selected) => (selected === '' ? '선택하기' : selected)}
+        renderValue={(selected) => (selected === ('' as unknown as JobOption) ? '선택하기' : selected)}
         sx={{
           borderRadius: '12px',
           '& .MuiOutlinedInput-notchedOutline': { borderColor: 'static.black' },
