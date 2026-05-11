@@ -22,7 +22,6 @@ const OnboardingComplete = ({ onStart }: OnboardingCompleteProps) => {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center',
           gap: '16px',
           textAlign: 'center',
         }}
@@ -36,10 +35,16 @@ const OnboardingComplete = ({ onStart }: OnboardingCompleteProps) => {
         <Typography variant="body1" sx={{ color: 'label.alternative' }}>
           입력하신 정보는 마이페이지에서 언제든 수정할 수 있어요
         </Typography>
-        {/* 일러스트 자리 */}
-        <Typography variant="h4" sx={{ color: 'primary.main', fontWeight: 700, mt: 2 }}>
-          뭔가 그 바이옴 나타내는? 바이옴 에이전트 일러스트 들어가면 좋을 듯!
-        </Typography>
+
+        {/* 일러스트 placeholder — 추후 이미지로 교체 */}
+        <Box
+          sx={{
+            width: '100%',
+            flex: 1,
+            backgroundColor: 'fill.normal',
+            borderRadius: '12px',
+          }}
+        />
       </Box>
       <OnboardingNextButton label="시작하기" onClick={onStart} />
     </Box>

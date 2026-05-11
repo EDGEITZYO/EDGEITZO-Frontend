@@ -1,24 +1,24 @@
-import { useState } from 'react';
-import { Box, Typography, IconButton } from '@mui/material';
-import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
-import { useNavigate } from 'react-router-dom';
-import AuthLayout from '../components/layout/AuthLayout';
-import OnboardingCard from '../components/onboarding/OnboardingCard';
-import Step1Name from '../components/onboarding/Step1Name';
-import Step2Gender from '../components/onboarding/Step2Gender';
-import Step3BirthYear from '../components/onboarding/Step3BirthYear';
-import Step4Job from '../components/onboarding/Step4Job';
-import Step5ResearchField from '../components/onboarding/Step5ResearchField';
-import Step6Purpose from '../components/onboarding/Step6Purpose';
-import OnboardingComplete from '../components/onboarding/OnboardingComplete';
+import { useState } from "react";
+import { Box, Typography, IconButton } from "@mui/material";
+import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
+import { useNavigate } from "react-router-dom";
+import AuthLayout from "../components/layout/AuthLayout";
+import OnboardingCard from "../components/onboarding/OnboardingCard";
+import Step1Name from "../components/onboarding/Step1Name";
+import Step2Gender from "../components/onboarding/Step2Gender";
+import Step3BirthYear from "../components/onboarding/Step3BirthYear";
+import Step4Job from "../components/onboarding/Step4Job";
+import Step5ResearchField from "../components/onboarding/Step5ResearchField";
+import Step6Purpose from "../components/onboarding/Step6Purpose";
+import OnboardingComplete from "../components/onboarding/OnboardingComplete";
 
 const STEP_TITLES: Record<number, string> = {
-  1: '바이옴에게 어떤 이름으로 불리고 싶으세요?',
-  2: '성별을 선택해주세요',
-  3: '몇년생이신가요?',
-  4: '지금 어떤 직무에 있으신가요?',
-  5: '연구 분야는 어디이신가요?',
-  6: '거의 다 왔어요. 논문 탐색 목적을 선택해주세요',
+  1: "바이옴에게 어떤 이름으로 불리고 싶으세요?",
+  2: "성별을 선택해주세요",
+  3: "몇년생이신가요?",
+  4: "지금 어떤 직무에 있으신가요?",
+  5: "연구 분야는 어디이신가요?",
+  6: "거의 다 왔어요. 논문 탐색 목적을 선택해주세요",
 };
 
 const TOTAL_STEPS = 6;
@@ -26,12 +26,31 @@ const TOTAL_STEPS = 6;
 const OnboardingPage = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
-  const [name, setName] = useState('');
-  const [gender, setGender] = useState<'여성' | '남성' | '선택 안함' | null>(null);
+  const [name, setName] = useState("");
+  const [gender, setGender] = useState<"여성" | "남성" | "선택 안함" | null>(
+    null,
+  );
   const [birthYear, setBirthYear] = useState<number | null>(null);
-  const [job, setJob] = useState<'대학원 진학 준비' | '석사과정' | '박사과정' | '석박통합과정' | '교수·연구원' | '대학생' | '기타' | null>(null);
-  const [researchField, setResearchField] = useState('');
-  const [purposes, setPurposes] = useState<('선택연구 주제 탐색' | '랩미팅 발표 준비' | '논문 작성 참고' | '최신 트렌드 파악' | '연구자 탐색')[]>([]);
+  const [job, setJob] = useState<
+    | "대학원 진학 준비"
+    | "석사과정"
+    | "박사과정"
+    | "석박통합과정"
+    | "교수·연구원"
+    | "대학생"
+    | "기타"
+    | null
+  >(null);
+  const [researchField, setResearchField] = useState("");
+  const [purposes, setPurposes] = useState<
+    (
+      | "선택연구 주제 탐색"
+      | "랩미팅 발표 준비"
+      | "논문 작성 참고"
+      | "최신 트렌드 파악"
+      | "연구자 탐색"
+    )[]
+  >([]);
 
   const handleBack = () => {
     if (currentStep > 1) setCurrentStep((prev) => prev - 1);
@@ -42,7 +61,7 @@ const OnboardingPage = () => {
   };
 
   const handleStart = () => {
-    navigate('/home');
+    navigate("/home");
   };
 
   const isComplete = currentStep > TOTAL_STEPS;
@@ -51,34 +70,34 @@ const OnboardingPage = () => {
     <AuthLayout>
       <Box
         sx={{
-          minHeight: 'calc(100vh - 64px)',
-          backgroundColor: 'background.paper',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          paddingTop: '199px',
+          minHeight: "calc(100vh - 64px)",
+          backgroundColor: "background.paper",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          paddingTop: "calc(14.0625 / 100 * (100vh - 64px))",
+          paddingBottom: "calc(27.5 / 100 * (100vh - 64px))",
         }}
       >
-        {/* 헤더 영역 */}
         {!isComplete && (
           <Box
             sx={{
-              width: '503px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '23px',
+              width: "503px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "23px",
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: '35px' }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: "16px" }}>
               <IconButton onClick={handleBack} size="small" sx={{ p: 0 }}>
-                <ArrowBackIosNewIcon sx={{ fontSize: 16 }} />
+                <ArrowBackIosNewIcon sx={{ fontSize: 20 }} />
               </IconButton>
-              <Typography variant="body1" sx={{ fontWeight: 700, color: 'label.strong' }}>
+              <Typography variant="h3" sx={{ color: "label.strong" }}>
                 {STEP_TITLES[currentStep]}
               </Typography>
             </Box>
-            <Typography variant="body1" sx={{ fontWeight: 700, color: 'label.strong' }}>
+            <Typography variant="h3" sx={{ color: "label.strong" }}>
               {currentStep}/{TOTAL_STEPS}
             </Typography>
           </Box>
@@ -90,23 +109,37 @@ const OnboardingPage = () => {
             <Step1Name value={name} onChange={setName} onNext={handleNext} />
           )}
           {currentStep === 2 && (
-            <Step2Gender value={gender} onChange={setGender} onNext={handleNext} />
+            <Step2Gender
+              value={gender}
+              onChange={setGender}
+              onNext={handleNext}
+            />
           )}
           {currentStep === 3 && (
-            <Step3BirthYear value={birthYear} onChange={setBirthYear} onNext={handleNext} />
+            <Step3BirthYear
+              value={birthYear}
+              onChange={setBirthYear}
+              onNext={handleNext}
+            />
           )}
           {currentStep === 4 && (
             <Step4Job value={job} onChange={setJob} onNext={handleNext} />
           )}
           {currentStep === 5 && (
-            <Step5ResearchField value={researchField} onChange={setResearchField} onNext={handleNext} />
+            <Step5ResearchField
+              value={researchField}
+              onChange={setResearchField}
+              onNext={handleNext}
+            />
           )}
           {currentStep === 6 && (
-            <Step6Purpose value={purposes} onChange={setPurposes} onNext={handleNext} />
+            <Step6Purpose
+              value={purposes}
+              onChange={setPurposes}
+              onNext={handleNext}
+            />
           )}
-          {isComplete && (
-            <OnboardingComplete onStart={handleStart} />
-          )}
+          {isComplete && <OnboardingComplete onStart={handleStart} />}
         </OnboardingCard>
       </Box>
     </AuthLayout>
