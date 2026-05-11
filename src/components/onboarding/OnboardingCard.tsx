@@ -12,7 +12,7 @@ const OnboardingCard = ({ children, sx }: OnboardingCardProps) => {
     <Box
       sx={{
         width: '503px',
-        height: '440px',
+        minHeight: '440px',
         padding: '27px',
         borderRadius: '20px',
         backgroundColor: 'background.default',

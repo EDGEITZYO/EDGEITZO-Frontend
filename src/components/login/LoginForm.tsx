@@ -33,7 +33,6 @@ const formWrapSx: SxProps<Theme> = {
   display: 'flex',
   flexDirection: 'column',
   width: '100%',
-  minWidth: 381,
   gap: '8px',
 };
 
