@@ -4,6 +4,7 @@ import BottomNav from "../components/layout/BottomNav";
 import PersonalMessage from "../components/home/PersonalMessage";
 import SearchBar from "../components/home/SearchBar";
 import RecentSearchSection from "../components/home/RecentSearchSection";
+import RecentPaperSection from '../components/home/RecentPaperSection';
 
 const HomePage = () => {
   return (
@@ -35,7 +36,7 @@ const HomePage = () => {
           }}
         >
           <RecentSearchSection />
-          {/* 최근 확인한 논문 */}
+          <RecentPaperSection />
         </Box>
       </Box>
       <BottomNav />
