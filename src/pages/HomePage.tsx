@@ -1,6 +1,8 @@
 import { Box } from '@mui/material';
 import Header from '../components/layout/Header';
 import BottomNav from '../components/layout/BottomNav';
+import PersonalMessage from '../components/home/PersonalMessage';
+import SearchBar from '../components/home/SearchBar';
 
 const HomePage = () => {
   return (
@@ -13,12 +15,13 @@ const HomePage = () => {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          px: 3,
-          py: 6,
-          gap: 6,
+          pt: '15.23%',
+          gap: '48px',
+          backgroundColor: 'background.paper',
         }}
       >
-        {/* 개인 맞춤화 메시지 + 검색창 */}
+        <PersonalMessage />
+        <SearchBar />
         {/* 최근 탐색 이어하기 + 최근 확인한 논문 */}
       </Box>
       <BottomNav />
