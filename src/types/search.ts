@@ -9,7 +9,7 @@ export type SearchStep =
   | 'scope'        // 논문 범위
   | 'period'       // 발행 시기
   | 'narrowDown'   // 범위 축소
-  | 'start';       // 탐색 시작
+  | 'final';       // 탐색 시작
 
 // ─── 대화 메시지 ─────────────────────────────────────────
 
@@ -17,7 +17,8 @@ export interface ChatChoice {
   id: string;
   label: string;
   isEtc?: boolean;
-  isRefresh?: boolean;
+  isSkip?: boolean;
+  isMultiple?: boolean;
 }
 
 export interface ChatMessage {

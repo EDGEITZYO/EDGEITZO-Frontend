@@ -11,7 +11,7 @@ const STEPS: { key: SearchStep; label: string }[] = [
   { key: "scope", label: "논문 범위" },
   { key: "period", label: "발행 시기" },
   { key: "narrowDown", label: "범위 축소" },
-  { key: "start", label: "탐색 시작" },
+  { key: "final", label: "탐색 시작" },
 ];
 
 const containerSx: SxProps<Theme> = {
