@@ -16,6 +16,8 @@ export type SearchStep =
 export interface ChatChoice {
   id: string;
   label: string;
+  isEtc?: boolean;
+  isRefresh?: boolean;
 }
 
 export interface ChatMessage {
@@ -24,6 +26,8 @@ export interface ChatMessage {
   content: string;
   choices?: ChatChoice[];   // AI 메시지일 때 선택지
   isLoading?: boolean;      // AI 응답 로딩 중
+  // TODO: API 연동 시 백엔드 응답에서 받아올 것 - 마지막 단계 여부
+  isFinal?: boolean;
 }
 
 // ─── 검색 구체화 ──────────────────────────────────────────

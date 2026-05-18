@@ -5,6 +5,7 @@ import { type SxProps, type Theme } from '@mui/material/styles';
 import SearchHeader from '../components/search/SearchHeader';
 import ExitConfirmDialog from '../components/search/ExitConfirmDialog';
 import { type SearchView } from '../types/search';
+import SearchChatPanel from '../components/search/SearchChatPanel';
 
 interface LocationState {
   query: string;
@@ -81,7 +82,7 @@ const SearchPage = () => {
           <>
             {/* 좌측 대화 패널 */}
             <Box sx={chatPanelSx}>
-              {/* TODO: SearchChatPanel */}
+              <SearchChatPanel initialQuery={query} />
             </Box>
             {/* 우측 진행 결과 패널 */}
             <Box sx={progressPanelSx}>
