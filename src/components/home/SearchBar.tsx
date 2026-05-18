@@ -1,13 +1,20 @@
+import { useState } from 'react';
 import { Box, InputBase, Button } from '@mui/material';
 import { Search, ListTree } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const SearchBar = () => {
   const navigate = useNavigate();
+  const [query, setQuery] = useState('');
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      navigate('/search');
+    if (e.key === 'Enter' && query.trim() !== '') {
+      navigate('/search', {
+        state: {
+          query: query.trim(),
+          title: query.trim(),
+        },
+      });
     }
   };
 
@@ -37,6 +44,8 @@ const SearchBar = () => {
         <Search size={20} color="#A4A7B2" />
         <InputBase
           placeholder="어떤 주제를 탐색하고 싶으세요?"
+          value={query}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
           sx={{
             flex: 1,
