@@ -6,6 +6,7 @@ import SearchHeader from '../components/search/SearchHeader';
 import ExitConfirmDialog from '../components/search/ExitConfirmDialog';
 import { type SearchView } from '../types/search';
 import SearchChatPanel from '../components/search/SearchChatPanel';
+import SearchProgressPanel from '../components/search/SearchProgressPanel';
 
 interface LocationState {
   query: string;
@@ -86,7 +87,7 @@ const SearchPage = () => {
             </Box>
             {/* 우측 진행 결과 패널 */}
             <Box sx={progressPanelSx}>
-              {/* TODO: SearchProgressPanel */}
+              <SearchProgressPanel onSearchStart={handleSearchStart} />
             </Box>
           </>
         ) : (
