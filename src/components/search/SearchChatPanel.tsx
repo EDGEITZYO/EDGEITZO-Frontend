@@ -173,6 +173,18 @@ const SearchChatPanel = ({
     { id: "5", label: "보상 심리(Reward Seeking)", isMultiple: true },
   ]);
 
+  // TODO: API 연동 시 백엔드에서 받은 추가 키워드로 교체
+  const [refineChoices] = useState<ChatChoice[]>([
+    { id: "1", label: "태양에너지" },
+    { id: "2", label: "풍력에너지" },
+    { id: "3", label: "수력에너지" },
+    { id: "4", label: "바이오에너지" },
+    { id: "5", label: "지열에너지" },
+    { id: "6", label: "해양에너지" },
+  ]);
+
+  const [isRefining, setIsRefining] = useState(false);
+
   const isEtcSelected = !!messages
     .flatMap((m) => m.choices ?? [])
     .find((c) => c.id === selectedChoiceId)?.isEtc;
@@ -183,7 +195,7 @@ const SearchChatPanel = ({
     }
   }, [messages]);
 
-  const isMultipleStep = currentStep === "narrowDown";
+  const isMultipleStep = currentStep === "narrowDown" && !isRefining;
 
   const handleChoiceClick = (choice: ChatChoice) => {
     if (isMultipleStep) {
@@ -216,9 +228,7 @@ const SearchChatPanel = ({
 
   const handleMultipleComplete = () => {
     if (selectedMultipleIds.length === 0) return;
-    const selectedLabels = (
-      currentStep === "narrowDown" ? narrowDownChoices : []
-    )
+    const selectedLabels = narrowDownChoices
       .filter((c) => selectedMultipleIds.includes(c.id))
       .map((c) => c.label)
       .join(", ");
@@ -248,6 +258,8 @@ const SearchChatPanel = ({
         return;
       }
       if (selection === "검색 조건 더 구체화 하기") {
+        onStepChange("final", selection);
+        setIsRefining(true);
         const userMsg: ChatMessageType = {
           id: Date.now().toString(),
           role: "user",
@@ -256,12 +268,33 @@ const SearchChatPanel = ({
         const aiMsg: ChatMessageType = {
           id: (Date.now() + 1).toString(),
           role: "ai",
-          // TODO: API 연동 시 백엔드에서 새로운 키워드 받아올 것
-          content: getAiMessage("narrowDown", selection, aiKeyword),
-          choices: narrowDownChoices,
+          content: "구체적으로 어떤 관련한 논문 수집을 원하시나요?",
+          choices: refineChoices,
         };
         setMessages((prev) => [...prev, userMsg, aiMsg]);
         setSelectedChoiceId(null);
+        setSelectedMultipleIds([]);
+        return;
+      }
+      // refineChoices에서 선택한 경우 → 일반 단계 처리로 넘어감
+      if (isRefining) {
+        const userMsg: ChatMessageType = {
+          id: Date.now().toString(),
+          role: "user",
+          content: selection,
+        };
+        const aiMsg: ChatMessageType = {
+          id: (Date.now() + 1).toString(),
+          role: "ai",
+          content: `충분한 조건이 모였어요! 논문 탐색을 시작할게요.\n결과를 확인한 후에 조건을 수정하실 수 있어요.`,
+          choices: FINAL_CHOICES,
+          isFinal: true,
+        };
+        // TODO: API 연동 시 onStepChange 콜백으로 백엔드에 선택값 전송 및 검색결과 업데이트
+        onStepChange("narrowDown", selection);
+        setMessages((prev) => [...prev, userMsg, aiMsg]);
+        setSelectedChoiceId(null);
+        setIsRefining(false);
         return;
       }
     }
@@ -296,6 +329,7 @@ const SearchChatPanel = ({
 
     setMessages((prev) => [...prev, userMsg, aiMsg]);
     setCurrentStep(nextStep);
+    setIsRefining(false);
     setSelectedChoiceId(null);
     setShowEtcInput(false);
   };

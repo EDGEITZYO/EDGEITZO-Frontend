@@ -4,7 +4,11 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import SearchHeader from "../components/search/SearchHeader";
 import ExitConfirmDialog from "../components/search/ExitConfirmDialog";
-import { type SearchView, type SearchStep } from "../types/search";
+import {
+  type SearchView,
+  type SearchStep,
+  type SearchProgress,
+} from "../types/search";
 import SearchChatPanel from "../components/search/SearchChatPanel";
 import SearchProgressPanel from "../components/search/SearchProgressPanel";
 
@@ -54,6 +58,13 @@ const SearchPage = () => {
   const [view, setView] = useState<SearchView>("chat");
   const [exitDialogOpen, setExitDialogOpen] = useState(false);
 
+  const [progress, setProgress] = useState<SearchProgress>({
+    specificity: 10,
+    currentStep: "purpose",
+  });
+
+  const [refineCount, setRefineCount] = useState(0);
+
   const handleBackClick = () => {
     setExitDialogOpen(true);
   };
@@ -68,8 +79,38 @@ const SearchPage = () => {
   };
 
   const handleStepChange = (step: SearchStep, selection: string) => {
-    // TODO: API 연동 시 단계별 백엔드 호출 및 SearchProgressPanel 상태 업데이트
-    console.log("step:", step, "selection:", selection);
+    // TODO: API 연동 시 단계별 백엔드 호출 및 검색결과 업데이트
+
+    if (step === "final" && selection === "검색 조건 더 구체화 하기") {
+      const newCount = refineCount + 1;
+      setRefineCount(newCount);
+      setProgress({
+        specificity: 90,
+        currentStep: "final",
+      });
+      return;
+    }
+
+    const nextStepMap: Record<SearchStep, SearchStep> = {
+      purpose: "scope",
+      scope: "period",
+      period: "narrowDown",
+      narrowDown: "final",
+      final: "final",
+    };
+
+    const specificityMap: Record<SearchStep, number> = {
+      purpose: 25,
+      scope: 50,
+      period: 60,
+      narrowDown: refineCount >= 1 ? 100 : 80,
+      final: 100,
+    };
+
+    setProgress({
+      specificity: specificityMap[step],
+      currentStep: nextStepMap[step],
+    });
   };
 
   const handleSearchStart = () => {
@@ -96,7 +137,10 @@ const SearchPage = () => {
             </Box>
             {/* 우측 진행 결과 패널 */}
             <Box sx={progressPanelSx}>
-              <SearchProgressPanel onSearchStart={handleSearchStart} />
+              <SearchProgressPanel
+                progress={progress}
+                onSearchStart={handleSearchStart}
+              />
             </Box>
           </>
         ) : (

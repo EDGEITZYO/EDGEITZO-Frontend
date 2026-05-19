@@ -4,9 +4,14 @@ import { type SxProps, type Theme } from '@mui/material/styles';
 import SpecificityCard from './SpecificityCard';
 import StepIndicator from './StepIndicator';
 import SearchResultPanel from './SearchResultPanel';
-import { type SearchProgress, type SearchResult, type PaperFeedback } from '../../types/search';
+import {
+  type SearchProgress,
+  type SearchResult,
+  type PaperFeedback,
+} from '../../types/search';
 
 interface SearchProgressPanelProps {
+  progress: SearchProgress;
   onSearchStart: () => void;
 }
 
@@ -26,18 +31,9 @@ const topRowSx: SxProps<Theme> = {
   alignItems: 'flex-start',
 };
 
-// TODO: API 연동 시 progress, result, isLoading을 props로 받거나 상위에서 상태 관리
-const MOCK_PROGRESS: SearchProgress = {
-  specificity: 10,
-  currentStep: 'purpose',
-};
-
-const MOCK_RESULT: SearchResult | null = null;
-
-const SearchProgressPanel = ({ onSearchStart }: SearchProgressPanelProps) => {
-  const [progress] = useState<SearchProgress>(MOCK_PROGRESS);
+const SearchProgressPanel = ({ progress, onSearchStart }: SearchProgressPanelProps) => {
   // TODO: API 연동 시 실제 결과로 교체
-  const [result] = useState<SearchResult | null>(MOCK_RESULT);
+  const [result] = useState<SearchResult | null>(null);
   // TODO: API 연동 시 로딩 상태 실제 API 호출 기준으로 교체
   const [isLoading] = useState(false);
 
