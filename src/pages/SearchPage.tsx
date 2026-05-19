@@ -11,6 +11,8 @@ import {
 } from "../types/search";
 import SearchChatPanel from "../components/search/SearchChatPanel";
 import SearchProgressPanel from "../components/search/SearchProgressPanel";
+import PaperListPanel from "../components/search/PaperListPanel";
+import { MOCK_PAPERS } from "../components/search/PaperListPanel";
 
 interface LocationState {
   query: string;
@@ -146,7 +148,19 @@ const SearchPage = () => {
         ) : (
           /* 전체화면 논문 리스트 */
           <Box sx={{ flex: 1, overflow: "hidden" }}>
-            {/* TODO: PaperListPage */}
+            <PaperListPanel
+              papers={MOCK_PAPERS}
+              totalCount={MOCK_PAPERS.length}
+              onResetCondition={handleResetCondition}
+              onBookmark={(paperId) => {
+                // TODO: API 연동 시 북마크 API 호출로 교체
+                console.log("bookmark", paperId);
+              }}
+              onPaperClick={(paperId) => {
+                // TODO: 논문 상세 페이지로 이동
+                console.log("paper click", paperId);
+              }}
+            />
           </Box>
         )}
       </Box>
