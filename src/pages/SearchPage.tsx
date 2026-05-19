@@ -17,6 +17,7 @@ import { MOCK_PAPERS } from "../components/search/PaperListPanel";
 interface LocationState {
   query: string;
   title: string;
+  directSearch?: boolean;
 }
 
 const pageContainerSx: SxProps<Theme> = {
@@ -57,7 +58,9 @@ const SearchPage = () => {
   const query = state?.query ?? "";
   const [title, setTitle] = useState(state?.title ?? "검색");
 
-  const [view, setView] = useState<SearchView>("chat");
+  const [view, setView] = useState<SearchView>(
+    state?.directSearch ? "list" : "chat",
+  );
   const [exitDialogOpen, setExitDialogOpen] = useState(false);
 
   const [progress, setProgress] = useState<SearchProgress>({
