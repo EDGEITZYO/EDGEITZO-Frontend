@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Box } from "@mui/material";
 import Header from "../components/layout/Header";
 import BottomNav from "../components/layout/BottomNav";
@@ -5,8 +6,11 @@ import PersonalMessage from "../components/home/PersonalMessage";
 import SearchBar from "../components/home/SearchBar";
 import RecentSearchSection from "../components/home/RecentSearchSection";
 import RecentPaperSection from '../components/home/RecentPaperSection';
+import KeywordMapModal from '../components/keyword-map/KeywordMapModal';
 
 const HomePage = () => {
+  const [isKeywordMapModalOpen, setIsKeywordMapModalOpen] = useState(false);
+
   return (
     <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
       <Header isLoggedIn />
@@ -23,8 +27,7 @@ const HomePage = () => {
         }}
       >
         <PersonalMessage />
-        <SearchBar />
-        {/* 하단 섹션 */}
+        <SearchBar onKeywordMapClick={() => setIsKeywordMapModalOpen(true)} />
         <Box
           sx={{
             width: "100%",
@@ -40,6 +43,10 @@ const HomePage = () => {
         </Box>
       </Box>
       <BottomNav />
+      <KeywordMapModal
+        open={isKeywordMapModalOpen}
+        onClose={() => setIsKeywordMapModalOpen(false)}
+      />
     </Box>
   );
 };
