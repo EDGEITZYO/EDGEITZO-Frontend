@@ -19,7 +19,11 @@ const MOCK_RECENT_SEARCHES: string[] = [
   "딥러닝 기반 이미지 인식",
 ];
 
-const SearchBar = () => {
+interface SearchBarProps {
+  onKeywordMapClick: () => void;
+}
+
+const SearchBar = ({ onKeywordMapClick }: SearchBarProps) => {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
@@ -170,7 +174,7 @@ const SearchBar = () => {
         <Button
           variant="contained"
           startIcon={<ListTree size={24} />}
-          onClick={() => navigate("/keyword-map")}
+          onClick={onKeywordMapClick}
           sx={{
             height: "62px",
             px: "17px",

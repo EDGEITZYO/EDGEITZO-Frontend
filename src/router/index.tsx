@@ -11,6 +11,7 @@ import KeywordMapPage from '../pages/KeywordMapPage';
 import SavedPage from '../pages/SavedPage';
 import MyPage from '../pages/MyPage';
 import PaperDetailPage from '../pages/PaperDetailPage';
+import KeywordMapEditPage from '../pages/KeywordMapEditPage';
 
 const router = createBrowserRouter([
   { path: '/', element: <LandingPage /> },
@@ -22,6 +23,7 @@ const router = createBrowserRouter([
   { path: '/home', element: <HomePage /> },
   { path: '/search', element: <SearchPage /> },
   { path: '/keyword-map', element: <KeywordMapPage /> },
+  { path: '/keyword-map/edit', element: <KeywordMapEditPage /> },
   { path: '/saved', element: <SavedPage /> },
   { path: '/mypage', element: <MyPage /> },
   { path: '/papers/:id', element: <PaperDetailPage /> },
