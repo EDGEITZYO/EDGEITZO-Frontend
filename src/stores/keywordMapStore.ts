@@ -52,6 +52,7 @@ interface KeywordMapActions {
 
   // 브레드크럼
   pushBreadcrumb: (item: BreadcrumbItem) => void;
+  setBreadcrumbs: (breadcrumbs: BreadcrumbItem[]) => void;
   popBreadcrumbTo: (nodeId: string) => void;
 
   // 노드 선택
@@ -111,6 +112,8 @@ const useKeywordMapStore = create<KeywordMapState & KeywordMapActions>()(
       set((state) => ({
         breadcrumbs: [...state.breadcrumbs, item],
       })),
+
+    setBreadcrumbs: (breadcrumbs) => set({ breadcrumbs }),
 
     popBreadcrumbTo: (nodeId) =>
       set((state) => {
@@ -203,6 +206,7 @@ export const useKeywordMapActions = () =>
       setNodes: state.setNodes,
       setEdges: state.setEdges,
       pushBreadcrumb: state.pushBreadcrumb,
+      setBreadcrumbs: state.setBreadcrumbs,
       popBreadcrumbTo: state.popBreadcrumbTo,
       selectNode: state.selectNode,
       openPaperPanel: state.openPaperPanel,
