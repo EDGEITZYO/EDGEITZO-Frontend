@@ -12,6 +12,7 @@ import SavedPage from '../pages/SavedPage';
 import MyPage from '../pages/MyPage';
 import PaperDetailPage from '../pages/PaperDetailPage';
 import KeywordMapEditPage from '../pages/KeywordMapEditPage';
+import BookmarkFolderDetailPage from '../pages/BookmarkFolderDetailPage';
 
 const router = createBrowserRouter([
   { path: '/', element: <LandingPage /> },
@@ -27,6 +28,7 @@ const router = createBrowserRouter([
   { path: '/saved', element: <SavedPage /> },
   { path: '/mypage', element: <MyPage /> },
   { path: '/papers/:id', element: <PaperDetailPage /> },
+  { path: '/saved/bookmark/:folderId', element: <BookmarkFolderDetailPage /> },
 ]);
 
 export default router;
