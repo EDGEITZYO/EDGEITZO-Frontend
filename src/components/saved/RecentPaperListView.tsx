@@ -28,9 +28,8 @@ const containerSx: SxProps<Theme> = {
   display: 'flex',
   flexDirection: 'column',
   gap: '16px',
-  flex: 1,
-  overflowY: 'auto',
   pb: '40px',
+  overflow: 'visible',
 };
 
 const dateLabelSx: SxProps<Theme> = {

@@ -23,6 +23,7 @@ const panelSx: SxProps<Theme> = {
   borderColor: 'line.normal',
   backgroundColor: 'background.default',
   overflow: 'hidden',
+  minHeight: 0,
 };
 
 const filterSx: SxProps<Theme> = {
@@ -63,6 +64,7 @@ const filterChipTextSx = (isActive: boolean): SxProps<Theme> => ({
 
 const paperListSx: SxProps<Theme> = {
   flex: 1,
+  minHeight: 0,
   overflowY: 'auto',
   display: 'flex',
   flexDirection: 'column',

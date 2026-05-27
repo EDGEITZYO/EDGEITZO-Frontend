@@ -23,6 +23,8 @@ const containerSx: SxProps<Theme> = {
   flexDirection: 'column',
   flex: 1,
   gap: '15px',
+  minHeight: 0,
+  overflow: 'hidden',
 };
 
 const summarySx: SxProps<Theme> = {
@@ -66,6 +68,8 @@ const chartAreaSx: SxProps<Theme> = {
   display: 'flex',
   gap: '15px',
   flex: 1,
+  minHeight: 0,
+  overflow: 'hidden',
 };
 
 const chartWrapperSx: SxProps<Theme> = {
@@ -73,7 +77,8 @@ const chartWrapperSx: SxProps<Theme> = {
   borderRadius: '16px',
   backgroundColor: 'background.paper',
   position: 'relative',
-  minHeight: '400px',
+  minHeight: 0,
+  overflow: 'hidden',
 };
 
 const fullscreenButtonSx: SxProps<Theme> = {
