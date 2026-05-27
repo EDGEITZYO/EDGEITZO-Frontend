@@ -13,6 +13,7 @@ import MyPage from '../pages/MyPage';
 import PaperDetailPage from '../pages/PaperDetailPage';
 import KeywordMapEditPage from '../pages/KeywordMapEditPage';
 import BookmarkFolderDetailPage from '../pages/BookmarkFolderDetailPage';
+import RecentPaperFullscreenPage from '../pages/RecentPaperFullscreenPage';
 
 const router = createBrowserRouter([
   { path: '/', element: <LandingPage /> },
@@ -29,6 +30,7 @@ const router = createBrowserRouter([
   { path: '/mypage', element: <MyPage /> },
   { path: '/papers/:id', element: <PaperDetailPage /> },
   { path: '/saved/bookmark/:folderId', element: <BookmarkFolderDetailPage /> },
+  { path: '/saved/recent/fullscreen', element: <RecentPaperFullscreenPage /> },
 ]);
 
 export default router;
