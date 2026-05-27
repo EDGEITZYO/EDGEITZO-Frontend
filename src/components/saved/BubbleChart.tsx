@@ -71,7 +71,7 @@ const clusterPapers = (
       y: paper.citationForChart,
       paperIds: nearby.map((p) => p.id),
       isCluster: nearby.length > 1,
-      clusterCount: nearby.length - 1,
+      clusterCount: nearby.length,
     });
   });
 
@@ -240,7 +240,13 @@ const BubbleChart = ({
   const chartContent = (
     <Box
       ref={containerRef}
-      sx={{ position: "relative", width: "100%", height: "100%" }}
+      sx={{
+        position: "relative",
+        width: "100%",
+        height: "100%",
+        "& .recharts-zIndex-layer": { outline: "none" },
+        "& *:focus": { outline: "none" },
+      }}
       onClick={onBackgroundClick}
     >
       <ResponsiveContainer
@@ -251,7 +257,7 @@ const BubbleChart = ({
         <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
           <XAxis dataKey="x" hide />
           <YAxis dataKey="y" hide />
-          <Tooltip content={() => null} />
+          <Tooltip content={() => null} cursor={false} />
           <Scatter
             data={dots}
             shape={(props: unknown) => (
