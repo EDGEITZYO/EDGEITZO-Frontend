@@ -1,13 +1,18 @@
-import { Box, Typography, IconButton, Select, MenuItem } from '@mui/material';
-import { type SelectChangeEvent } from '@mui/material/Select';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import SearchIcon from '@mui/icons-material/Search';
-import ViewListIcon from '@mui/icons-material/ViewList';
-import ShowChartIcon from '@mui/icons-material/ShowChart';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import { type SxProps, type Theme } from '@mui/material/styles';
-import { type PeriodMode, type ViewMode } from '../../types/saved';
+import { Box, Typography, IconButton, Select, MenuItem } from "@mui/material";
+import { type SelectChangeEvent } from "@mui/material/Select";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import SearchIcon from "@mui/icons-material/Search";
+import ViewListIcon from "@mui/icons-material/ViewList";
+import ShowChartIcon from "@mui/icons-material/ShowChart";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import { type SxProps, type Theme } from "@mui/material/styles";
+import { type PeriodMode, type ViewMode } from "../../types/saved";
+import { useState } from "react";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs from "dayjs";
 
 interface RecentPaperHeaderProps {
   periodMode: PeriodMode;
@@ -16,75 +21,77 @@ interface RecentPaperHeaderProps {
   onPeriodModeChange: (mode: PeriodMode) => void;
   onDatePrev: () => void;
   onDateNext: () => void;
+  onDateSelect: (date: Date) => void;
   onViewModeChange: (mode: ViewMode) => void;
 }
 
 const headerSx: SxProps<Theme> = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
   flexShrink: 0,
-  mb: '16px',
+  mb: "16px",
 };
 
 const leftSx: SxProps<Theme> = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '10px',
+  display: "flex",
+  alignItems: "center",
+  gap: "10px",
 };
 
 const periodSelectSx: SxProps<Theme> = {
-  height: '40px',
-  borderRadius: '12px',
-  backgroundColor: 'line.neutral',
-  fontSize: '18px',
+  height: "40px",
+  borderRadius: "12px",
+  backgroundColor: "line.neutral",
+  fontSize: "18px",
   fontWeight: 600,
-  color: 'static.black',
-  '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-  '& .MuiSelect-select': { padding: '8px 14px' },
+  color: "static.black",
+  "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+  "& .MuiSelect-select": { padding: "8px 14px" },
 };
 
 const dateNavSx: SxProps<Theme> = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: '5px',
-  padding: '8px 7px',
-  borderRadius: '12px',
-  backgroundColor: 'line.neutral',
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "5px",
+  padding: "0px 7px",
+  borderRadius: "12px",
+  backgroundColor: "line.neutral",
+  height: "40px",
 };
 
 const dateTextSx: SxProps<Theme> = {
-  fontSize: '18px',
+  fontSize: "18px",
   fontWeight: 600,
-  color: 'static.black',
-  minWidth: '120px',
-  textAlign: 'center',
+  color: "static.black",
+  textAlign: "center",
 };
 
 const rightSx: SxProps<Theme> = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: '7px',
-  padding: '3px 3px 3px 9px',
-  borderRadius: '12px',
-  backgroundColor: 'line.neutral',
+  display: "inline-flex",
+  alignItems: "center",
+  padding: "3px",
+  borderRadius: "12px",
+  backgroundColor: "line.neutral",
 };
 
 const iconButtonSx = (isActive: boolean): SxProps<Theme> => ({
   width: 34,
   height: 34,
-  borderRadius: '10px',
-  backgroundColor: isActive ? 'background.default' : 'transparent',
-  '&:hover': { backgroundColor: isActive ? 'background.default' : 'fill.normal' },
+  borderRadius: "10px",
+  backgroundColor: isActive ? "background.default" : "transparent",
+  "&:hover": {
+    backgroundColor: isActive ? "background.default" : "fill.normal",
+  },
 });
 
 const formatDate = (date: Date, mode: PeriodMode): string => {
-  if (mode === 'day') {
-    return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+  if (mode === "day") {
+    return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
   }
-  const startOfYear = new Date(date.getFullYear(), 0, 1);
-  const weekNumber = Math.ceil(((date.getTime() - startOfYear.getTime()) / 86400000 + startOfYear.getDay() + 1) / 7);
-  return `${date.getMonth() + 1}월 ${weekNumber}주`;
+  const month = date.getMonth() + 1;
+  const weekNumber = Math.ceil(date.getDate() / 7);
+  return `${month}월 ${weekNumber}주`;
 };
 
 const RecentPaperHeader = ({
@@ -94,14 +101,22 @@ const RecentPaperHeader = ({
   onPeriodModeChange,
   onDatePrev,
   onDateNext,
+  onDateSelect,
   onViewModeChange,
 }: RecentPaperHeaderProps) => {
   const isToday = new Date().toDateString() === currentDate.toDateString();
-  const isFutureWeek = periodMode === 'week' && currentDate > new Date();
+  const isFutureWeek =
+    periodMode === "week" &&
+    Math.ceil(currentDate.getDate() / 7) >=
+      Math.ceil(new Date().getDate() / 7) &&
+    currentDate.getMonth() >= new Date().getMonth() &&
+    currentDate.getFullYear() >= new Date().getFullYear();
 
   const handlePeriodChange = (e: SelectChangeEvent) => {
     onPeriodModeChange(e.target.value as PeriodMode);
   };
+
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   return (
     <Box sx={headerSx}>
@@ -118,23 +133,54 @@ const RecentPaperHeader = ({
         </Select>
 
         {/* 날짜 네비게이션 */}
-        <Box sx={dateNavSx}>
-          <IconButton size="small" sx={{ p: '4px' }} onClick={onDatePrev}>
-            <ChevronLeftIcon sx={{ fontSize: 24, color: 'static.black' }} />
+        <Box sx={dateNavSx} data-date-nav>
+          <IconButton size="small" sx={{ p: "4px" }} onClick={onDatePrev}>
+            <ChevronLeftIcon sx={{ fontSize: 24, color: "static.black" }} />
           </IconButton>
-          <Typography sx={dateTextSx}>{formatDate(currentDate, periodMode)}</Typography>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DatePicker
+              open={calendarOpen}
+              onOpen={() => setCalendarOpen(true)}
+              onClose={() => setCalendarOpen(false)}
+              value={dayjs(currentDate)}
+              onChange={(newValue) => {
+                if (newValue) {
+                  onDateSelect(newValue.toDate());
+                }
+                setCalendarOpen(false);
+              }}
+              maxDate={dayjs()}
+              slots={{
+                field: () => (
+                  <Typography
+                    sx={{ ...dateTextSx, cursor: "pointer" }}
+                    onClick={() => setCalendarOpen(true)}
+                  >
+                    {formatDate(currentDate, periodMode)}
+                  </Typography>
+                ),
+              }}
+              slotProps={{
+                popper: {
+                  anchorEl: () =>
+                    document.querySelector("[data-date-nav]") as Element,
+                  placement: "bottom-start",
+                },
+              }}
+            />
+          </LocalizationProvider>
           <IconButton
             size="small"
-            sx={{ p: '4px' }}
+            sx={{ p: "4px" }}
             onClick={onDateNext}
-            disabled={periodMode === 'day' ? isToday : isFutureWeek}
+            disabled={periodMode === "day" ? isToday : isFutureWeek}
           >
             <ChevronRightIcon
               sx={{
                 fontSize: 24,
-                color: (periodMode === 'day' ? isToday : isFutureWeek)
-                  ? 'label.disable'
-                  : 'static.black',
+                color: (periodMode === "day" ? isToday : isFutureWeek)
+                  ? "label.disable"
+                  : "static.black",
               }}
             />
           </IconButton>
@@ -142,24 +188,50 @@ const RecentPaperHeader = ({
       </Box>
 
       {/* 우측 아이콘 */}
-      <Box sx={rightSx}>
-        <IconButton size="small" sx={iconButtonSx(false)}>
-          <SearchIcon sx={{ fontSize: 24, color: 'label.assistive' }} />
+      <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        {/* 돋보기 - 단독 버튼 */}
+        <IconButton
+          size="small"
+          sx={{
+            width: 40,
+            height: 40,
+            padding: "8px",
+            borderRadius: "12px",
+            border: "1px solid",
+            borderColor: "line.normal",
+            backgroundColor: "background.default",
+            "&:hover": { backgroundColor: "fill.normal" },
+          }}
+        >
+          <SearchIcon sx={{ fontSize: 24, color: "label.assistive" }} />
         </IconButton>
-        <Box sx={{ display: 'flex', borderRadius: '10px', backgroundColor: 'line.neutral' }}>
+
+        {/* 리스트/차트 토글 */}
+        <Box sx={rightSx}>
           <IconButton
             size="small"
-            sx={iconButtonSx(viewMode === 'list')}
-            onClick={() => onViewModeChange('list')}
+            sx={iconButtonSx(viewMode === "list")}
+            onClick={() => onViewModeChange("list")}
           >
-            <ViewListIcon sx={{ fontSize: 24, color: viewMode === 'list' ? 'static.black' : 'label.assistive' }} />
+            <ViewListIcon
+              sx={{
+                fontSize: 24,
+                color: viewMode === "list" ? "static.black" : "label.assistive",
+              }}
+            />
           </IconButton>
           <IconButton
             size="small"
-            sx={iconButtonSx(viewMode === 'chart')}
-            onClick={() => onViewModeChange('chart')}
+            sx={iconButtonSx(viewMode === "chart")}
+            onClick={() => onViewModeChange("chart")}
           >
-            <ShowChartIcon sx={{ fontSize: 24, color: viewMode === 'chart' ? 'static.black' : 'label.assistive' }} />
+            <ShowChartIcon
+              sx={{
+                fontSize: 24,
+                color:
+                  viewMode === "chart" ? "static.black" : "label.assistive",
+              }}
+            />
           </IconButton>
         </Box>
       </Box>

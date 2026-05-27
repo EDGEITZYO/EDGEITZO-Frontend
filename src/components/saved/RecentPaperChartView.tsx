@@ -28,25 +28,25 @@ const containerSx: SxProps<Theme> = {
 const summarySx: SxProps<Theme> = {
   display: 'flex',
   alignItems: 'center',
-  padding: '16px 51px',
+  padding: '16px 40px',
   borderRadius: '16px',
   border: '1px solid',
   borderColor: 'line.normal',
-  gap: '0',
+  justifyContent: 'flex-start',
 };
 
 const summaryItemSx: SxProps<Theme> = {
   display: 'flex',
   flexDirection: 'column',
   gap: '4px',
-  flex: 1,
 };
 
 const summaryDividerSx: SxProps<Theme> = {
   width: '1px',
   height: '44px',
   backgroundColor: 'line.normal',
-  mx: '24px',
+  ml: '45px',
+  mr: '30px',
   flexShrink: 0,
 };
 
