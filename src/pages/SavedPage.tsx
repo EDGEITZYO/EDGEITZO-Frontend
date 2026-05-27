@@ -3,7 +3,8 @@ import { Box } from '@mui/material';
 import { type SxProps, type Theme } from '@mui/material/styles';
 import Header from '../components/layout/Header';
 import SavedSidebar, { type SavedTab } from '../components/saved/SavedSidebar';
-import BookmarkFolderGrid from '../components/saved/BookmarkFolderGrid';
+import BookmarkContent from '../components/saved/BookmarkContent';
+import RecentPaperContent from '../components/saved/RecentPaperContent';
 
 const pageWrapperSx: SxProps<Theme> = {
   display: 'flex',
@@ -25,8 +26,8 @@ const SavedPage = () => {
       <Header isLoggedIn />
       <Box sx={contentSx}>
         <SavedSidebar activeTab={activeTab} onTabChange={setActiveTab} />
-        {activeTab === 'bookmark' && <BookmarkFolderGrid />}
-        {activeTab === 'recent' && null} {/* TODO: 최근 읽은 논문 */}
+        {activeTab === 'bookmark' && <BookmarkContent />}
+        {activeTab === 'recent' && <RecentPaperContent />}
       </Box>
     </Box>
   );
