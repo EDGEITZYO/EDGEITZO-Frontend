@@ -4,7 +4,7 @@ import { type SxProps, type Theme } from '@mui/material/styles';
 import RecentPaperHeader from './RecentPaperHeader';
 import RecentPaperListView from './RecentPaperListView';
 import RecentPaperChartView from './RecentPaperChartView';
-import { type PeriodMode, type ViewMode } from '../../types/saved';
+import { type PeriodMode, type ViewMode, type ChartFilter } from '../../types/saved';
 import {
   parseDateParam,
   formatDateParam,
@@ -52,63 +52,62 @@ const RecentPaperContent = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // URL이 single source of truth — useState 없음
-  const periodMode: PeriodMode = isPeriodMode(searchParams.get('mode'))
-    ? (searchParams.get('mode') as PeriodMode)
-    : 'day';
+  // 중복 호출 제거 — 변수로 먼저 받기
+  const modeParam = searchParams.get('mode');
+  const viewParam = searchParams.get('view');
 
+  const periodMode: PeriodMode = isPeriodMode(modeParam) ? modeParam : 'day';
+  const viewMode: ViewMode = isViewMode(viewParam) ? viewParam : 'list';
   const currentDate: Date = parseDateParam(searchParams.get('date'));
 
-  const viewMode: ViewMode = isViewMode(searchParams.get('view'))
-    ? (searchParams.get('view') as ViewMode)
-    : 'list';
-
-  // ─── 핸들러 ───────────────────────────────────────────────
-  // setSearchParams 하나로 URL + 상태 동시 업데이트
+  // 기존 query를 보존하면서 필요한 값만 업데이트
+  const updateParams = (updates: Record<string, string | null>) => {
+    const next = new URLSearchParams(searchParams);
+    next.set('tab', 'recent');
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value === null || value === '') next.delete(key);
+      else next.set(key, value);
+    });
+    setSearchParams(next, { replace: true });
+  };
 
   const handlePeriodModeChange = (mode: PeriodMode) => {
-    setSearchParams(
-      { tab: 'recent', view: viewMode, mode, date: formatDateParam(new Date()) },
-      { replace: true },
-    );
+    updateParams({ view: viewMode, mode, date: formatDateParam(new Date()) });
   };
 
   const handleDatePrev = () => {
     const next = new Date(currentDate);
     if (periodMode === 'day') next.setDate(next.getDate() - 1);
     else next.setDate(next.getDate() - 7);
-    setSearchParams(
-      { tab: 'recent', view: viewMode, mode: periodMode, date: formatDateParam(next) },
-      { replace: true },
-    );
+    updateParams({ view: viewMode, mode: periodMode, date: formatDateParam(next) });
   };
 
   const handleDateNext = () => {
     const next = new Date(currentDate);
     if (periodMode === 'day') next.setDate(next.getDate() + 1);
     else next.setDate(next.getDate() + 7);
-    setSearchParams(
-      { tab: 'recent', view: viewMode, mode: periodMode, date: formatDateParam(next) },
-      { replace: true },
-    );
+    updateParams({ view: viewMode, mode: periodMode, date: formatDateParam(next) });
   };
 
   const handleDateSelect = (date: Date) => {
-    setSearchParams(
-      { tab: 'recent', view: viewMode, mode: periodMode, date: formatDateParam(date) },
-      { replace: true },
-    );
+    updateParams({ view: viewMode, mode: periodMode, date: formatDateParam(date) });
   };
 
   const handleViewModeChange = (mode: ViewMode) => {
-    setSearchParams(
-      { tab: 'recent', view: mode, mode: periodMode, date: formatDateParam(currentDate) },
-      { replace: true },
-    );
+    updateParams({ view: mode, mode: periodMode, date: formatDateParam(currentDate) });
+  };
+
+  const handleFilterChange = (filter: ChartFilter) => {
+    updateParams({
+      view: viewMode,
+      mode: periodMode,
+      date: formatDateParam(currentDate),
+      publish: filter.publish ?? null,
+      citation: filter.citation ?? null,
+    });
   };
 
   const handlePaperClick = (paperId: string) => {
-    // URL이 항상 최신 상태이므로 그대로 returnTo로 사용
     const returnTo = `/saved?${searchParams.toString()}`;
     navigate(`/papers/${paperId}?returnTo=${encodeURIComponent(returnTo)}`);
   };
@@ -139,6 +138,7 @@ const RecentPaperContent = () => {
             periodMode={periodMode}
             currentDate={currentDate}
             onPaperClick={handlePaperClick}
+            onFilterChange={handleFilterChange}
           />
         </Box>
       )}

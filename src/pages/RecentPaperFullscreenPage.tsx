@@ -59,13 +59,24 @@ const RecentPaperFullscreenPage = () => {
     : "day";
 
   const handleBack = () => {
-    const params = new URLSearchParams({
-      tab: "recent",
-      view: "chart",
-      mode: searchParams.get("mode") ?? "day",
-      date: searchParams.get("date") ?? "",
-    });
+    const params = new URLSearchParams(searchParams);
+    params.set("tab", "recent");
+    params.set("view", "chart");
+    if (filter.publish) params.set("publish", filter.publish);
+    else params.delete("publish");
+    if (filter.citation) params.set("citation", filter.citation);
+    else params.delete("citation");
     navigate(`/saved?${params.toString()}`, { replace: true });
+  };
+
+  const handleFilterChange = (nextFilter: ChartFilter) => {
+    setFilter(nextFilter);
+    const next = new URLSearchParams(searchParams);
+    if (nextFilter.publish) next.set("publish", nextFilter.publish);
+    else next.delete("publish");
+    if (nextFilter.citation) next.set("citation", nextFilter.citation);
+    else next.delete("citation");
+    navigate(`${location.pathname}?${next.toString()}`, { replace: true });
   };
 
   const handlePaperClick = (paperId: string) => {
@@ -96,7 +107,7 @@ const RecentPaperFullscreenPage = () => {
           papers={papers}
           filter={filter}
           selectedPaperIds={selectedPaperIds}
-          onFilterChange={setFilter}
+          onFilterChange={handleFilterChange}
           onBack={() => setSelectedPaperIds(null)}
           onPaperClick={handlePaperClick}
         />

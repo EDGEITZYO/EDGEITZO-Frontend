@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Box, Typography, IconButton } from "@mui/material";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import { type SxProps, type Theme } from "@mui/material/styles";
@@ -102,24 +102,28 @@ interface RecentPaperChartViewProps {
   periodMode: PeriodMode;
   currentDate: Date;
   onPaperClick: (paperId: string) => void;
+  onFilterChange: (filter: ChartFilter) => void;
 }
 
 const RecentPaperChartView = ({
   periodMode,
   currentDate,
-  onPaperClick
+  onPaperClick,
+  onFilterChange,
 }: RecentPaperChartViewProps) => {
   const navigate = useNavigate();
-  const [filter, setFilter] = useState<ChartFilter>({
-    publish: null,
-    citation: null,
-  });
+  const [searchParams] = useSearchParams();
   const [selectedPaperIds, setSelectedPaperIds] = useState<string[] | null>(
     null,
   );
 
   // TODO: API 연동 시 periodMode, currentDate로 데이터 fetch
   const papers: RecentPaper[] = MOCK_RECENT_PAPERS;
+
+  const filter: ChartFilter = {
+    publish: (searchParams.get('publish') as ChartFilter['publish']) || null,
+    citation: (searchParams.get('citation') as ChartFilter['citation']) || null,
+  };
 
   const handleDotClick = (paperIds: string[]) => {
     setSelectedPaperIds(paperIds);
@@ -187,7 +191,7 @@ const RecentPaperChartView = ({
           papers={papers}
           filter={filter}
           selectedPaperIds={selectedPaperIds}
-          onFilterChange={setFilter}
+          onFilterChange={onFilterChange}
           onBack={handleBack}
           onPaperClick={onPaperClick}
         />

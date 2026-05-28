@@ -3,7 +3,17 @@ import { type PeriodMode, type ViewMode } from '../types/saved';
 export const parseDateParam = (value: string | null): Date => {
   if (!value) return new Date();
   const [year, month, day] = value.split('-').map(Number);
-  if (!year || !month || !day) return new Date();
+  if (
+    !year ||
+    !month ||
+    !day ||
+    month < 1 ||
+    month > 12 ||
+    day < 1 ||
+    day > 31
+  ) {
+    return new Date();
+  }
   return new Date(year, month - 1, day);
 };
 
