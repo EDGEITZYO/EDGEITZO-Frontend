@@ -13,16 +13,19 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
+import CloseFullscreenIcon from "@mui/icons-material/CloseFullscreen";
 
 interface RecentPaperHeaderProps {
   periodMode: PeriodMode;
   currentDate: Date;
   viewMode: ViewMode;
+  variant?: "normal" | "fullscreen";
   onPeriodModeChange: (mode: PeriodMode) => void;
   onDatePrev: () => void;
   onDateNext: () => void;
   onDateSelect: (date: Date) => void;
   onViewModeChange: (mode: ViewMode) => void;
+  onClose?: () => void;
 }
 
 const headerSx: SxProps<Theme> = {
@@ -30,7 +33,6 @@ const headerSx: SxProps<Theme> = {
   alignItems: "center",
   justifyContent: "space-between",
   flexShrink: 0,
-  mb: "16px",
 };
 
 const leftSx: SxProps<Theme> = {
@@ -98,11 +100,13 @@ const RecentPaperHeader = ({
   periodMode,
   currentDate,
   viewMode,
+  variant = "normal",
   onPeriodModeChange,
   onDatePrev,
   onDateNext,
   onDateSelect,
   onViewModeChange,
+  onClose,
 }: RecentPaperHeaderProps) => {
   const isToday = new Date().toDateString() === currentDate.toDateString();
   const isFutureWeek =
@@ -189,51 +193,72 @@ const RecentPaperHeader = ({
 
       {/* 우측 아이콘 */}
       <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
-        {/* 돋보기 - 단독 버튼 */}
-        <IconButton
-          size="small"
-          sx={{
-            width: 40,
-            height: 40,
-            padding: "8px",
-            borderRadius: "12px",
-            border: "1px solid",
-            borderColor: "line.normal",
-            backgroundColor: "background.default",
-            "&:hover": { backgroundColor: "fill.normal" },
-          }}
-        >
-          <SearchIcon sx={{ fontSize: 24, color: "label.assistive" }} />
-        </IconButton>
+        {/* 돋보기 - normal에서만 표시 */}
+        {variant === "normal" && (
+          <IconButton
+            size="small"
+            sx={{
+              width: 40,
+              height: 40,
+              padding: "8px",
+              borderRadius: "12px",
+              border: "1px solid",
+              borderColor: "line.normal",
+              backgroundColor: "background.default",
+              "&:hover": { backgroundColor: "fill.normal" },
+            }}
+          >
+            <SearchIcon sx={{ fontSize: 24, color: "label.assistive" }} />
+          </IconButton>
+        )}
 
-        {/* 리스트/차트 토글 */}
-        <Box sx={rightSx}>
+        {/* normal: 리스트/차트 토글, fullscreen: 축소 버튼 */}
+        {variant === "normal" ? (
+          <Box sx={rightSx}>
+            <IconButton
+              size="small"
+              sx={iconButtonSx(viewMode === "list")}
+              onClick={() => onViewModeChange("list")}
+            >
+              <ViewListIcon
+                sx={{
+                  fontSize: 24,
+                  color:
+                    viewMode === "list" ? "static.black" : "label.assistive",
+                }}
+              />
+            </IconButton>
+            <IconButton
+              size="small"
+              sx={iconButtonSx(viewMode === "chart")}
+              onClick={() => onViewModeChange("chart")}
+            >
+              <ShowChartIcon
+                sx={{
+                  fontSize: 24,
+                  color:
+                    viewMode === "chart" ? "static.black" : "label.assistive",
+                }}
+              />
+            </IconButton>
+          </Box>
+        ) : (
           <IconButton
             size="small"
-            sx={iconButtonSx(viewMode === "list")}
-            onClick={() => onViewModeChange("list")}
+            sx={{
+              width: 34,
+              height: 34,
+              borderRadius: "10px",
+              backgroundColor: "background.default",
+              "&:hover": { backgroundColor: "fill.normal" },
+            }}
+            onClick={onClose}
           >
-            <ViewListIcon
-              sx={{
-                fontSize: 24,
-                color: viewMode === "list" ? "static.black" : "label.assistive",
-              }}
+            <CloseFullscreenIcon
+              sx={{ fontSize: 24, color: "label.alternative" }}
             />
           </IconButton>
-          <IconButton
-            size="small"
-            sx={iconButtonSx(viewMode === "chart")}
-            onClick={() => onViewModeChange("chart")}
-          >
-            <ShowChartIcon
-              sx={{
-                fontSize: 24,
-                color:
-                  viewMode === "chart" ? "static.black" : "label.assistive",
-              }}
-            />
-          </IconButton>
-        </Box>
+        )}
       </Box>
     </Box>
   );

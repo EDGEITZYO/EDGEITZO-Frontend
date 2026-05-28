@@ -1,6 +1,5 @@
 import { useMemo, useRef, useState } from "react";
-import { Box, Typography } from "@mui/material";
-import { type SxProps, type Theme } from "@mui/material/styles";
+import { Box } from "@mui/material";
 import {
   ScatterChart,
   Scatter,
@@ -196,28 +195,51 @@ const NormalAxisOverlay = ({
   </svg>
 );
 
-// ─── 전체화면 외부 라벨 (fullscreen variant) ──────────────
+const FullscreenAxisOverlay = ({
+  width,
+  height,
+}: {
+  width: number;
+  height: number;
+}) => {
+  const margin = { top: 20, right: 20, bottom: 20, left: 20 };
+  const innerWidth = width - margin.left - margin.right;
+  const innerHeight = height - margin.top - margin.bottom;
+  const cx = margin.left + innerWidth / 2;
+  const cy = margin.top + innerHeight / 2;
 
-const headerLabelSx: SxProps<Theme> = {
-  display: "flex",
-  width: "100%",
-  mb: "4px",
-};
-
-const sideLabelSx: SxProps<Theme> = {
-  display: "flex",
-  flexDirection: "column",
-  justifyContent: "space-between",
-  width: "20px",
-  flexShrink: 0,
-};
-
-const labelTextSx: SxProps<Theme> = {
-  fontSize: "12px",
-  fontWeight: 600,
-  color: "label.alternative",
-  textAlign: "center",
-  writingMode: "vertical-rl",
+  return (
+    <svg
+      style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        pointerEvents: "none",
+        zIndex: 0,
+      }}
+      width={width}
+      height={height}
+    >
+      {/* X축 — 단순 선 */}
+      <line
+        x1={margin.left}
+        y1={cy}
+        x2={width - margin.right}
+        y2={cy}
+        stroke="#9CA3AF"
+        strokeWidth={1}
+      />
+      {/* Y축 — 단순 선 */}
+      <line
+        x1={cx}
+        y1={margin.top}
+        x2={cx}
+        y2={height - margin.bottom}
+        stroke="#9CA3AF"
+        strokeWidth={1}
+      />
+    </svg>
+  );
 };
 
 // ─── 컴포넌트 ─────────────────────────────────────────────
@@ -249,6 +271,12 @@ const BubbleChart = ({
       }}
       onClick={onBackgroundClick}
     >
+      {variant === "fullscreen" && (
+        <FullscreenAxisOverlay
+          width={chartSize.width}
+          height={chartSize.height}
+        />
+      )}
       <ResponsiveContainer
         width="100%"
         height="100%"
@@ -277,51 +305,7 @@ const BubbleChart = ({
   );
 
   if (variant === "fullscreen") {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          width: "100%",
-          height: "100%",
-        }}
-      >
-        {/* 상단 헤더 라벨 */}
-        <Box sx={headerLabelSx}>
-          <Box sx={{ flex: 1, textAlign: "center" }}>
-            <Typography
-              sx={{
-                fontSize: "14px",
-                fontWeight: 600,
-                color: "label.alternative",
-              }}
-            >
-              오래된 논문
-            </Typography>
-          </Box>
-          <Box sx={{ flex: 1, textAlign: "center" }}>
-            <Typography
-              sx={{
-                fontSize: "14px",
-                fontWeight: 600,
-                color: "label.alternative",
-              }}
-            >
-              최신 논문
-            </Typography>
-          </Box>
-        </Box>
-
-        {/* 차트 + 사이드 라벨 */}
-        <Box sx={{ display: "flex", flex: 1 }}>
-          <Box sx={{ flex: 1 }}>{chartContent}</Box>
-          <Box sx={sideLabelSx}>
-            <Typography sx={labelTextSx}>인용 높음</Typography>
-            <Typography sx={labelTextSx}>인용 낮음</Typography>
-          </Box>
-        </Box>
-      </Box>
-    );
+    return chartContent;
   }
 
   return chartContent;

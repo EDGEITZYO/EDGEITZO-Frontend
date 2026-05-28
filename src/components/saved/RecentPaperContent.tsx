@@ -16,7 +16,7 @@ const titleSx: SxProps<Theme> = {
   fontSize: '24px',
   fontWeight: 600,
   color: 'static.black',
-  mb: '16px',
+  mb: '14px',
 };
 
 const baseContainerSx: SxProps<Theme> = {
@@ -24,6 +24,7 @@ const baseContainerSx: SxProps<Theme> = {
   flexDirection: 'column',
   flex: 1,
   padding: '24px 40px',
+  gap: '13px',
 };
 
 const listContainerSx: SxProps<Theme> = {
