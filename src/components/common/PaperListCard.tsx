@@ -10,6 +10,7 @@ import { type PaperListItem } from "../../types/search";
 interface PaperListCardProps {
   paper: PaperListItem;
   onBookmark: (paperId: string) => void;
+  onClick: (paperId: string) => void;
 }
 
 const containerSx: SxProps<Theme> = {
@@ -95,7 +96,7 @@ const bookmarkButtonSx: SxProps<Theme> = {
   "&:hover": { backgroundColor: "#EBEBEB" },
 };
 
-const PaperListCard = ({ paper, onBookmark }: PaperListCardProps) => {
+const PaperListCard = ({ paper, onBookmark, onClick }: PaperListCardProps) => {
   const [authorExpanded, setAuthorExpanded] = useState(false);
 
   const {
@@ -113,7 +114,7 @@ const PaperListCard = ({ paper, onBookmark }: PaperListCardProps) => {
   } = paper;
 
   return (
-    <Box sx={containerSx}>
+    <Box sx={containerSx} onClick={() => onClick(id)}>
       {/* 상단: 출처/날짜 + 북마크 */}
       <Box sx={{ position: "relative" }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: "7px" }}>
