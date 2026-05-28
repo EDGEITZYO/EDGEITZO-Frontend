@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Box } from '@mui/material';
 import { type SxProps, type Theme } from '@mui/material/styles';
 import Header from '../components/layout/Header';
@@ -18,14 +18,26 @@ const contentSx: SxProps<Theme> = {
   flex: 1,
 };
 
+const isSavedTab = (value: string | null): value is SavedTab =>
+  value === 'bookmark' || value === 'recent';
+
 const SavedPage = () => {
-  const [activeTab, setActiveTab] = useState<SavedTab>('bookmark');
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const activeTab: SavedTab = isSavedTab(searchParams.get('tab'))
+    ? (searchParams.get('tab') as SavedTab)
+    : 'bookmark';
+
+  const handleTabChange = (tab: SavedTab) => {
+    navigate(`/saved?tab=${tab}`, { replace: true });
+  };
 
   return (
     <Box sx={pageWrapperSx}>
       <Header isLoggedIn />
       <Box sx={contentSx}>
-        <SavedSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        <SavedSidebar activeTab={activeTab} onTabChange={handleTabChange} />
         {activeTab === 'bookmark' && <BookmarkContent />}
         {activeTab === 'recent' && <RecentPaperContent />}
       </Box>

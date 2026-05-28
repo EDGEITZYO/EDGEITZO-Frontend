@@ -1,94 +1,99 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Box, Typography, IconButton } from '@mui/material';
-import FullscreenIcon from '@mui/icons-material/Fullscreen';
-import { type SxProps, type Theme } from '@mui/material/styles';
-import BubbleChart from './BubbleChart';
-import ChartRightPanel from './ChartRightPanel';
-import { type RecentPaper, type ChartFilter, type PeriodMode } from '../../types/saved';
-import { MOCK_RECENT_PAPERS } from './RecentPaperListView';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Box, Typography, IconButton } from "@mui/material";
+import FullscreenIcon from "@mui/icons-material/Fullscreen";
+import { type SxProps, type Theme } from "@mui/material/styles";
+import BubbleChart from "./BubbleChart";
+import ChartRightPanel from "./ChartRightPanel";
+import {
+  type RecentPaper,
+  type ChartFilter,
+  type PeriodMode,
+} from "../../types/saved";
+import { MOCK_RECENT_PAPERS } from "./RecentPaperListView";
+import { formatDateParam } from '../../utils/savedUtils';
 
 // ─── 목 데이터 ────────────────────────────────────────────
 // TODO: API 연동 시 교체
 const MOCK_SUMMARY = {
   totalCount: 16,
   keywordCount: 12,
-  mostSearchedKeyword: 'IBS',
+  mostSearchedKeyword: "IBS",
 };
 
 // ─── 스타일 ───────────────────────────────────────────────
 
 const containerSx: SxProps<Theme> = {
-  display: 'flex',
-  flexDirection: 'column',
+  display: "flex",
+  flexDirection: "column",
   flex: 1,
-  gap: '15px',
+  gap: "15px",
   minHeight: 0,
-  overflow: 'hidden',
+  overflow: "hidden",
 };
 
 const summarySx: SxProps<Theme> = {
-  display: 'flex',
-  alignItems: 'center',
-  padding: '16px 40px',
-  borderRadius: '16px',
-  border: '1px solid',
-  borderColor: 'line.normal',
-  justifyContent: 'flex-start',
+  display: "flex",
+  alignItems: "center",
+  padding: "16px 40px",
+  borderRadius: "16px",
+  border: "1px solid",
+  borderColor: "line.normal",
+  justifyContent: "flex-start",
 };
 
 const summaryItemSx: SxProps<Theme> = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '4px',
+  display: "flex",
+  flexDirection: "column",
+  gap: "4px",
 };
 
 const summaryDividerSx: SxProps<Theme> = {
-  width: '1px',
-  height: '44px',
-  backgroundColor: 'line.normal',
-  ml: '45px',
-  mr: '30px',
+  width: "1px",
+  height: "44px",
+  backgroundColor: "line.normal",
+  ml: "45px",
+  mr: "30px",
   flexShrink: 0,
 };
 
 const summaryLabelSx: SxProps<Theme> = {
-  fontSize: '14px',
+  fontSize: "14px",
   fontWeight: 400,
-  color: 'label.alternative',
+  color: "label.alternative",
 };
 
 const summaryValueSx: SxProps<Theme> = {
-  fontSize: '20px',
+  fontSize: "20px",
   fontWeight: 700,
-  color: 'static.black',
+  color: "static.black",
 };
 
 const chartAreaSx: SxProps<Theme> = {
-  display: 'flex',
-  gap: '15px',
+  display: "flex",
+  gap: "15px",
   flex: 1,
   minHeight: 0,
-  overflow: 'hidden',
+  overflow: "hidden",
 };
 
 const chartWrapperSx: SxProps<Theme> = {
   flex: 1,
-  borderRadius: '16px',
-  backgroundColor: 'background.paper',
-  position: 'relative',
+  borderRadius: "16px",
+  backgroundColor: "background.paper",
+  position: "relative",
   minHeight: 0,
-  overflow: 'hidden',
+  overflow: "hidden",
 };
 
 const fullscreenButtonSx: SxProps<Theme> = {
-  position: 'absolute',
-  top: '12px',
-  right: '12px',
+  position: "absolute",
+  top: "12px",
+  right: "12px",
   zIndex: 10,
-  backgroundColor: 'background.default',
-  borderRadius: '8px',
-  '&:hover': { backgroundColor: 'fill.normal' },
+  backgroundColor: "background.default",
+  borderRadius: "8px",
+  "&:hover": { backgroundColor: "fill.normal" },
 };
 
 // ─── 컴포넌트 ─────────────────────────────────────────────
@@ -96,12 +101,22 @@ const fullscreenButtonSx: SxProps<Theme> = {
 interface RecentPaperChartViewProps {
   periodMode: PeriodMode;
   currentDate: Date;
+  onPaperClick: (paperId: string) => void;
 }
 
-const RecentPaperChartView = ({ periodMode, currentDate }: RecentPaperChartViewProps) => {
+const RecentPaperChartView = ({
+  periodMode,
+  currentDate,
+  onPaperClick
+}: RecentPaperChartViewProps) => {
   const navigate = useNavigate();
-  const [filter, setFilter] = useState<ChartFilter>({ publish: null, citation: null });
-  const [selectedPaperIds, setSelectedPaperIds] = useState<string[] | null>(null);
+  const [filter, setFilter] = useState<ChartFilter>({
+    publish: null,
+    citation: null,
+  });
+  const [selectedPaperIds, setSelectedPaperIds] = useState<string[] | null>(
+    null,
+  );
 
   // TODO: API 연동 시 periodMode, currentDate로 데이터 fetch
   const papers: RecentPaper[] = MOCK_RECENT_PAPERS;
@@ -118,16 +133,12 @@ const RecentPaperChartView = ({ periodMode, currentDate }: RecentPaperChartViewP
     setSelectedPaperIds(null);
   };
 
-  const handlePaperClick = (paperId: string) => {
-    navigate(`/papers/${paperId}`);
-  };
-
   const handleFullscreen = () => {
     const params = new URLSearchParams({
-      date: currentDate.toISOString(),
       mode: periodMode,
-      publish: filter.publish ?? '',
-      citation: filter.citation ?? '',
+      date: formatDateParam(currentDate),
+      publish: filter.publish ?? "",
+      citation: filter.citation ?? "",
     });
     navigate(`/saved/recent/fullscreen?${params.toString()}`);
   };
@@ -138,17 +149,23 @@ const RecentPaperChartView = ({ periodMode, currentDate }: RecentPaperChartViewP
       <Box sx={summarySx}>
         <Box sx={summaryItemSx}>
           <Typography sx={summaryLabelSx}>총 탐색 논문</Typography>
-          <Typography sx={summaryValueSx}>{MOCK_SUMMARY.totalCount}건</Typography>
+          <Typography sx={summaryValueSx}>
+            {MOCK_SUMMARY.totalCount}건
+          </Typography>
         </Box>
         <Box sx={summaryDividerSx} />
         <Box sx={summaryItemSx}>
           <Typography sx={summaryLabelSx}>키워드 수</Typography>
-          <Typography sx={summaryValueSx}>{MOCK_SUMMARY.keywordCount}개</Typography>
+          <Typography sx={summaryValueSx}>
+            {MOCK_SUMMARY.keywordCount}개
+          </Typography>
         </Box>
         <Box sx={summaryDividerSx} />
         <Box sx={summaryItemSx}>
           <Typography sx={summaryLabelSx}>가장 많이 탐색한 키워드</Typography>
-          <Typography sx={summaryValueSx}>{MOCK_SUMMARY.mostSearchedKeyword}</Typography>
+          <Typography sx={summaryValueSx}>
+            {MOCK_SUMMARY.mostSearchedKeyword}
+          </Typography>
         </Box>
       </Box>
 
@@ -156,7 +173,7 @@ const RecentPaperChartView = ({ periodMode, currentDate }: RecentPaperChartViewP
       <Box sx={chartAreaSx}>
         <Box sx={chartWrapperSx}>
           <IconButton sx={fullscreenButtonSx} onClick={handleFullscreen}>
-            <FullscreenIcon sx={{ fontSize: 24, color: 'label.alternative' }} />
+            <FullscreenIcon sx={{ fontSize: 24, color: "label.alternative" }} />
           </IconButton>
           <BubbleChart
             variant="normal"
@@ -172,7 +189,7 @@ const RecentPaperChartView = ({ periodMode, currentDate }: RecentPaperChartViewP
           selectedPaperIds={selectedPaperIds}
           onFilterChange={setFilter}
           onBack={handleBack}
-          onPaperClick={handlePaperClick}
+          onPaperClick={onPaperClick}
         />
       </Box>
     </Box>

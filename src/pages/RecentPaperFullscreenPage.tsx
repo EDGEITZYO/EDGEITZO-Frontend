@@ -1,70 +1,85 @@
-import { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Box, IconButton } from '@mui/material';
-import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
-import { type SxProps, type Theme } from '@mui/material/styles';
-import BubbleChart from '../components/saved/BubbleChart';
-import ChartRightPanel from '../components/saved/ChartRightPanel';
-import { type ChartFilter, type PeriodMode } from '../types/saved';
-import { MOCK_RECENT_PAPERS } from '../components/saved/RecentPaperListView';
+import { useState } from "react";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
+import { Box, IconButton } from "@mui/material";
+import CloseFullscreenIcon from "@mui/icons-material/CloseFullscreen";
+import { type SxProps, type Theme } from "@mui/material/styles";
+import BubbleChart from "../components/saved/BubbleChart";
+import ChartRightPanel from "../components/saved/ChartRightPanel";
+import { type ChartFilter, type PeriodMode } from "../types/saved";
+import { MOCK_RECENT_PAPERS } from "../components/saved/RecentPaperListView";
+import { isPeriodMode } from "../utils/savedUtils";
 
 const pageWrapperSx: SxProps<Theme> = {
-  display: 'flex',
-  flexDirection: 'column',
-  height: '100vh',
-  backgroundColor: 'background.default',
-  overflow: 'hidden',
+  display: "flex",
+  flexDirection: "column",
+  height: "100vh",
+  backgroundColor: "background.default",
+  overflow: "hidden",
 };
 
 const headerSx: SxProps<Theme> = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'flex-end',
-  padding: '8px 16px',
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "flex-end",
+  padding: "8px 16px",
   flexShrink: 0,
 };
 
 const contentSx: SxProps<Theme> = {
-  display: 'flex',
+  display: "flex",
   flex: 1,
-  gap: '15px',
-  padding: '0 16px 16px 16px',
-  overflow: 'hidden',
+  gap: "15px",
+  padding: "0 16px 16px 16px",
+  overflow: "hidden",
 };
 
 const chartWrapperSx: SxProps<Theme> = {
   flex: 1,
-  borderRadius: '16px',
-  backgroundColor: 'background.paper',
-  overflow: 'hidden',
+  borderRadius: "16px",
+  backgroundColor: "background.paper",
+  overflow: "hidden",
 };
 
 const RecentPaperFullscreenPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const [filter, setFilter] = useState<ChartFilter>({
-    publish: (searchParams.get('publish') as ChartFilter['publish']) || null,
-    citation: (searchParams.get('citation') as ChartFilter['citation']) || null,
+    publish: (searchParams.get("publish") as ChartFilter["publish"]) || null,
+    citation: (searchParams.get("citation") as ChartFilter["citation"]) || null,
   });
-  const [selectedPaperIds, setSelectedPaperIds] = useState<string[] | null>(null);
+  const [selectedPaperIds, setSelectedPaperIds] = useState<string[] | null>(
+    null,
+  );
 
   // TODO: API 연동 시 searchParams로 데이터 fetch
   const papers = MOCK_RECENT_PAPERS;
-  const periodMode = (searchParams.get('mode') as PeriodMode) ?? 'day';
+  const periodMode: PeriodMode = isPeriodMode(searchParams.get("mode"))
+    ? (searchParams.get("mode") as PeriodMode)
+    : "day";
 
   const handleBack = () => {
-    navigate(-1);
+    const params = new URLSearchParams({
+      tab: "recent",
+      view: "chart",
+      mode: searchParams.get("mode") ?? "day",
+      date: searchParams.get("date") ?? "",
+    });
+    navigate(`/saved?${params.toString()}`, { replace: true });
   };
 
   const handlePaperClick = (paperId: string) => {
-    navigate(`/papers/${paperId}`);
+    const returnTo = `${location.pathname}${location.search}`;
+    navigate(`/papers/${paperId}?returnTo=${encodeURIComponent(returnTo)}`);
   };
 
   return (
     <Box sx={pageWrapperSx}>
       <Box sx={headerSx}>
         <IconButton onClick={handleBack}>
-          <CloseFullscreenIcon sx={{ fontSize: 24, color: 'label.alternative' }} />
+          <CloseFullscreenIcon
+            sx={{ fontSize: 24, color: "label.alternative" }}
+          />
         </IconButton>
       </Box>
       <Box sx={contentSx}>

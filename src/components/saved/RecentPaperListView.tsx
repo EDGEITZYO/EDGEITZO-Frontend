@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Snackbar, Button } from '@mui/material';
 import { type SxProps, type Theme } from '@mui/material/styles';
 import RecentPaperCard from '../common/RecentPaperCard';
@@ -77,12 +76,13 @@ const formatDateLabel = (dateKey: string): string => {
 interface RecentPaperListViewProps {
   periodMode: PeriodMode;
   currentDate: Date;
+  onPaperClick: (paperId: string) => void;
 }
 
 const LOAD_SIZE = 20;
 
-const RecentPaperListView = ({ periodMode, currentDate }: RecentPaperListViewProps) => {
-  const navigate = useNavigate();
+// TODO: API 연동 시 periodMode, currentDate로 해당 기간 데이터 fetch
+const RecentPaperListView = ({ periodMode, currentDate, onPaperClick }: RecentPaperListViewProps) => {
   const [papers, setPapers] = useState<RecentPaper[]>(MOCK_RECENT_PAPERS.slice(0, LOAD_SIZE));
   const [hasMore, setHasMore] = useState(true);
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -147,10 +147,6 @@ const RecentPaperListView = ({ periodMode, currentDate }: RecentPaperListViewPro
     setSnackbarOpen(false);
   };
 
-  const handlePaperClick = (paperId: string) => {
-    navigate(`/papers/${paperId}`);
-  };
-
   const grouped = periodMode === 'week' ? groupByDate(papers) : groupByDate(papers);
   const sortedDates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
 
@@ -178,7 +174,7 @@ const RecentPaperListView = ({ periodMode, currentDate }: RecentPaperListViewPro
                     paper={paper}
                     onBookmark={handleBookmark}
                     onDelete={handleDelete}
-                    onClick={handlePaperClick}
+                    onClick={onPaperClick}
                   />
                 ))}
               </Box>
