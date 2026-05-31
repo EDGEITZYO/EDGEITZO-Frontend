@@ -14,6 +14,7 @@ import PaperDetailPage from '../pages/PaperDetailPage';
 import KeywordMapEditPage from '../pages/KeywordMapEditPage';
 import BookmarkFolderDetailPage from '../pages/BookmarkFolderDetailPage';
 import RecentPaperFullscreenPage from '../pages/RecentPaperFullscreenPage';
+import MyPageEditPage from '../pages/MyPageEditPage';
 
 const router = createBrowserRouter([
   { path: '/', element: <LandingPage /> },
@@ -31,6 +32,7 @@ const router = createBrowserRouter([
   { path: '/papers/:id', element: <PaperDetailPage /> },
   { path: '/saved/bookmark/:folderId', element: <BookmarkFolderDetailPage /> },
   { path: '/saved/recent/fullscreen', element: <RecentPaperFullscreenPage /> },
+  { path: '/mypage/edit', element: <MyPageEditPage /> },
 ]);
 
 export default router;
