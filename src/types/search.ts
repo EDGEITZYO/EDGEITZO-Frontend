@@ -1,3 +1,4 @@
+import { type PaperType } from './paper';
 // ─── 공통 ───────────────────────────────────────────────
 
 export type SearchView = 'chat' | 'list';
@@ -66,6 +67,7 @@ export interface PaperListItem {
   citationCount: number;
   readAt: string;
   isBookmarked: boolean;
+  paperType?: PaperType;
 }
 
 // ─── 검색 결과 ────────────────────────────────────────────

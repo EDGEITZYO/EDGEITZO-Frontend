@@ -1,3 +1,4 @@
+import { type PaperType } from './paper';
 // ─── 북마크 ──────────────────────────────────────────────
 
 export interface BookmarkFolder {
@@ -21,6 +22,7 @@ export interface BookmarkPaper {
   citationCount: number;
   readAt: string;
   isBookmarked: boolean;
+  paperType?: PaperType;
 }
 
 // ─── 폴더 Dialog ─────────────────────────────────────────
@@ -52,6 +54,7 @@ export interface RecentPaper {
   // 차트뷰용
   publishYear: number;  // X축: 출판 시기
   citationForChart: number;  // Y축: 인용 수
+  paperType?: PaperType;
 }
 
 export interface RecentPaperSummary {

@@ -1,6 +1,7 @@
 import { Box, Typography } from "@mui/material";
 import { type RecentPaper } from "../../types/home";
 import { useNavigate } from "react-router-dom";
+import PaperTypeBadge from '../common/PaperTypeBadge';
 
 interface RecentPaperCardProps {
   data: RecentPaper;
@@ -8,12 +9,14 @@ interface RecentPaperCardProps {
 
 const RecentPaperCard = ({ data }: RecentPaperCardProps) => {
   const navigate = useNavigate();
-  const { id, source, date, title, keywords, kciType, citationCount, readAt } =
+  const { id, source, date, title, keywords, kciType, citationCount, readAt, paperType } =
     data;
 
   return (
     <Box
-      onClick={() => navigate(`/papers/${id}?returnTo=${encodeURIComponent('/home')}`)}
+      onClick={() =>
+        navigate(`/papers/${id}?returnTo=${encodeURIComponent("/home")}`)
+      }
       sx={{
         padding: "18px 16px",
         borderRadius: "12px",
@@ -26,6 +29,9 @@ const RecentPaperCard = ({ data }: RecentPaperCardProps) => {
         cursor: "pointer",
       }}
     >
+      {/* 배지 행 */}
+      {paperType && <PaperTypeBadge paperType={paperType} />}
+
       {/* 출처 + 날짜 */}
       <Box sx={{ display: "flex", alignItems: "center", gap: "7px" }}>
         <Typography

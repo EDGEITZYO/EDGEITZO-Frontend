@@ -6,6 +6,7 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import { type PaperListItem } from "../../types/search";
+import PaperTypeBadge from "./PaperTypeBadge";
 
 interface PaperListCardProps {
   paper: PaperListItem;
@@ -115,14 +116,21 @@ const PaperListCard = ({ paper, onBookmark, onClick }: PaperListCardProps) => {
 
   return (
     <Box sx={containerSx} onClick={() => onClick(id)}>
-      {/* 상단: 출처/날짜 + 북마크 */}
-      <Box sx={{ position: "relative" }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: "7px" }}>
-          <Typography sx={metaSx}>{source}</Typography>
-          <Typography sx={metaSx}>{date}</Typography>
-        </Box>
+      {/* 배지 + 북마크 */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+        }}
+      >
+        {paper.paperType ? (
+          <PaperTypeBadge paperType={paper.paperType} />
+        ) : (
+          <Box />
+        )}
         <IconButton
-          sx={{ ...bookmarkButtonSx, position: "absolute", top: -4, right: 0 }}
+          sx={bookmarkButtonSx}
           onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
             e.stopPropagation();
             onBookmark(id);
@@ -134,6 +142,12 @@ const PaperListCard = ({ paper, onBookmark, onClick }: PaperListCardProps) => {
             <BookmarkBorderIcon sx={{ fontSize: 24, color: "#9195AB" }} />
           )}
         </IconButton>
+      </Box>
+
+      {/* 출처/날짜 */}
+      <Box sx={{ display: "flex", alignItems: "center", gap: "7px" }}>
+        <Typography sx={metaSx}>{source}</Typography>
+        <Typography sx={metaSx}>{date}</Typography>
       </Box>
 
       {/* 제목 */}
