@@ -1,5 +1,3 @@
-// src/types/user.ts
-
 export type Gender = '여성' | '남성' | '선택 안함';
 
 export type Job =
