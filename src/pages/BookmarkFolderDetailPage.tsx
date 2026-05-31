@@ -148,7 +148,9 @@ const BookmarkFolderDetailPage = () => {
   };
 
   const handlePaperClick = (paperId: string) => {
-    navigate(`/papers/${paperId}`);
+    navigate(
+      `/papers/${paperId}?returnTo=${encodeURIComponent(`/saved/bookmark/${folderId}`)}`,
+    );
   };
 
   return (

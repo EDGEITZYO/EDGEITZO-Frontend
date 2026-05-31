@@ -45,7 +45,7 @@ const RecentPaperSection = () => {
           최근 확인한 논문
         </Typography>
         <IconButton
-          onClick={() => navigate('/saved')}
+          onClick={() => navigate('/saved?tab=recent')}
           sx={{
             width: '36px',
             height: '36px',
