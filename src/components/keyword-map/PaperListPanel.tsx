@@ -22,6 +22,7 @@ const MOCK_PAPERS: KeywordPaper[] = [
     kciType: 'KCI O',
     citationCount: 0,
     isBookmarked: false,
+    paperType: '학위논문',
   },
   {
     id: '2',
@@ -33,6 +34,7 @@ const MOCK_PAPERS: KeywordPaper[] = [
     kciType: 'KCI O',
     citationCount: 0,
     isBookmarked: false,
+    paperType: '학술저널',
   },
   {
     id: '3',
@@ -44,6 +46,7 @@ const MOCK_PAPERS: KeywordPaper[] = [
     kciType: 'KCI O',
     citationCount: 0,
     isBookmarked: false,
+    paperType: '학위논문',
   },
   {
     id: '4',
@@ -55,6 +58,7 @@ const MOCK_PAPERS: KeywordPaper[] = [
     kciType: 'KCI O',
     citationCount: 0,
     isBookmarked: false,
+    paperType: '학술저널',
   },
 ];
 

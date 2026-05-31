@@ -15,6 +15,7 @@ const MOCK_DATA: RecentPaper[] = [
     kciType: 'KCI O',
     citationCount: 0,
     readAt: '2024.10.16.00:00',
+    paperType: '학위논문',
   },
   {
     id: '2',
@@ -25,6 +26,7 @@ const MOCK_DATA: RecentPaper[] = [
     kciType: 'KCI O',
     citationCount: 0,
     readAt: '2024.10.16.00:00',
+    paperType: '학술저널',
   },
 ];
 
@@ -45,7 +47,7 @@ const RecentPaperSection = () => {
           최근 확인한 논문
         </Typography>
         <IconButton
-          onClick={() => navigate('/saved')}
+          onClick={() => navigate('/saved?tab=recent')}
           sx={{
             width: '36px',
             height: '36px',

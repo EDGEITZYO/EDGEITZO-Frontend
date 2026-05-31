@@ -136,7 +136,7 @@ const MyPage = () => {
 
   return (
     <Box sx={containerSx}>
-      <Header />
+      <Header isLoggedIn />
       <Box sx={contentSx}>
         <Box sx={cardSx}>
           {/* 프로필 */}

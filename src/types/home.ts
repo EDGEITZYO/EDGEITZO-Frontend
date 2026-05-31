@@ -1,3 +1,5 @@
+import { type PaperType } from './paper';
+
 export type SearchType = 'keyword' | 'ai';
 
 export interface KeywordPath {
@@ -22,4 +24,5 @@ export interface RecentPaper {
   kciType: string;
   citationCount: number;
   readAt: string;
+  paperType?: PaperType;
 }

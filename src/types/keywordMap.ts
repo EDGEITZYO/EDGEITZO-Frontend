@@ -1,3 +1,4 @@
+import { type PaperType } from './paper';
 // ─── 노드 단계 ───────────────────────────────────────────
 
 export type NodeDepth = 1 | 2 | 3 | 4;
@@ -42,6 +43,7 @@ export interface KeywordPaper {
   kciType: string;            // "KCI O" 등
   citationCount: number;
   isBookmarked: boolean;
+  paperType?: PaperType;
 }
 
 // ─── 논문 상세 ────────────────────────────────────────────

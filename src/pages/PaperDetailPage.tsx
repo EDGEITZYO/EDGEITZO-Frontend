@@ -24,6 +24,7 @@ const MOCK_PAPER_DETAIL: PaperDetail = {
   kciType: "KCI O",
   citationCount: 0,
   isBookmarked: false,
+  paperType: '학위논문',
   abstract:
     "현재 자연어 처리(NLP)에 대한 연구는 급속히 발전하고 있다. 자연어 처리는 인간이 일상생활에서 사용하는 언어의 의미를 분석하여 컴퓨터가 처리할 수 있도록 하는 기술로 음성인식, 맞춤법 검사, 텍스트 분류 등 여러 분야에 사용하고 있다.",
   relatedPapers: [
@@ -104,7 +105,7 @@ const PaperDetailPage = () => {
 
   return (
     <Box sx={containerSx}>
-      <Header />
+      <Header isLoggedIn />
       <Box sx={{ padding: "29px 63px 0 63px" }}>
         {/* 뒤로가기 헤더 */}
         <Box

@@ -19,6 +19,7 @@ const MOCK_RECENT_PAPERS: RecentPaper[] = Array.from({ length: 20 }, (_, i) => (
   isBookmarked: false,
   publishYear: 2024 - (i % 5),
   citationForChart: i % 10,
+  paperType: i % 2 === 0 ? '학위논문' : '학술저널',
 }));
 
 // ─── 스타일 ───────────────────────────────────────────────
