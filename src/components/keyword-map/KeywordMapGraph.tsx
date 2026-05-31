@@ -323,32 +323,6 @@ const KeywordMapGraph = () => {
     [openPaperPanel, selectNode],
   );
 
-  // 브레드크럼 변화 감지 → 해당 depth 이후 노드/엣지 제거
-  useEffect(() => {
-    if (breadcrumbs.length === 0) return;
-    if (nodes.length === 0) return;
-    const maxDepth = Math.max(...breadcrumbs.map((b) => b.depth));
-
-    setNodes((nds) =>
-      nds
-        .filter((n) => n.data.depth <= maxDepth + 1)
-        .map((n) =>
-          n.data.depth === maxDepth + 1
-            ? { ...n, data: { ...n.data, isExpanded: false } }
-            : n,
-        ),
-    );
-
-    setEdges((eds) => {
-      const remainingNodeIds = new Set(
-        nodes.filter((n) => n.data.depth <= maxDepth + 1).map((n) => n.id),
-      );
-      return eds.filter(
-        (e) => remainingNodeIds.has(e.source) && remainingNodeIds.has(e.target),
-      );
-    });
-  }, [breadcrumbs]);
-
   // 로딩 상태
   if (isGenerating) {
     return (
