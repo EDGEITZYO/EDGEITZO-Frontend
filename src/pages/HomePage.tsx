@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Box } from "@mui/material";
 import Header from "../components/layout/Header";
-import BottomNav from "../components/layout/BottomNav";
 import PersonalMessage from "../components/home/PersonalMessage";
 import SearchBar from "../components/home/SearchBar";
 import RecentSearchSection from "../components/home/RecentSearchSection";
@@ -42,7 +41,6 @@ const HomePage = () => {
           <RecentPaperSection />
         </Box>
       </Box>
-      <BottomNav />
       <KeywordMapModal
         open={isKeywordMapModalOpen}
         onClose={() => setIsKeywordMapModalOpen(false)}

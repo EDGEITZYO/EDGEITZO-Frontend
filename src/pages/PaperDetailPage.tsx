@@ -104,7 +104,7 @@ const PaperDetailPage = () => {
 
   return (
     <Box sx={containerSx}>
-      <Header />
+      <Header isLoggedIn />
       <Box sx={{ padding: "29px 63px 0 63px" }}>
         {/* 뒤로가기 헤더 */}
         <Box

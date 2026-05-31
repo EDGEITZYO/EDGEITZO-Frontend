@@ -147,7 +147,7 @@ const MyPageEditPage = () => {
 
   return (
     <Box sx={containerSx}>
-      <Header />
+      <Header isLoggedIn />
       <Box sx={contentSx}>
         {/* 헤더 */}
         <Box sx={headerRowSx}>
