@@ -11,6 +11,7 @@ import Step4Job from "../components/onboarding/Step4Job";
 import Step5ResearchField from "../components/onboarding/Step5ResearchField";
 import Step6Purpose from "../components/onboarding/Step6Purpose";
 import OnboardingComplete from "../components/onboarding/OnboardingComplete";
+import { type Gender, type Job, type Purpose } from "../types/user";
 
 const STEP_TITLES: Record<number, string> = {
   1: "바이옴에게 어떤 이름으로 불리고 싶으세요?",
@@ -27,30 +28,11 @@ const OnboardingPage = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [name, setName] = useState("");
-  const [gender, setGender] = useState<"여성" | "남성" | "선택 안함" | null>(
-    null,
-  );
+  const [gender, setGender] = useState<Gender | null>(null);
   const [birthYear, setBirthYear] = useState<number | null>(null);
-  const [job, setJob] = useState<
-    | "대학원 진학 준비"
-    | "석사과정"
-    | "박사과정"
-    | "석박통합과정"
-    | "교수·연구원"
-    | "대학생"
-    | "기타"
-    | null
-  >(null);
+  const [job, setJob] = useState<Job | null>(null);
   const [researchField, setResearchField] = useState("");
-  const [purposes, setPurposes] = useState<
-    (
-      | "선택연구 주제 탐색"
-      | "랩미팅 발표 준비"
-      | "논문 작성 참고"
-      | "최신 트렌드 파악"
-      | "연구자 탐색"
-    )[]
-  >([]);
+  const [purposes, setPurposes] = useState<Purpose[]>([]);
 
   const handleBack = () => {
     if (currentStep > 1) setCurrentStep((prev) => prev - 1);
