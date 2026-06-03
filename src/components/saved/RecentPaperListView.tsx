@@ -6,16 +6,24 @@ import { type RecentPaper, type PeriodMode } from '../../types/saved';
 
 // ─── 목 데이터 ────────────────────────────────────────────
 // TODO: API 연동 시 교체
+const MOCK_READ_DATES = [
+  '2026.06.04',
+  '2026.06.03',
+  '2026.06.02',
+  '2026.06.01',
+  '2026.05.31',
+];
+
 const MOCK_RECENT_PAPERS: RecentPaper[] = Array.from({ length: 20 }, (_, i) => ({
   id: String(i + 1),
-  source: '2024한국정보과학회 논문지',
+  source: '2024한국분자세포생물학회 논문지',
   date: '2024.10.16',
-  title: '1지식 그래프와 검색증강생성을 결합한 학술 논문 탐색 시스템',
-  authors: ['홍길동', '김철수', '이영희', '박민수'],
+  title: '미토콘드리아 막전위 손실이 세포 노화에 미치는 영향',
+  authors: ['박민수', '김철수', '이영희', '홍길동'],
   keywords: ['논문 키워드', '논문 키워드'],
   kciType: 'KCI O',
   citationCount: 0,
-  readAt: `2026.04.${String(22 - (i % 5)).padStart(2, '0')}.00:00`,
+  readAt: `${MOCK_READ_DATES[i % 5]}.00:00`,
   isBookmarked: false,
   publishYear: 2024 - (i % 5),
   citationForChart: i % 10,

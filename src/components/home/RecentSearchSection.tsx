@@ -16,19 +16,19 @@ const MOCK_DATA: RecentSearch[] = [
   {
     id: '1',
     searchType: 'keyword',
-    title: '그래프 기반 논문 추천 시스템',
-    lastPaper: '감정 소비가 충동구매에 미치는 영향',
+    title: '세포 노화와 미토콘드리아 기능 저하',
+    lastPaper: 'Mitochondrial dysfunction in cellular senescence',
     path: [
-      { label: '그래프 기반' },
-      { label: 'Graph RAG' },
-      { label: '대조 학습' },
+      { label: '세포 노화' },
+      { label: '미토콘드리아' },
+      { label: 'ROS 축적' },
     ],
   },
   {
     id: '2',
     searchType: 'ai',
-    title: '스트레스와 소비 충동성 관련 논문',
-    lastPaper: '감정 소비가 충동구매에 미치는 영향',
+    title: 'Senescence-associated secretory phenotype in aging',
+    lastPaper: '분자생물학 내 세포 노화 연구 흐름',
     keywords: ['추천 검색 키워드', '추천 검색 키워드', '추천 검색 키워드'],
   },
 ];

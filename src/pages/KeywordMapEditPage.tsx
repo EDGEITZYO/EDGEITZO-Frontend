@@ -109,7 +109,7 @@ const KeywordMapEditPage = () => {
             </Typography>
             <TextField
               fullWidth
-              placeholder="LLM 설계"
+              placeholder="세포 노화"
               value={inputValue}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setInputValue(e.target.value)

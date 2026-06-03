@@ -20,7 +20,7 @@ const MOCK_FOLDERS: BookmarkFolder[] = [
   },
   {
     id: '1',
-    name: '어찌고',
+    name: '미토콘드리아',
     keywords: ['논문 키워드', '논문 키워드'],
     paperCount: 64,
     updatedAt: '2달 전',
@@ -28,7 +28,7 @@ const MOCK_FOLDERS: BookmarkFolder[] = [
   },
   {
     id: '2',
-    name: '어찌고',
+    name: '분자생물학',
     keywords: ['논문 키워드', '논문 키워드'],
     paperCount: 64,
     updatedAt: '2달 전',
@@ -36,7 +36,7 @@ const MOCK_FOLDERS: BookmarkFolder[] = [
   },
   {
     id: '3',
-    name: '어찌고',
+    name: '노화치료',
     keywords: ['논문 키워드', '논문 키워드'],
     paperCount: 64,
     updatedAt: '2달 전',

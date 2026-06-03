@@ -12,11 +12,11 @@ import { useNavigate } from "react-router-dom";
 
 // TODO: API 연동 시 실제 최근 검색어 데이터로 교체
 const MOCK_RECENT_SEARCHES: string[] = [
-  "재생 에너지 관련 논문",
-  "그래프 신경망",
-  "자연어 처리 최신 연구",
-  "기후 변화 대응 기술",
-  "딥러닝 기반 이미지 인식",
+  "세포 노화와 미토콘드리아 기능 저하",
+  "SASP 분비 기전",
+  "분자생물학 노화 최신 연구",
+  "ROS와 산화 스트레스 관련 논문",
+  "p53 경로 세포 주기 정지",
 ];
 
 interface SearchBarProps {
