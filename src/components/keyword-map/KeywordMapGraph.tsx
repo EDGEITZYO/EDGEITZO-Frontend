@@ -67,17 +67,17 @@ const getChildPosition = (
 // ─── 목 데이터 ────────────────────────────────────────────
 // TODO: API 연동 시 백엔드 응답으로 교체
 
-const MOCK_ROOT_KEYWORD = "LLM 설계";
+const MOCK_ROOT_KEYWORD = "세포 노화";
 
 const MOCK_CHILDREN: {
   label: string;
   axisLabel: EdgeAxisLabel;
   direction: NodeDirection;
 }[] = [
-  { label: "딥러닝", axisLabel: "상위분야", direction: "top" },
-  { label: "트랜스포머", axisLabel: "핵심기술", direction: "right" },
-  { label: "언어 모델", axisLabel: "연구대상", direction: "left" },
-  { label: "자연어처리", axisLabel: "응용분야", direction: "bottom" },
+  { label: "분자생물학", axisLabel: "상위분야", direction: "top" },
+  { label: "CRISPR", axisLabel: "핵심기술", direction: "right" },
+  { label: "미토콘드리아", axisLabel: "연구대상", direction: "left" },
+  { label: "노화치료", axisLabel: "응용분야", direction: "bottom" },
 ];
 
 // ─── 초기 노드/엣지 생성 ─────────────────────────────────
@@ -242,10 +242,10 @@ const KeywordMapGraph = () => {
 
       // TODO: API 연동 시 백엔드에서 하위 키워드 받아오기
       const mockChildLabels = [
-        "서브워드 분리",
-        "형태소 분석",
-        "텍스트 전처리",
-        "다국어 처리",
+        "ATP 합성",
+        "미토콘드리아 질환",
+        "미토파지",
+        "활성산소(ROS)",
       ];
 
       const newDepth = (nodeData.depth + 1) as 2 | 3 | 4;

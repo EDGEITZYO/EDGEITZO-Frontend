@@ -13,7 +13,7 @@ const MOCK_USER: UserProfile = {
   gender: "여성",
   birthYear: 2003,
   job: "석사과정",
-  researchField: "디지털미디어 · HCI/UX",
+  researchField: "생명과학 · 분자생물학",
   purposes: ["연구 주제 탐색", "논문 작성 참고", "최신 트렌드 파악"],
 };
 

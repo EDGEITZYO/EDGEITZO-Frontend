@@ -8,9 +8,9 @@ import { type RecentPaper } from '../../types/home';
 const MOCK_DATA: RecentPaper[] = [
   {
     id: '1',
-    source: '2024한국정보과학회 논문지',
-    date: '2024.10.16',
-    title: '1지식 그래프와 검색증강생성을 결합한 학술 논문 탐색 시스템',
+    source: '2024한국분자세포생물학회 논문지',
+    date: '2024.03.12',
+    title: '미토콘드리아 막전위 손실이 세포 노화에 미치는 영향',
     keywords: ['논문 키워드', '논문 키워드'],
     kciType: 'KCI O',
     citationCount: 0,
@@ -19,9 +19,9 @@ const MOCK_DATA: RecentPaper[] = [
   },
   {
     id: '2',
-    source: '2024한국정보과학회 논문지',
-    date: '2024.10.16',
-    title: '1지식 그래프와 검색증강생성을 결합한 학술 논문 탐색 시스템',
+    source: '2023한국생화학분자생물학회',
+    date: '2023.11.05',
+    title: '노화 세포의 SASP 분비 기전 및 조절 전략',
     keywords: ['논문 키워드', '논문 키워드'],
     kciType: 'KCI O',
     citationCount: 0,

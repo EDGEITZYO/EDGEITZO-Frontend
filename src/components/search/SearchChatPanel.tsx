@@ -166,21 +166,21 @@ const SearchChatPanel = ({
 
   // TODO: API 연동 시 백엔드에서 받은 키워드로 교체
   const [narrowDownChoices] = useState<ChatChoice[]>([
-    { id: "1", label: "충동구매(Impulsive Buying)", isMultiple: true },
-    { id: "2", label: "스트레스 대처(Stress Coping)", isMultiple: true },
-    { id: "3", label: "감정 소비(Emotional Consumption)", isMultiple: true },
-    { id: "4", label: "자기조절(Self-Regulation)", isMultiple: true },
-    { id: "5", label: "보상 심리(Reward Seeking)", isMultiple: true },
+    { id: "1", label: "세포 노화(Cellular Senescence)", isMultiple: true },
+    { id: "2", label: "미토콘드리아(Mitochondria)", isMultiple: true },
+    { id: "3", label: "활성산소종(Reactive Oxygen Species)", isMultiple: true },
+    { id: "4", label: "노화 관련 분비 표현형(SASP)", isMultiple: true },
+    { id: "5", label: "자가포식(Autophagy)", isMultiple: true },
   ]);
 
   // TODO: API 연동 시 백엔드에서 받은 추가 키워드로 교체
   const [refineChoices] = useState<ChatChoice[]>([
-    { id: "1", label: "태양에너지" },
-    { id: "2", label: "풍력에너지" },
-    { id: "3", label: "수력에너지" },
-    { id: "4", label: "바이오에너지" },
-    { id: "5", label: "지열에너지" },
-    { id: "6", label: "해양에너지" },
+    { id: "1", label: "미토콘드리아 막전위" },
+    { id: "2", label: "ROS 산화 스트레스" },
+    { id: "3", label: "p53·p21 신호 경로" },
+    { id: "4", label: "텔로미어 단축" },
+    { id: "5", label: "염증성 사이토카인" },
+    { id: "6", label: "DNA 손상 반응" },
   ]);
 
   const [isRefining, setIsRefining] = useState(false);
