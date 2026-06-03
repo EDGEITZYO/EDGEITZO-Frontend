@@ -56,7 +56,7 @@ const SearchPage = () => {
   const state = location.state as LocationState | null;
 
   const query = state?.query ?? "";
-  const [title, setTitle] = useState(state?.title ?? "검색");
+  const [title] = useState(state?.title ?? "검색");
 
   const [view, setView] = useState<SearchView>(
     state?.directSearch ? "list" : "chat",

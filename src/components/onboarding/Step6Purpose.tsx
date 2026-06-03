@@ -2,7 +2,7 @@ import { Box, Typography } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import OnboardingNextButton from './OnboardingNextButton';
 
-const PURPOSE_OPTIONS = ['선택연구 주제 탐색', '랩미팅 발표 준비', '논문 작성 참고', '최신 트렌드 파악', '연구자 탐색'] as const;
+const PURPOSE_OPTIONS = ['연구 주제 탐색', '랩미팅 발표 준비', '논문 작성 참고', '최신 트렌드 파악', '연구자 탐색'] as const;
 type PurposeOption = typeof PURPOSE_OPTIONS[number];
 
 interface Step6PurposeProps {

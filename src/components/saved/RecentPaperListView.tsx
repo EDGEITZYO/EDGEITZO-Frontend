@@ -76,14 +76,13 @@ const formatDateLabel = (dateKey: string): string => {
 
 interface RecentPaperListViewProps {
   periodMode: PeriodMode;
-  currentDate: Date;
   onPaperClick: (paperId: string) => void;
 }
 
 const LOAD_SIZE = 20;
 
 // TODO: API 연동 시 periodMode, currentDate로 해당 기간 데이터 fetch
-const RecentPaperListView = ({ periodMode, currentDate, onPaperClick }: RecentPaperListViewProps) => {
+const RecentPaperListView = ({ periodMode, onPaperClick }: RecentPaperListViewProps) => {
   const [papers, setPapers] = useState<RecentPaper[]>(MOCK_RECENT_PAPERS.slice(0, LOAD_SIZE));
   const [hasMore, setHasMore] = useState(true);
   const [showScrollTop, setShowScrollTop] = useState(false);
