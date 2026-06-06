@@ -17,10 +17,18 @@ import KeywordMapEditPage from "../pages/KeywordMapEditPage";
 import BookmarkFolderDetailPage from "../pages/BookmarkFolderDetailPage";
 import RecentPaperFullscreenPage from "../pages/RecentPaperFullscreenPage";
 import MyPageEditPage from "../pages/MyPageEditPage";
+import OAuthCallbackPage from "../pages/OAuthCallbackPage";
 
 const router = createBrowserRouter([
-  // 랜딩 (별도 처리 - LandingPage 내부에서 /auth/start 호출)
-  { path: "/", element: <LandingPage /> },
+  // 랜딩 (로그인 상태면 /home으로)
+  {
+    path: "/",
+    element: (
+      <GuestGuard>
+        <LandingPage />
+      </GuestGuard>
+    ),
+  },
 
   // 공개 경로 (로그인 상태면 /home으로)
   {
@@ -49,15 +57,15 @@ const router = createBrowserRouter([
   },
   {
     path: "/signup/complete",
-    element: (
-      <GuestGuard>
-        <SignupCompletePage />
-      </GuestGuard>
-    ),
+    element: <SignupCompletePage />,
   },
 
-  // 온보딩 (토큰은 있지만 프로필 미설정 - 가드 없음)
+  // 온보딩 (가드 없음)
   { path: "/onboarding", element: <OnboardingPage /> },
+
+  // OAuth 콜백 (가드 없음)
+  { path: "/profile", element: <OAuthCallbackPage type="new" /> },
+  { path: "/main", element: <OAuthCallbackPage type="existing" /> },
 
   // 보호된 경로
   {
