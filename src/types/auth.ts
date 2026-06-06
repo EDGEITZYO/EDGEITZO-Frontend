@@ -1,7 +1,13 @@
 export interface TokenResponse {
   access_token: string;
   refresh_token: string;
-  token_type: "bearer";
+  token_type: 'bearer';
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
 }
 
 export interface AuthStartResponse {

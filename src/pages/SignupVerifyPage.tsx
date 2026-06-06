@@ -5,6 +5,8 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { useNavigate, useLocation } from "react-router-dom";
 import AuthLayout from "../components/layout/AuthLayout";
+import { authApi } from "../api/auth";
+import axios from "axios";
 
 const RESEND_COOLDOWN = 30;
 
@@ -39,7 +41,9 @@ const inputSx: SxProps<Theme> = {
 const SignupVerifyPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const email = (location.state as { email?: string } | null)?.email ?? "";
+  const email =
+    (location.state as { email?: string; password?: string } | null)?.email ??
+    "";
 
   const [code, setCode] = useState("");
   const [verifyError, setVerifyError] = useState(false);
@@ -49,6 +53,19 @@ const SignupVerifyPage = () => {
   const startCooldown = () => {
     setCooldown(RESEND_COOLDOWN);
   };
+
+  const hasSentCode = useRef(false);
+
+  useEffect(() => {
+    if (!email) {
+      navigate("/signup", { replace: true });
+      return;
+    }
+    if (hasSentCode.current) return;
+    hasSentCode.current = true;
+
+    authApi.sendCode({ email }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -66,18 +83,28 @@ const SignupVerifyPage = () => {
     };
   }, [cooldown]);
 
-  const handleVerify = () => {
-    // TODO: API 연동 시 교체
-    // 임시 에러 표시
-    // setVerifyError(true);
-    navigate("/signup/complete", { state: { type: "email" } });
+  const handleVerify = async () => {
+    try {
+      await authApi.verifyCode({ email, code });
+      navigate("/signup/complete", {
+        state: location.state,
+      });
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response?.status === 400) {
+        setVerifyError(true);
+      }
+    }
   };
 
-  const handleResend = () => {
+  const handleResend = async () => {
     if (cooldown > 0) return;
     startCooldown();
     setVerifyError(false);
-    // TODO: 재전송 API 호출
+    try {
+      await authApi.sendCode({ email });
+    } catch {
+      // 재발송 실패 시 별도 처리 없음
+    }
   };
 
   return (

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../stores/authStore";
 import { authApi } from "../api/auth";
@@ -11,9 +11,13 @@ export default function AuthGuard({ children }: AuthGuardProps) {
   const [isChecking, setIsChecking] = useState(true);
   const { accessToken, setTokens, clearAuth } = useAuthStore();
   const navigate = useNavigate();
+  const hasChecked = useRef(false);
 
   useEffect(() => {
     const checkAuth = async () => {
+      if (hasChecked.current) return;
+      hasChecked.current = true;
+
       if (accessToken) {
         setIsChecking(false);
         return;

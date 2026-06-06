@@ -2,8 +2,9 @@ import { Box, Typography, Button } from "@mui/material";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import { useNavigate, useLocation } from "react-router-dom";
 import AuthLayout from "../components/layout/AuthLayout";
-
-type SignupCompleteState = { type: "email" } | { type: "social"; name: string };
+import { useEffect, useRef } from "react";
+import { authApi } from "../api/auth";
+import { useAuthStore } from "../stores/authStore";
 
 const cardSx: SxProps<Theme> = {
   display: "flex",
@@ -20,10 +21,39 @@ const cardSx: SxProps<Theme> = {
 const SignupCompletePage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const state = location.state as SignupCompleteState | null;
+  const state = location.state as
+    | { type: "email"; email: string; password: string }
+    | { type: "social"; name: string }
+    | null;
+  const { setTokens } = useAuthStore();
 
   const isEmail = !state || state.type === "email";
   const name = !isEmail && state?.type === "social" ? state.name : "";
+
+  const hasRegistered = useRef(false);
+
+  useEffect(() => {
+    if (!state || state.type !== "email") return;
+    if (!state.email || !state.password) {
+      navigate("/signup", { replace: true });
+      return;
+    }
+    if (hasRegistered.current) return;
+    hasRegistered.current = true;
+
+    authApi
+      .register({
+        email: state.email,
+        password: state.password,
+        confirm_password: state.password,
+      })
+      .then(({ data }) => {
+        setTokens(data.data);
+      })
+      .catch(() => {
+        navigate("/signup", { replace: true });
+      });
+  }, []);
 
   return (
     <AuthLayout>

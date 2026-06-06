@@ -1,5 +1,6 @@
 import apiClient from "./client";
 import type {
+  ApiResponse,
   EmailCheckRequest,
   SendCodeRequest,
   VerifyCodeRequest,
@@ -23,10 +24,10 @@ export const authApi = {
     apiClient.post<string>("/auth/email/verify-code", data),
 
   register: (data: RegisterRequest) =>
-    apiClient.post<TokenResponse>("/auth/register", data),
+    apiClient.post<ApiResponse<TokenResponse>>("/auth/register", data),
 
   login: (data: LoginRequest) =>
-    apiClient.post<TokenResponse>("/auth/login", data),
+    apiClient.post<ApiResponse<TokenResponse>>("/auth/login", data),
 
   createProfile: (data: ProfileRequest) =>
     apiClient.post<string>("/auth/profile", data),
