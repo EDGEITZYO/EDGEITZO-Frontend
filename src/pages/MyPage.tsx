@@ -1,27 +1,24 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Typography, Avatar, Button, Chip } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Avatar,
+  Button,
+  Chip,
+  CircularProgress,
+} from "@mui/material";
 import { type SxProps, type Theme } from "@mui/material/styles";
+import { useQuery } from "@tanstack/react-query";
 import Header from "../components/layout/Header";
 import LogoutDialog from "../components/mypage/LogoutDialog";
-import { type UserProfile } from "../types/user";
-import { birthYearToAgeGroup } from "../utils/userUtils";
-
-// TODO: API 연동 시 실제 유저 데이터로 교체
-const MOCK_USER: UserProfile = {
-  name: "홍길동",
-  gender: "여성",
-  birthYear: 2003,
-  job: "석사과정",
-  researchField: "생명과학 · 분자생물학",
-  purposes: ["연구 주제 탐색", "논문 작성 참고", "최신 트렌드 파악"],
-};
+import { mypageApi } from "../api/mypage";
 
 const INFO_ROWS = [
   { label: "성별", key: "gender" },
   { label: "나이", key: "age" },
-  { label: "역할", key: "job" },
-  { label: "전공 · 연구 분야", key: "researchField" },
+  { label: "역할", key: "role" },
+  { label: "전공 · 연구 분야", key: "research_field" },
 ] as const;
 
 const containerSx: SxProps<Theme> = {
@@ -124,15 +121,48 @@ const MyPage = () => {
   const navigate = useNavigate();
   const [logoutOpen, setLogoutOpen] = useState(false);
 
-  // TODO: API 연동 시 실제 유저 데이터 fetch로 교체
-  const user = MOCK_USER;
+  const { data, isPending, isError } = useQuery({
+    queryKey: ["mypage"],
+    queryFn: async () => {
+      const res = await mypageApi.getMypage();
+      return res.data.data;
+    },
+    staleTime: 1000 * 60 * 5,
+  });
 
-  const infoValues: Record<(typeof INFO_ROWS)[number]["key"], string> = {
-    gender: user.gender,
-    age: birthYearToAgeGroup(user.birthYear),
-    job: user.job,
-    researchField: user.researchField,
-  };
+  if (isPending) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <Typography>
+          프로필 정보를 불러오지 못했어요. 다시 시도해주세요.
+        </Typography>
+      </Box>
+    );
+  }
+
+  const { profile } = data;
 
   return (
     <Box sx={containerSx}>
@@ -151,13 +181,13 @@ const MyPage = () => {
                 color: "static.white",
               }}
             >
-              {user.name[0]}
+              {profile.name[0]}
             </Avatar>
             <Typography
               variant="h4"
               sx={{ color: "label.neutral", textAlign: "center" }}
             >
-              {user.name}
+              {profile.name}
             </Typography>
           </Box>
 
@@ -171,7 +201,7 @@ const MyPage = () => {
                   {label}
                 </Typography>
                 <Typography variant="body1" sx={infoValueSx}>
-                  {infoValues[key]}
+                  {profile[key] ?? "선택 안함"}
                 </Typography>
               </Box>
             ))}
@@ -180,7 +210,7 @@ const MyPage = () => {
                 논문 탐색 목적
               </Typography>
               <Box sx={purposeWrapSx}>
-                {user.purposes.map((purpose) => (
+                {profile.purposes.map((purpose) => (
                   <Chip
                     key={purpose}
                     label={purpose}

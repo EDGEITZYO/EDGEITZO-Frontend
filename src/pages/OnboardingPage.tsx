@@ -11,7 +11,7 @@ import Step4Job from "../components/onboarding/Step4Job";
 import Step5ResearchField from "../components/onboarding/Step5ResearchField";
 import Step6Purpose from "../components/onboarding/Step6Purpose";
 import OnboardingComplete from "../components/onboarding/OnboardingComplete";
-import { type Gender, type Job, type Purpose } from "../types/user";
+import { type Gender, type Role, type Purpose } from "../types/user";
 import { authApi } from "../api/auth";
 
 const STEP_TITLES: Record<number, string> = {
@@ -31,7 +31,7 @@ const OnboardingPage = () => {
   const [name, setName] = useState("");
   const [gender, setGender] = useState<Gender | null>(null);
   const [birthYear, setBirthYear] = useState<number | null>(null);
-  const [job, setJob] = useState<Job | null>(null);
+  const [job, setJob] = useState<Role | null>(null);
   const [researchField, setResearchField] = useState("");
   const [purposes, setPurposes] = useState<Purpose[]>([]);
 
@@ -46,11 +46,15 @@ const OnboardingPage = () => {
   const handleStart = async () => {
     if (!gender || !birthYear || !job) return;
 
+    const currentYear = new Date().getFullYear();
+    const age = Math.floor((currentYear - birthYear + 1) / 10) * 10;
+    const ageGroup = `${age}대`;
+
     try {
       await authApi.createProfile({
         name,
         gender,
-        age: String(birthYear),
+        age: ageGroup,
         role: job,
         research_field: researchField,
         purposes,

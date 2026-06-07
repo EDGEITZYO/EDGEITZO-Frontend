@@ -7,6 +7,9 @@ import {
   Button,
   Typography,
 } from "@mui/material";
+import { useMutation } from "@tanstack/react-query";
+import { authApi } from "../../api/auth";
+import { useAuthStore } from "../../stores/authStore";
 
 interface LogoutDialogProps {
   open: boolean;
@@ -15,11 +18,22 @@ interface LogoutDialogProps {
 
 const LogoutDialog = ({ open, onClose }: LogoutDialogProps) => {
   const navigate = useNavigate();
+  const clearAuth = useAuthStore((state) => state.clearAuth);
+
+  const { mutate: logout } = useMutation({
+    mutationFn: () => {
+      const refreshToken = localStorage.getItem("refreshToken") ?? "";
+      return authApi.logout({ refresh_token: refreshToken });
+    },
+    onSettled: () => {
+      clearAuth();
+      onClose();
+      navigate("/login");
+    },
+  });
 
   const handleConfirm = () => {
-    // TODO: API 연동 시 세션·인증 토큰 삭제 처리 추가
-    onClose();
-    navigate("/login");
+    logout();
   };
 
   return (
