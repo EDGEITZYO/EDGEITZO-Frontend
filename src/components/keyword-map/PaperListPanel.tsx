@@ -34,7 +34,7 @@ const MOCK_PAPERS: KeywordPaper[] = [
     kciType: 'KCI O',
     citationCount: 0,
     isBookmarked: false,
-    paperType: '학술저널',
+    paperType: '저널',
   },
   {
     id: '3',
@@ -58,7 +58,7 @@ const MOCK_PAPERS: KeywordPaper[] = [
     kciType: 'KCI O',
     citationCount: 0,
     isBookmarked: false,
-    paperType: '학술저널',
+    paperType: '저널',
   },
 ];
 

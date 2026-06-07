@@ -1,4 +1,4 @@
-export type PaperType = '학위논문' | '학술저널';
+export type PaperType = "저널" | "학위논문" | "학회";
 
 // ─── 논문 공통 베이스 ─────────────────────────────────────
 export interface PaperBase {
