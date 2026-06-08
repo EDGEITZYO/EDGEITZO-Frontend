@@ -5,13 +5,13 @@ import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import BubbleChart from "./BubbleChart";
 import ChartRightPanel from "./ChartRightPanel";
+import { type ChartFilter, type PeriodMode } from "../../types/saved";
+// TODO: [이슈 B] API 연동 시 MockRecentPaper → RecentPaper로 교체
 import {
-  type RecentPaper,
-  type ChartFilter,
-  type PeriodMode,
-} from "../../types/saved";
-import { MOCK_RECENT_PAPERS } from "./RecentPaperListView";
-import { formatDateParam } from '../../utils/savedUtils';
+  type MockRecentPaper,
+  MOCK_RECENT_PAPERS,
+} from "./RecentPaperListView";
+import { formatDateParam } from "../../utils/savedUtils";
 
 // ─── 목 데이터 ────────────────────────────────────────────
 // TODO: API 연동 시 교체
@@ -118,11 +118,12 @@ const RecentPaperChartView = ({
   );
 
   // TODO: API 연동 시 periodMode, currentDate로 데이터 fetch
-  const papers: RecentPaper[] = MOCK_RECENT_PAPERS;
+  // TODO: [이슈 B] API 연동 시 실제 데이터로 교체
+  const papers: MockRecentPaper[] = MOCK_RECENT_PAPERS;
 
   const filter: ChartFilter = {
-    publish: (searchParams.get('publish') as ChartFilter['publish']) || null,
-    citation: (searchParams.get('citation') as ChartFilter['citation']) || null,
+    publish: (searchParams.get("publish") as ChartFilter["publish"]) || null,
+    citation: (searchParams.get("citation") as ChartFilter["citation"]) || null,
   };
 
   const handleDotClick = (paperIds: string[]) => {
