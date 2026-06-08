@@ -13,9 +13,10 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
 import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { bookmarkApi } from "../../api/bookmark";
 import { type BookmarkFolder } from "../../types/saved";
+import FolderDialog from "../saved/FolderDialog";
 
 interface BookmarkFolderSelectDialogProps {
   open: boolean;
@@ -30,8 +31,10 @@ const BookmarkFolderSelectDialog = ({
   paperId,
   onBookmarkAdded,
 }: BookmarkFolderSelectDialogProps) => {
+  const queryClient = useQueryClient();
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [createFolderDialogOpen, setCreateFolderDialogOpen] = useState(false);
 
   const { data: folders, isPending } = useQuery({
     queryKey: ["bookmark-folders"],
@@ -41,6 +44,19 @@ const BookmarkFolderSelectDialog = ({
     },
     staleTime: 1000 * 60 * 5,
     enabled: open,
+  });
+
+  const { mutate: createFolder } = useMutation({
+    mutationFn: (name: string) => bookmarkApi.createFolder(name),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["bookmark-folders"] });
+      queryClient.invalidateQueries({ queryKey: ["saved-bookmark-folders"] });
+      setCreateFolderDialogOpen(false);
+    },
+    onError: () => {
+      setSnackbarMessage("폴더 생성에 실패했어요");
+      setSnackbarOpen(true);
+    },
   });
 
   const handleFolderSelect = async (folder: BookmarkFolder) => {
@@ -57,8 +73,16 @@ const BookmarkFolderSelectDialog = ({
   };
 
   const handleAddFolder = () => {
-    // TODO: 폴더 생성 다이얼로그 연결 (Saved 이슈에서 처리)
-    console.log("폴더 추가하기");
+    setCreateFolderDialogOpen(true);
+  };
+
+  const handleCreateFolderConfirm = (
+    mode: "create" | "edit" | "delete",
+    name?: string,
+  ) => {
+    if (mode === "create" && name) {
+      createFolder(name);
+    }
   };
 
   return (
@@ -85,7 +109,9 @@ const BookmarkFolderSelectDialog = ({
             pb: 1,
           }}
         >
-          <Typography variant="h5" sx={{ color: "label.strong" }}>
+          <Typography
+            sx={{ fontSize: "20px", fontWeight: 700, color: "label.strong" }}
+          >
             폴더 선택
           </Typography>
           <IconButton onClick={onClose} size="small">
@@ -149,6 +175,16 @@ const BookmarkFolderSelectDialog = ({
           )}
         </DialogContent>
       </Dialog>
+
+      <FolderDialog
+        key={createFolderDialogOpen ? "create-open" : "create-closed"}
+        open={createFolderDialogOpen}
+        mode="create"
+        targetFolder={null}
+        onClose={() => setCreateFolderDialogOpen(false)}
+        onConfirm={handleCreateFolderConfirm}
+      />
+
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={2000}
