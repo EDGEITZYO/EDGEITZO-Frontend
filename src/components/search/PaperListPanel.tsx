@@ -60,7 +60,7 @@ const MOCK_PAPERS: PaperListItem[] = [
     citationCount: 0,
     readAt: "2024.10.16.00:00",
     isBookmarked: false,
-    paperType: '학위논문',
+    paperType: "박사 학위 논문",
   },
   {
     id: "2",
@@ -75,7 +75,7 @@ const MOCK_PAPERS: PaperListItem[] = [
     citationCount: 0,
     readAt: "2024.10.16.00:00",
     isBookmarked: false,
-    paperType: '저널',
+    paperType: "학술 저널",
   },
   {
     id: "3",
@@ -90,7 +90,7 @@ const MOCK_PAPERS: PaperListItem[] = [
     citationCount: 0,
     readAt: "2024.10.16.00:00",
     isBookmarked: false,
-    paperType: '학위논문',
+    paperType: "박사 학위 논문",
   },
 ];
 
