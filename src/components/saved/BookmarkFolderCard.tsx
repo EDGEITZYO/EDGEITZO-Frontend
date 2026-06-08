@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Box, Typography, IconButton, Menu, MenuItem } from "@mui/material";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import { type SxProps, type Theme } from "@mui/material/styles";
+import { formatDistanceToNow } from "date-fns";
+import { ko } from "date-fns/locale";
 import { type BookmarkFolder } from "../../types/saved";
 
 interface BookmarkFolderCardProps {
@@ -70,6 +72,18 @@ const menuItemSx: SxProps<Theme> = {
   px: "12px",
 };
 
+const formatUpdatedAt = (updatedAt: string): string => {
+  if (!updatedAt) return "";
+  try {
+    return formatDistanceToNow(new Date(updatedAt), {
+      addSuffix: true,
+      locale: ko,
+    });
+  } catch {
+    return "";
+  }
+};
+
 const BookmarkFolderCard = ({
   folder,
   onClick,
@@ -77,6 +91,7 @@ const BookmarkFolderCard = ({
 }: BookmarkFolderCardProps) => {
   const { id, name, representative_keywords, paper_count, updated_at } = folder;
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+  const isAllFolder = id === "all";
 
   const handleMoreClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
@@ -96,49 +111,51 @@ const BookmarkFolderCard = ({
     <Box sx={cardSx} onClick={() => onClick(id)}>
       <Box sx={headerSx}>
         <Typography sx={nameSx}>{name}</Typography>
-        <>
-          <IconButton
-            size="small"
-            sx={{ p: "0px", width: 24, height: 24 }}
-            onClick={handleMoreClick}
-          >
-            <MoreHorizIcon sx={{ fontSize: 24, color: "label.assistive" }} />
-          </IconButton>
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
-            slotProps={{
-              paper: {
-                sx: {
-                  borderRadius: "12px",
-                  boxShadow: "0px 4px 16px rgba(0,0,0,0.12)",
-                  padding: "4px",
+        {!isAllFolder && (
+          <>
+            <IconButton
+              size="small"
+              sx={{ p: "0px", width: 24, height: 24 }}
+              onClick={handleMoreClick}
+            >
+              <MoreHorizIcon sx={{ fontSize: 24, color: "label.assistive" }} />
+            </IconButton>
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={handleMenuClose}
+              slotProps={{
+                paper: {
+                  sx: {
+                    borderRadius: "12px",
+                    boxShadow: "0px 4px 16px rgba(0,0,0,0.12)",
+                    padding: "4px",
+                  },
                 },
-              },
-            }}
-            onClick={(e: React.MouseEvent) => e.stopPropagation()}
-          >
-            <MenuItem
-              sx={menuItemSx}
-              onClick={(e: React.MouseEvent) => {
-                e.stopPropagation();
-                handleMenuAction("edit");
               }}
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
             >
-              수정
-            </MenuItem>
-            <MenuItem
-              sx={{ ...menuItemSx, color: "error.main" }}
-              onClick={(e: React.MouseEvent) => {
-                e.stopPropagation();
-                handleMenuAction("delete");
-              }}
-            >
-              삭제
-            </MenuItem>
-          </Menu>
-        </>
+              <MenuItem
+                sx={menuItemSx}
+                onClick={(e: React.MouseEvent) => {
+                  e.stopPropagation();
+                  handleMenuAction("edit");
+                }}
+              >
+                수정
+              </MenuItem>
+              <MenuItem
+                sx={{ ...menuItemSx, color: "error.main" }}
+                onClick={(e: React.MouseEvent) => {
+                  e.stopPropagation();
+                  handleMenuAction("delete");
+                }}
+              >
+                삭제
+              </MenuItem>
+            </Menu>
+          </>
+        )}
       </Box>
       <Box sx={keywordRowSx}>
         {representative_keywords.map((keyword, index) => (
@@ -148,7 +165,8 @@ const BookmarkFolderCard = ({
         ))}
       </Box>
       <Typography sx={metaSx}>
-        논문 {paper_count}개 &nbsp; {updated_at}
+        논문 {paper_count}개 &nbsp;{" "}
+        {updated_at ? formatUpdatedAt(updated_at) : ""}
       </Typography>
     </Box>
   );
