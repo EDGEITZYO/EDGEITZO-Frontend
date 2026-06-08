@@ -28,7 +28,7 @@ const PaperTypeBadge = ({ paperType }: { paperType: PaperType }) => (
       borderRadius: "7px",
       height: "28px",
       backgroundColor:
-        paperType === "학위논문" ? "primary.dark" : "status.negative",
+        paperType === "학술 저널" ? "status.negative" : "primary.dark",
     }}
   >
     <Typography
@@ -194,6 +194,9 @@ const PaperDetailContent = ({
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["bookmark", paperId] });
+      queryClient.invalidateQueries({ queryKey: ["saved-bookmarks"] });
+      queryClient.invalidateQueries({ queryKey: ["saved-bookmark-folders"] });
+      queryClient.invalidateQueries({ queryKey: ["saved-bookmarks-total"] });
     },
   });
 
@@ -270,7 +273,7 @@ const PaperDetailContent = ({
         >
           <Box sx={{ display: "flex", gap: "6px", alignItems: "center" }}>
             {paperData.paper_type && (
-              <PaperTypeBadge paperType={paperData.paper_type as PaperType} />
+              <PaperTypeBadge paperType={paperData.paper_type} />
             )}
             {paperData.trust_badge.kci && <DarkBadge label="KCI" />}
             <DarkBadge label={`인용수 ${paperData.citation_count}`} />

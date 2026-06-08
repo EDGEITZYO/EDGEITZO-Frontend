@@ -1,50 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Typography, Button } from "@mui/material";
+import { Box, Typography, Button, CircularProgress } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { type SxProps, type Theme } from "@mui/material/styles";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import BookmarkFolderCard from "./BookmarkFolderCard";
 import FolderDialog from "./FolderDialog";
-import { type BookmarkFolder, type FolderDialogState } from "../../types/saved";
-
-// ─── 목 데이터 ────────────────────────────────────────────
-// TODO: API 연동 시 교체
-const MOCK_FOLDERS: BookmarkFolder[] = [
-  {
-    id: "all",
-    name: "전체 파일",
-    representative_keywords: ["논문 키워드", "논문 키워드"],
-    paper_count: 64,
-    updated_at: "2달 전",
-    created_at: "",
-  },
-  {
-    id: "1",
-    name: "미토콘드리아",
-    representative_keywords: ["논문 키워드", "논문 키워드"],
-    paper_count: 64,
-    updated_at: "2달 전",
-    created_at: "",
-  },
-  {
-    id: "2",
-    name: "분자생물학",
-    representative_keywords: ["논문 키워드", "논문 키워드"],
-    paper_count: 64,
-    updated_at: "2달 전",
-    created_at: "",
-  },
-  {
-    id: "3",
-    name: "노화치료",
-    representative_keywords: ["논문 키워드", "논문 키워드"],
-    paper_count: 64,
-    updated_at: "2달 전",
-    created_at: "",
-  },
-];
-
-// ─── 스타일 ───────────────────────────────────────────────
+import { type FolderDialogState, type BookmarkFolder } from "../../types/saved";
+import { bookmarkApi } from "../../api/bookmark";
 
 const containerSx: SxProps<Theme> = {
   display: "flex",
@@ -84,7 +47,14 @@ const gridSx: SxProps<Theme> = {
   gap: "27px",
 };
 
-// ─── 컴포넌트 ─────────────────────────────────────────────
+const ALL_FOLDER: BookmarkFolder = {
+  id: "all",
+  name: "전체 파일",
+  created_at: "",
+  paper_count: 0,
+  representative_keywords: [],
+  updated_at: "",
+};
 
 const INITIAL_DIALOG_STATE: FolderDialogState = {
   open: false,
@@ -94,9 +64,49 @@ const INITIAL_DIALOG_STATE: FolderDialogState = {
 
 const BookmarkFolderGrid = () => {
   const navigate = useNavigate();
-  const [folders, setFolders] = useState<BookmarkFolder[]>(MOCK_FOLDERS);
+  const queryClient = useQueryClient();
   const [dialogState, setDialogState] =
     useState<FolderDialogState>(INITIAL_DIALOG_STATE);
+
+  const { data: folders, isPending } = useQuery({
+    queryKey: ["saved-bookmark-folders"],
+    queryFn: async () => {
+      const res = await bookmarkApi.getSavedFolders();
+      return res.data.data;
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const { data: totalCount } = useQuery({
+    queryKey: ["saved-bookmarks-total"],
+    queryFn: async () => {
+      const res = await bookmarkApi.getSavedBookmarks({ page: 1, size: 1 });
+      return res.data.data.total;
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const { mutate: createFolder } = useMutation({
+    mutationFn: (name: string) => bookmarkApi.createFolder(name),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["saved-bookmark-folders"] });
+    },
+  });
+
+  const { mutate: updateFolder } = useMutation({
+    mutationFn: ({ folderId, name }: { folderId: string; name: string }) =>
+      bookmarkApi.updateFolder(folderId, name),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["saved-bookmark-folders"] });
+    },
+  });
+
+  const { mutate: deleteFolder } = useMutation({
+    mutationFn: (folderId: string) => bookmarkApi.deleteFolder(folderId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["saved-bookmark-folders"] });
+    },
+  });
 
   const handleFolderClick = (folderId: string) => {
     navigate(`/saved/bookmark/${folderId}`);
@@ -122,31 +132,34 @@ const BookmarkFolderGrid = () => {
     name?: string,
   ) => {
     if (mode === "create" && name) {
-      // TODO: API 연동 시 교체
-      const newFolder: BookmarkFolder = {
-        id: Date.now().toString(),
-        name,
-        representative_keywords: [],
-        paper_count: 0,
-        updated_at: "방금",
-        created_at: "",
-      };
-      setFolders((prev) => [...prev, newFolder]);
+      createFolder(name);
     } else if (mode === "edit" && name && dialogState.targetFolder) {
-      // TODO: API 연동 시 교체
-      setFolders((prev) =>
-        prev.map((f) =>
-          f.id === dialogState.targetFolder?.id ? { ...f, name } : f,
-        ),
-      );
+      updateFolder({ folderId: dialogState.targetFolder.id, name });
     } else if (mode === "delete" && dialogState.targetFolder) {
-      // TODO: API 연동 시 교체
-      setFolders((prev) =>
-        prev.filter((f) => f.id !== dialogState.targetFolder?.id),
-      );
+      deleteFolder(dialogState.targetFolder.id);
     }
     handleDialogClose();
   };
+
+  const foldersWithAll = folders
+    ? [{ ...ALL_FOLDER, paper_count: totalCount ?? 0 }, ...folders]
+    : [{ ...ALL_FOLDER, paper_count: totalCount ?? 0 }];
+
+  if (isPending) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          flex: 1,
+          py: "80px",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={containerSx}>
@@ -164,7 +177,7 @@ const BookmarkFolderGrid = () => {
       </Box>
 
       <Box sx={gridSx}>
-        {folders.map((folder) => (
+        {foldersWithAll.map((folder) => (
           <BookmarkFolderCard
             key={folder.id}
             folder={folder}

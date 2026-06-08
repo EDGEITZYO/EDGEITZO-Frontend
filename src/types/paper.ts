@@ -1,6 +1,6 @@
 // ─── 공통 ─────────────────────────────────────────────────
 
-export type PaperType = "저널" | "학위논문" | "학회";
+export type PaperType = "학술 저널" | "박사 학위 논문" | "석사 학위 논문";
 
 // ─── 논문 단건 조회 ────────────────────────────────────────
 
@@ -27,7 +27,7 @@ export interface PaperTrustBadge {
   if_value: number;
   degree_type: string;
   institution: string;
-  full_text_available: boolean;
+  full_text_available: boolean | null;
 }
 
 export interface PaperDetail {

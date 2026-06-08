@@ -1,20 +1,17 @@
 import { useState } from "react";
 import { Box, Typography, IconButton } from "@mui/material";
-import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
-import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { type SxProps, type Theme } from "@mui/material/styles";
-import { type MockRecentPaper } from "../saved/RecentPaperListView";
-import PaperTypeBadge from "./PaperTypeBadge";
-import { type PaperType } from "../../types/paper";
+import { formatDistanceToNow } from "date-fns";
+import { ko } from "date-fns/locale";
+import { type BookmarkPaper } from "../../types/saved";
+import PaperTypeBadge from "../common/PaperTypeBadge";
 
-// TODO: [이슈 B] API 연동 시 MockRecentPaper → RecentPaper로 교체
-interface RecentPaperCardProps {
-  paper: MockRecentPaper;
-  onBookmark: (paperId: string) => void;
-  onDelete: (paperId: string) => void;
+interface BookmarkPaperCardProps {
+  paper: BookmarkPaper;
+  onBookmarkRemove: (paperId: string) => void;
   onClick: (paperId: string) => void;
 }
 
@@ -24,18 +21,17 @@ const containerSx: SxProps<Theme> = {
   borderRadius: "12px",
   border: "1px solid",
   borderColor: "line.normal",
-  backgroundColor: "background.default",
+  backgroundColor: "static.white",
   display: "flex",
   flexDirection: "column",
   gap: "8px",
   cursor: "pointer",
-  "&:hover": { backgroundColor: "background.paper" },
 };
 
 const metaSx: SxProps<Theme> = {
   fontSize: "14px",
   fontWeight: 500,
-  color: "label.assistive",
+  color: "label.alternative",
   lineHeight: "normal",
 };
 
@@ -44,6 +40,7 @@ const titleSx: SxProps<Theme> = {
   fontWeight: 600,
   color: "static.black",
   lineHeight: "normal",
+  alignSelf: "stretch",
 };
 
 const authorSx: SxProps<Theme> = {
@@ -53,14 +50,31 @@ const authorSx: SxProps<Theme> = {
   lineHeight: "normal",
 };
 
+const abstractSx: SxProps<Theme> = {
+  fontSize: "14px",
+  fontWeight: 500,
+  color: "label.alternative",
+  lineHeight: "150%",
+  padding: "15px 12px",
+  borderRadius: "12px",
+  backgroundColor: "fill.normal",
+  overflow: "hidden",
+  display: "-webkit-box",
+  WebkitLineClamp: 2,
+  WebkitBoxOrient: "vertical",
+  textOverflow: "ellipsis",
+};
+
 const keywordTagSx: SxProps<Theme> = {
   display: "inline-flex",
-  padding: "0 6px",
-  borderRadius: "7px",
+  padding: "0 6.34px",
+  borderRadius: "7.394px",
   backgroundColor: "fill.normal",
-  fontSize: "14px",
+  fontSize: "12px",
   fontWeight: 400,
-  color: "label.alternative",
+  color: "label.normal",
+  lineHeight: "150%",
+  letterSpacing: "-0.24px",
 };
 
 const badgeSx: SxProps<Theme> = {
@@ -74,39 +88,50 @@ const badgeSx: SxProps<Theme> = {
   lineHeight: "normal",
 };
 
-const iconButtonSx: SxProps<Theme> = {
+const bookmarkButtonSx: SxProps<Theme> = {
   p: 0,
-  width: 36,
+  width: 37,
   height: 36,
   borderRadius: "12px",
   backgroundColor: "fill.normal",
   flexShrink: 0,
-  "&:hover": { backgroundColor: "line.normal" },
+  "&:hover": { backgroundColor: "fill.strong" },
 };
 
-const RecentPaperCard = ({
+const formatBookmarkedAt = (bookmarkedAt: string): string => {
+  try {
+    return formatDistanceToNow(new Date(bookmarkedAt), {
+      addSuffix: true,
+      locale: ko,
+    });
+  } catch {
+    return "";
+  }
+};
+
+const BookmarkPaperCard = ({
   paper,
-  onBookmark,
-  onDelete,
+  onBookmarkRemove,
   onClick,
-}: RecentPaperCardProps) => {
+}: BookmarkPaperCardProps) => {
   const [authorExpanded, setAuthorExpanded] = useState(false);
+
   const {
-    id,
-    source,
-    date,
+    paper_id,
+    paper_type,
+    journal_name,
+    published_at,
     title,
     authors,
+    abstract,
     keywords,
-    kciType,
-    citationCount,
-    readAt,
-    isBookmarked,
+    trust_badge,
+    bookmarked_at,
   } = paper;
 
   return (
-    <Box sx={containerSx} onClick={() => onClick(id)}>
-      {/* 배지 + 북마크 + 삭제 */}
+    <Box sx={containerSx} onClick={() => onClick(paper_id)}>
+      {/* 배지 + 북마크 */}
       <Box
         sx={{
           display: "flex",
@@ -114,44 +139,22 @@ const RecentPaperCard = ({
           alignItems: "flex-start",
         }}
       >
-        {paper.paperType ? (
-          <PaperTypeBadge paperType={paper.paperType as PaperType} />
-        ) : (
-          <Box />
-        )}
-        <Box sx={{ display: "flex", gap: "6px" }}>
-          <IconButton
-            sx={iconButtonSx}
-            onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-              e.stopPropagation();
-              onBookmark(id);
-            }}
-          >
-            {isBookmarked ? (
-              <BookmarkIcon sx={{ fontSize: 24, color: "primary.main" }} />
-            ) : (
-              <BookmarkBorderIcon
-                sx={{ fontSize: 24, color: "label.assistive" }}
-              />
-            )}
-          </IconButton>
-          <IconButton
-            sx={iconButtonSx}
-            onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-              e.stopPropagation();
-              onDelete(id);
-            }}
-          >
-            <DeleteOutlinedIcon
-              sx={{ fontSize: 24, color: "label.assistive" }}
-            />
-          </IconButton>
-        </Box>
+        {paper_type ? <PaperTypeBadge paperType={paper_type} /> : <Box />}
+        <IconButton
+          sx={bookmarkButtonSx}
+          onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+            e.stopPropagation();
+            onBookmarkRemove(paper_id);
+          }}
+        >
+          <BookmarkIcon sx={{ fontSize: 24, color: "label.normal" }} />
+        </IconButton>
       </Box>
+
       {/* 출처/날짜 */}
       <Box sx={{ display: "flex", alignItems: "center", gap: "7px" }}>
-        <Typography sx={metaSx}>{source}</Typography>
-        <Typography sx={metaSx}>{date}</Typography>
+        {journal_name && <Typography sx={metaSx}>{journal_name}</Typography>}
+        {published_at && <Typography sx={metaSx}>{published_at}</Typography>}
       </Box>
 
       {/* 제목 */}
@@ -168,7 +171,9 @@ const RecentPaperCard = ({
           }}
           onClick={(e: React.MouseEvent<HTMLDivElement>) => {
             e.stopPropagation();
-            if (authors.length > 1) setAuthorExpanded((prev) => !prev);
+            if (authors.length > 1) {
+              setAuthorExpanded((prev) => !prev);
+            }
           }}
         >
           <Typography sx={authorSx}>
@@ -194,8 +199,11 @@ const RecentPaperCard = ({
         )}
       </Box>
 
+      {/* 초록 */}
+      {abstract && <Typography sx={abstractSx}>{abstract}</Typography>}
+
       {/* 키워드 태그 */}
-      <Box sx={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+      <Box sx={{ display: "flex", gap: "9px", flexWrap: "wrap" }}>
         {keywords.map((kw, index) => (
           <Typography key={`${kw}-${index}`} sx={keywordTagSx}>
             {kw}
@@ -203,7 +211,7 @@ const RecentPaperCard = ({
         ))}
       </Box>
 
-      {/* 하단: 배지 + 읽음 시간 */}
+      {/* 하단: 배지 + 북마크 날짜 */}
       <Box
         sx={{
           display: "flex",
@@ -212,15 +220,25 @@ const RecentPaperCard = ({
         }}
       >
         <Box sx={{ display: "flex", gap: "6px" }}>
-          <Typography sx={badgeSx}>{kciType}</Typography>
-          <Typography sx={badgeSx}>인용수 {citationCount}</Typography>
+          {trust_badge.kci && <Typography sx={badgeSx}>KCI</Typography>}
+          {trust_badge.sci && <Typography sx={badgeSx}>SCI</Typography>}
+          <Typography sx={badgeSx}>
+            인용수 {trust_badge.citation_count}
+          </Typography>
         </Box>
-        <Typography sx={{ ...metaSx, color: "label.assistive" }}>
-          {readAt} 읽음
+        <Typography
+          sx={{
+            fontSize: "14px",
+            fontWeight: 500,
+            color: "label.assistive",
+            lineHeight: "normal",
+          }}
+        >
+          {formatBookmarkedAt(bookmarked_at)} 북마크
         </Typography>
       </Box>
     </Box>
   );
 };
 
-export default RecentPaperCard;
+export default BookmarkPaperCard;

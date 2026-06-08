@@ -8,13 +8,14 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
-import { type RecentPaper } from "../../types/saved";
+// TODO: [이슈 B] API 연동 시 MockRecentPaper → RecentPaper로 교체
+import { type MockRecentPaper } from "./RecentPaperListView";
 
 // ─── 타입 ─────────────────────────────────────────────────
 
 interface BubbleChartProps {
   variant: "normal" | "fullscreen";
-  papers: RecentPaper[];
+  papers: MockRecentPaper[]; // 변경
   selectedPaperIds: string[] | null;
   onDotClick: (paperIds: string[]) => void;
   onBackgroundClick: () => void;
@@ -40,7 +41,7 @@ const DOT_DIMMED_COLOR = "#D1D5DB";
 // ─── 클러스터링 로직 ──────────────────────────────────────
 
 const clusterPapers = (
-  papers: RecentPaper[],
+  papers: MockRecentPaper[],
   width: number,
   height: number,
 ): ChartDot[] => {
@@ -48,7 +49,7 @@ const clusterPapers = (
   const minYear = Math.min(...papers.map((p) => p.publishYear));
   const maxCitation = Math.max(...papers.map((p) => p.citationForChart));
 
-  const toPixel = (paper: RecentPaper) => ({
+  const toPixel = (paper: MockRecentPaper) => ({
     px: ((paper.publishYear - minYear) / (maxYear - minYear || 1)) * width,
     py: (1 - paper.citationForChart / (maxCitation || 1)) * height,
   });
