@@ -101,10 +101,10 @@ const BookmarkFolderDetailPage = () => {
       targetFolder: {
         id: folderId ?? "",
         name: MOCK_FOLDER_NAME,
-        keywords: [],
-        paperCount: MOCK_PAPERS.length,
-        updatedAt: "",
-        isDefault: false,
+        representative_keywords: [],
+        paper_count: MOCK_PAPERS.length,
+        updated_at: "",
+        created_at: "",
       },
     });
   };
@@ -116,10 +116,10 @@ const BookmarkFolderDetailPage = () => {
       targetFolder: {
         id: folderId ?? "",
         name: MOCK_FOLDER_NAME,
-        keywords: [],
-        paperCount: MOCK_PAPERS.length,
-        updatedAt: "",
-        isDefault: false,
+        representative_keywords: [],
+        paper_count: MOCK_PAPERS.length,
+        updated_at: "",
+        created_at: "",
       },
     });
   };

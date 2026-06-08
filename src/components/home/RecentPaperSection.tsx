@@ -57,7 +57,7 @@ const RecentPaperSection = ({ papers }: RecentPaperSectionProps) => {
         </Box>
       ) : (
         <Box sx={{ display: "flex", flexDirection: "column", gap: "11px" }}>
-          {papers.map((paper) => (
+          {papers.slice(0, 2).map((paper) => (
             <RecentPaperCard key={paper.paper_id} data={paper} />
           ))}
         </Box>
