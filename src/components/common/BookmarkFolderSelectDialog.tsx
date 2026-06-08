@@ -63,6 +63,10 @@ const BookmarkFolderSelectDialog = ({
     try {
       await bookmarkApi.addBookmark(paperId, folder.id);
       onBookmarkAdded();
+      queryClient.invalidateQueries({ queryKey: ["saved-bookmarks"] });
+      queryClient.invalidateQueries({ queryKey: ["saved-bookmark-folders"] });
+      queryClient.invalidateQueries({ queryKey: ["saved-bookmarks-total"] });
+      queryClient.invalidateQueries({ queryKey: ["bookmark-folders"] });
       setSnackbarMessage("북마크에 추가되었습니다");
       setSnackbarOpen(true);
       onClose();

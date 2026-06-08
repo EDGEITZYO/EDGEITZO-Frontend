@@ -194,6 +194,9 @@ const PaperDetailContent = ({
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["bookmark", paperId] });
+      queryClient.invalidateQueries({ queryKey: ["saved-bookmarks"] });
+      queryClient.invalidateQueries({ queryKey: ["saved-bookmark-folders"] });
+      queryClient.invalidateQueries({ queryKey: ["saved-bookmarks-total"] });
     },
   });
 
