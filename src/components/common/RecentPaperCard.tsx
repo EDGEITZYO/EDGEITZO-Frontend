@@ -6,11 +6,13 @@ import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { type SxProps, type Theme } from "@mui/material/styles";
-import { type RecentPaper } from "../../types/saved";
+import { type MockRecentPaper } from "../saved/RecentPaperListView";
 import PaperTypeBadge from "./PaperTypeBadge";
+import { type PaperType } from "../../types/paper";
 
+// TODO: [이슈 B] API 연동 시 MockRecentPaper → RecentPaper로 교체
 interface RecentPaperCardProps {
-  paper: RecentPaper;
+  paper: MockRecentPaper;
   onBookmark: (paperId: string) => void;
   onDelete: (paperId: string) => void;
   onClick: (paperId: string) => void;
@@ -113,7 +115,7 @@ const RecentPaperCard = ({
         }}
       >
         {paper.paperType ? (
-          <PaperTypeBadge paperType={paper.paperType} />
+          <PaperTypeBadge paperType={paper.paperType as PaperType} />
         ) : (
           <Box />
         )}
