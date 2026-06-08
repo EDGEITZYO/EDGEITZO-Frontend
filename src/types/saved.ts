@@ -1,5 +1,21 @@
-import { type PaperType } from "./paper";
-// ─── 북마크 ──────────────────────────────────────────────
+import { type PaperType, type PaperTrustBadge } from "./paper";
+
+// ─── 공통 베이스 ──────────────────────────────────────────
+
+export interface SavedPaper {
+  paper_id: string;
+  paper_type: PaperType | null;
+  journal_name: string | null;
+  published_at: string | null;
+  title: string;
+  authors: string[];
+  keywords: string[];
+  abstract: string | null;
+  doi: string | null;
+  trust_badge: PaperTrustBadge;
+}
+
+// ─── 북마크 폴더 ──────────────────────────────────────────
 
 export interface BookmarkFolder {
   id: string;
@@ -10,19 +26,24 @@ export interface BookmarkFolder {
   updated_at: string;
 }
 
-export interface BookmarkPaper {
-  id: string;
-  source: string;
-  date: string;
-  title: string;
-  authors: string[];
-  abstract: string;
-  keywords: string[];
-  kciType: string;
-  citationCount: number;
-  readAt: string;
-  isBookmarked: boolean;
-  paperType?: PaperType;
+// ─── 북마크 논문 ──────────────────────────────────────────
+
+export interface BookmarkPaper extends SavedPaper {
+  bookmarked_at: string;
+}
+
+export interface BookmarkListResponse {
+  total: number;
+  page: number;
+  size: number;
+  items: BookmarkPaper[];
+}
+
+export interface SavedBookmarkListResponse {
+  total: number;
+  page: number;
+  size: number;
+  items: BookmarkPaper[];
 }
 
 // ─── 폴더 Dialog ─────────────────────────────────────────
@@ -40,27 +61,33 @@ export interface FolderDialogState {
 export type PeriodMode = "day" | "week";
 export type ViewMode = "list" | "chart";
 
-export interface RecentPaper {
-  id: string;
-  source: string;
-  date: string;
-  title: string;
-  authors: string[];
-  keywords: string[];
-  kciType: string;
-  citationCount: number;
-  readAt: string;
-  isBookmarked: boolean;
-  // 차트뷰용
-  publishYear: number; // X축: 출판 시기
-  citationForChart: number; // Y축: 인용 수
-  paperType?: PaperType;
+export interface RecentPaper extends SavedPaper {
+  viewed_at: string;
+  view_count: number;
 }
 
-export interface RecentPaperSummary {
-  totalCount: number;
-  keywordCount: number;
-  mostSearchedKeyword: string;
+export interface RecentPaperGroup {
+  date: string;
+  papers: RecentPaper[];
+}
+
+export interface RecentPaperListResponse {
+  groups: RecentPaperGroup[];
+}
+
+export interface RecentPaperChartItem {
+  paper_id: string;
+  title: string;
+  published_year: number;
+  citation_count: number;
+  view_count: number;
+}
+
+export interface RecentPaperStats {
+  total_papers: number;
+  keyword_count: number;
+  top_keyword: string;
+  chart_data: RecentPaperChartItem[];
 }
 
 export type ChartFilterPublish = "old" | "recent";

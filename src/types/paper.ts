@@ -27,7 +27,7 @@ export interface PaperTrustBadge {
   if_value: number;
   degree_type: string;
   institution: string;
-  full_text_available: boolean;
+  full_text_available: boolean | null;
 }
 
 export interface PaperDetail {
