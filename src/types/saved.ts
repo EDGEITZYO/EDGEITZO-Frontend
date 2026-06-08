@@ -1,13 +1,13 @@
-import { type PaperType } from './paper';
+import { type PaperType } from "./paper";
 // ─── 북마크 ──────────────────────────────────────────────
 
 export interface BookmarkFolder {
   id: string;
   name: string;
-  keywords: string[];
-  paperCount: number;
-  updatedAt: string; // 예: "2달 전"
-  isDefault: boolean; // 전체 파일 여부
+  created_at: string;
+  paper_count: number;
+  representative_keywords: string[];
+  updated_at: string;
 }
 
 export interface BookmarkPaper {
@@ -27,7 +27,7 @@ export interface BookmarkPaper {
 
 // ─── 폴더 Dialog ─────────────────────────────────────────
 
-export type FolderDialogMode = 'create' | 'edit' | 'delete';
+export type FolderDialogMode = "create" | "edit" | "delete";
 
 export interface FolderDialogState {
   open: boolean;
@@ -37,8 +37,8 @@ export interface FolderDialogState {
 
 // ─── 최근 읽은 논문 ───────────────────────────────────────
 
-export type PeriodMode = 'day' | 'week';
-export type ViewMode = 'list' | 'chart';
+export type PeriodMode = "day" | "week";
+export type ViewMode = "list" | "chart";
 
 export interface RecentPaper {
   id: string;
@@ -52,8 +52,8 @@ export interface RecentPaper {
   readAt: string;
   isBookmarked: boolean;
   // 차트뷰용
-  publishYear: number;  // X축: 출판 시기
-  citationForChart: number;  // Y축: 인용 수
+  publishYear: number; // X축: 출판 시기
+  citationForChart: number; // Y축: 인용 수
   paperType?: PaperType;
 }
 
@@ -63,8 +63,8 @@ export interface RecentPaperSummary {
   mostSearchedKeyword: string;
 }
 
-export type ChartFilterPublish = 'old' | 'recent';
-export type ChartFilterCitation = 'low' | 'high';
+export type ChartFilterPublish = "old" | "recent";
+export type ChartFilterCitation = "low" | "high";
 
 export interface ChartFilter {
   publish: ChartFilterPublish | null;
