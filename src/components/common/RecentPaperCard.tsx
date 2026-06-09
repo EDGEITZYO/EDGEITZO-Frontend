@@ -1,18 +1,15 @@
 import { useState } from "react";
 import { Box, Typography, IconButton } from "@mui/material";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
-import BookmarkIcon from "@mui/icons-material/Bookmark";
 import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { type SxProps, type Theme } from "@mui/material/styles";
-import { type MockRecentPaper } from "../saved/RecentPaperListView";
+import { type RecentPaper } from "../../types/saved";
 import PaperTypeBadge from "./PaperTypeBadge";
-import { type PaperType } from "../../types/paper";
 
-// TODO: [이슈 B] API 연동 시 MockRecentPaper → RecentPaper로 교체
 interface RecentPaperCardProps {
-  paper: MockRecentPaper;
+  paper: RecentPaper;
   onBookmark: (paperId: string) => void;
   onDelete: (paperId: string) => void;
   onClick: (paperId: string) => void;
@@ -84,6 +81,20 @@ const iconButtonSx: SxProps<Theme> = {
   "&:hover": { backgroundColor: "line.normal" },
 };
 
+const formatViewedAt = (viewedAt: string): string => {
+  try {
+    const date = new Date(viewedAt);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${year}.${month}.${day}.${hours}:${minutes}`;
+  } catch {
+    return "";
+  }
+};
+
 const RecentPaperCard = ({
   paper,
   onBookmark,
@@ -91,21 +102,21 @@ const RecentPaperCard = ({
   onClick,
 }: RecentPaperCardProps) => {
   const [authorExpanded, setAuthorExpanded] = useState(false);
+
   const {
-    id,
-    source,
-    date,
+    paper_id,
+    paper_type,
+    journal_name,
+    published_at,
     title,
     authors,
     keywords,
-    kciType,
-    citationCount,
-    readAt,
-    isBookmarked,
+    trust_badge,
+    viewed_at,
   } = paper;
 
   return (
-    <Box sx={containerSx} onClick={() => onClick(id)}>
+    <Box sx={containerSx} onClick={() => onClick(paper_id)}>
       {/* 배지 + 북마크 + 삭제 */}
       <Box
         sx={{
@@ -114,32 +125,25 @@ const RecentPaperCard = ({
           alignItems: "flex-start",
         }}
       >
-        {paper.paperType ? (
-          <PaperTypeBadge paperType={paper.paperType as PaperType} />
-        ) : (
-          <Box />
-        )}
+        {paper_type ? <PaperTypeBadge paperType={paper_type} /> : <Box />}
         <Box sx={{ display: "flex", gap: "6px" }}>
           <IconButton
             sx={iconButtonSx}
             onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
               e.stopPropagation();
-              onBookmark(id);
+              onBookmark(paper_id);
             }}
           >
-            {isBookmarked ? (
-              <BookmarkIcon sx={{ fontSize: 24, color: "primary.main" }} />
-            ) : (
-              <BookmarkBorderIcon
-                sx={{ fontSize: 24, color: "label.assistive" }}
-              />
-            )}
+            {/* TODO: [이슈 B] 북마크 상태 API 연동 후 BookmarkIcon 조건부 렌더링 */}
+            <BookmarkBorderIcon
+              sx={{ fontSize: 24, color: "label.assistive" }}
+            />
           </IconButton>
           <IconButton
             sx={iconButtonSx}
             onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
               e.stopPropagation();
-              onDelete(id);
+              onDelete(paper_id);
             }}
           >
             <DeleteOutlinedIcon
@@ -148,10 +152,11 @@ const RecentPaperCard = ({
           </IconButton>
         </Box>
       </Box>
+
       {/* 출처/날짜 */}
       <Box sx={{ display: "flex", alignItems: "center", gap: "7px" }}>
-        <Typography sx={metaSx}>{source}</Typography>
-        <Typography sx={metaSx}>{date}</Typography>
+        {journal_name && <Typography sx={metaSx}>{journal_name}</Typography>}
+        {published_at && <Typography sx={metaSx}>{published_at}</Typography>}
       </Box>
 
       {/* 제목 */}
@@ -212,11 +217,14 @@ const RecentPaperCard = ({
         }}
       >
         <Box sx={{ display: "flex", gap: "6px" }}>
-          <Typography sx={badgeSx}>{kciType}</Typography>
-          <Typography sx={badgeSx}>인용수 {citationCount}</Typography>
+          {trust_badge.kci && <Typography sx={badgeSx}>KCI</Typography>}
+          {trust_badge.sci && <Typography sx={badgeSx}>SCI</Typography>}
+          <Typography sx={badgeSx}>
+            인용수 {trust_badge.citation_count}
+          </Typography>
         </Box>
         <Typography sx={{ ...metaSx, color: "label.assistive" }}>
-          {readAt} 읽음
+          {formatViewedAt(viewed_at)} 읽음
         </Typography>
       </Box>
     </Box>

@@ -8,14 +8,13 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
-// TODO: [이슈 B] API 연동 시 MockRecentPaper → RecentPaper로 교체
-import { type MockRecentPaper } from "./RecentPaperListView";
+import { type RecentPaperChartItem } from "../../types/saved";
 
 // ─── 타입 ─────────────────────────────────────────────────
 
 interface BubbleChartProps {
   variant: "normal" | "fullscreen";
-  papers: MockRecentPaper[]; // 변경
+  papers: RecentPaperChartItem[];
   selectedPaperIds: string[] | null;
   onDotClick: (paperIds: string[]) => void;
   onBackgroundClick: () => void;
@@ -31,51 +30,21 @@ interface ChartDot {
 
 // ─── 상수 ─────────────────────────────────────────────────
 
-const CLUSTER_THRESHOLD = 40;
 const DOT_RADIUS = 12;
-const CLUSTER_RADIUS = 20;
 const DOT_COLOR = "#6B7280";
 const DOT_SELECTED_COLOR = "#31333F";
 const DOT_DIMMED_COLOR = "#D1D5DB";
 
 // ─── 클러스터링 로직 ──────────────────────────────────────
 
-const clusterPapers = (
-  papers: MockRecentPaper[],
-  width: number,
-  height: number,
-): ChartDot[] => {
-  const maxYear = Math.max(...papers.map((p) => p.publishYear));
-  const minYear = Math.min(...papers.map((p) => p.publishYear));
-  const maxCitation = Math.max(...papers.map((p) => p.citationForChart));
-
-  const toPixel = (paper: MockRecentPaper) => ({
-    px: ((paper.publishYear - minYear) / (maxYear - minYear || 1)) * width,
-    py: (1 - paper.citationForChart / (maxCitation || 1)) * height,
-  });
-
-  const dots: ChartDot[] = [];
-  const used = new Set<string>();
-
-  papers.forEach((paper) => {
-    if (used.has(paper.id)) return;
-    const { px, py } = toPixel(paper);
-    const nearby = papers.filter((other) => {
-      if (used.has(other.id)) return false;
-      const { px: ox, py: oy } = toPixel(other);
-      return Math.sqrt((px - ox) ** 2 + (py - oy) ** 2) < CLUSTER_THRESHOLD;
-    });
-    nearby.forEach((p) => used.add(p.id));
-    dots.push({
-      x: paper.publishYear,
-      y: paper.citationForChart,
-      paperIds: nearby.map((p) => p.id),
-      isCluster: nearby.length > 1,
-      clusterCount: nearby.length,
-    });
-  });
-
-  return dots;
+const clusterPapers = (papers: RecentPaperChartItem[]): ChartDot[] => {
+  return papers.map((paper) => ({
+    x: paper.published_year,
+    y: paper.citation_count ?? 0,
+    paperIds: [paper.paper_id],
+    isCluster: false,
+    clusterCount: 1,
+  }));
 };
 
 // ─── 커스텀 점 렌더러 ─────────────────────────────────────
@@ -94,7 +63,7 @@ const CustomDot = (props: {
     ? payload.paperIds.some((id) => selectedPaperIds.includes(id))
     : false;
   const isDimmed = selectedPaperIds !== null && !isSelected;
-  const radius = payload.isCluster ? CLUSTER_RADIUS : DOT_RADIUS;
+  const radius = DOT_RADIUS;
   const color = isDimmed
     ? DOT_DIMMED_COLOR
     : isSelected
@@ -117,19 +86,6 @@ const CustomDot = (props: {
         stroke={isSelected ? DOT_SELECTED_COLOR : "none"}
         strokeWidth={isSelected ? 2 : 0}
       />
-      {payload.isCluster && (
-        <text
-          x={cx}
-          y={cy}
-          textAnchor="middle"
-          dominantBaseline="central"
-          fill="#fff"
-          fontSize={12}
-          fontWeight={600}
-        >
-          +{payload.clusterCount}
-        </text>
-      )}
     </g>
   );
 };
@@ -255,10 +211,7 @@ const BubbleChart = ({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [chartSize, setChartSize] = useState({ width: 600, height: 400 });
 
-  const dots = useMemo(
-    () => clusterPapers(papers, chartSize.width, chartSize.height),
-    [papers, chartSize],
-  );
+  const dots = useMemo(() => clusterPapers(papers), [papers]);
 
   const chartContent = (
     <Box

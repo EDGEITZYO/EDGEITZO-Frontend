@@ -2,12 +2,11 @@ import { Box, Typography } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import ChartPaperCard from "../common/ChartPaperCard";
-// TODO: [이슈 B] API 연동 시 MockRecentPaper → RecentPaper로 교체
-import { type MockRecentPaper } from "./RecentPaperListView";
+import { type RecentPaperChartItem } from "../../types/saved";
 import { type ChartFilter } from "../../types/saved";
 
 interface ChartRightPanelProps {
-  papers: MockRecentPaper[];
+  papers: RecentPaperChartItem[];
   filter: ChartFilter;
   selectedPaperIds: string[] | null;
   onFilterChange: (filter: ChartFilter) => void;
@@ -94,7 +93,7 @@ const ChartRightPanel = ({
   onPaperClick,
 }: ChartRightPanelProps) => {
   const displayPapers = selectedPaperIds
-    ? papers.filter((p) => selectedPaperIds.includes(p.id))
+    ? papers.filter((p) => selectedPaperIds.includes(p.paper_id))
     : papers;
 
   const handlePublishFilter = (value: "old" | "recent") => {
@@ -173,7 +172,7 @@ const ChartRightPanel = ({
         ) : (
           displayPapers.map((paper) => (
             <ChartPaperCard
-              key={paper.id}
+              key={paper.paper_id}
               paper={paper}
               onClick={onPaperClick}
             />

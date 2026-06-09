@@ -3,11 +3,10 @@ import { Box, Typography } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { type SxProps, type Theme } from "@mui/material/styles";
-// TODO: [이슈 B] API 연동 시 MockRecentPaper → RecentPaper로 교체
-import { type MockRecentPaper } from "../saved/RecentPaperListView";
+import { type RecentPaperChartItem } from "../../types/saved";
 
 interface ChartPaperCardProps {
-  paper: MockRecentPaper;
+  paper: RecentPaperChartItem;
   onClick: (paperId: string) => void;
 }
 
@@ -72,14 +71,22 @@ const badgeSx: SxProps<Theme> = {
 
 const ChartPaperCard = ({ paper, onClick }: ChartPaperCardProps) => {
   const [authorExpanded, setAuthorExpanded] = useState(false);
-  const { id, source, date, title, authors, keywords } = paper;
+  const {
+    paper_id,
+    journal_name,
+    published_year,
+    title,
+    authors,
+    keywords,
+    doi,
+  } = paper;
 
   return (
-    <Box sx={containerSx} onClick={() => onClick(id)}>
+    <Box sx={containerSx} onClick={() => onClick(paper_id)}>
       {/* 출처/날짜 */}
       <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
-        <Typography sx={metaSx}>{source}</Typography>
-        <Typography sx={metaSx}>{date}</Typography>
+        {journal_name && <Typography sx={metaSx}>{journal_name}</Typography>}
+        <Typography sx={metaSx}>{published_year}</Typography>
       </Box>
 
       {/* 제목 */}
@@ -133,24 +140,30 @@ const ChartPaperCard = ({ paper, onClick }: ChartPaperCardProps) => {
 
       {/* 배지 */}
       <Box sx={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+        {doi && (
+          <Box
+            sx={badgeSx}
+            onClick={(e: React.MouseEvent<HTMLDivElement>) => {
+              e.stopPropagation();
+              window.open(doi, "_blank");
+            }}
+          >
+            <Typography sx={{ fontSize: "12px", color: "static.white" }}>
+              DOI
+            </Typography>
+            <Typography sx={{ fontSize: "10px", color: "static.white" }}>
+              ↗
+            </Typography>
+          </Box>
+        )}
+        {/* TODO: [중간 수정] KCI/SCI 배지 — trust_badge 필드 추가 후 처리
         <Box sx={badgeSx}>
-          <Typography sx={{ fontSize: "12px", color: "static.white" }}>
-            DOI
-          </Typography>
-          <Typography sx={{ fontSize: "10px", color: "static.white" }}>
-            ↗
-          </Typography>
+          <Typography sx={{ fontSize: '12px', color: 'static.white' }}>KCI</Typography>
         </Box>
         <Box sx={badgeSx}>
-          <Typography sx={{ fontSize: "12px", color: "static.white" }}>
-            KCI
-          </Typography>
+          <Typography sx={{ fontSize: '12px', color: 'static.white' }}>SCI</Typography>
         </Box>
-        <Box sx={badgeSx}>
-          <Typography sx={{ fontSize: "12px", color: "static.white" }}>
-            ORCID
-          </Typography>
-        </Box>
+        */}
       </Box>
     </Box>
   );
