@@ -2,12 +2,11 @@ import { Box, Typography } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import ChartPaperCard from "../common/ChartPaperCard";
-// TODO: [이슈 B] API 연동 시 MockRecentPaper → RecentPaper로 교체
-import { type MockRecentPaper } from "./RecentPaperListView";
+import { type RecentPaperChartItem } from "../../types/saved";
 import { type ChartFilter } from "../../types/saved";
 
 interface ChartRightPanelProps {
-  papers: MockRecentPaper[];
+  papers: RecentPaperChartItem[];
   filter: ChartFilter;
   selectedPaperIds: string[] | null;
   onFilterChange: (filter: ChartFilter) => void;
@@ -93,9 +92,29 @@ const ChartRightPanel = ({
   onBack,
   onPaperClick,
 }: ChartRightPanelProps) => {
-  const displayPapers = selectedPaperIds
-    ? papers.filter((p) => selectedPaperIds.includes(p.id))
-    : papers;
+  const displayPapers = (() => {
+    let result = selectedPaperIds
+      ? papers.filter((p) => selectedPaperIds.includes(p.paper_id))
+      : [...papers];
+
+    if (filter.publish === "old") {
+      result = result.sort((a, b) => a.published_year - b.published_year);
+    } else if (filter.publish === "recent") {
+      result = result.sort((a, b) => b.published_year - a.published_year);
+    }
+
+    if (filter.citation === "low") {
+      result = result.sort(
+        (a, b) => (a.citation_count ?? 0) - (b.citation_count ?? 0),
+      );
+    } else if (filter.citation === "high") {
+      result = result.sort(
+        (a, b) => (b.citation_count ?? 0) - (a.citation_count ?? 0),
+      );
+    }
+
+    return result;
+  })();
 
   const handlePublishFilter = (value: "old" | "recent") => {
     onFilterChange({
@@ -173,7 +192,7 @@ const ChartRightPanel = ({
         ) : (
           displayPapers.map((paper) => (
             <ChartPaperCard
-              key={paper.id}
+              key={paper.paper_id}
               paper={paper}
               onClick={onPaperClick}
             />

@@ -129,6 +129,7 @@ const RecentPaperContent = () => {
       {viewMode === 'list' && (
         <RecentPaperListView
           periodMode={periodMode}
+          currentDate={currentDate}
           onPaperClick={handlePaperClick}
         />
       )}

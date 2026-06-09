@@ -77,9 +77,14 @@ export interface RecentPaperListResponse {
 
 export interface RecentPaperChartItem {
   paper_id: string;
+  paper_type: PaperType | null;
+  journal_name: string | null;
   title: string;
+  authors: string[];
+  keywords: string[];
+  doi: string | null;
   published_year: number;
-  citation_count: number;
+  citation_count: number | null;
   view_count: number;
 }
 
