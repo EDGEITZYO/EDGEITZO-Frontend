@@ -2,7 +2,7 @@ import { type PaperType } from "./paper";
 
 // ─── 공통 ───────────────────────────────────────────────
 
-export type SearchView = "chat" | "list";
+export type SearchView = "chat" | "list" | "detail";
 
 export type ChatRole = "user" | "ai";
 

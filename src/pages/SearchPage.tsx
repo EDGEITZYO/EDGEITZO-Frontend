@@ -7,6 +7,7 @@ import ExitConfirmDialog from "../components/search/ExitConfirmDialog";
 import SearchChatPanel from "../components/search/SearchChatPanel";
 import SearchProgressPanel from "../components/search/SearchProgressPanel";
 import PaperListPanel from "../components/search/PaperListPanel";
+import PaperDetailContent from "../components/common/PaperDetailContent";
 import {
   searchChatStream,
   searchExecute,
@@ -81,6 +82,7 @@ const SearchPage = () => {
   const [view, setView] = useState<SearchView>(directSearch ? "list" : "chat");
   const [exitDialogOpen, setExitDialogOpen] = useState(false);
   const [isExecuting, setIsExecuting] = useState(false);
+  const [selectedPaperId, setSelectedPaperId] = useState<string | null>(null);
 
   // ─── 세션/스트리밍 상태 ────────────────────────────────
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -350,7 +352,13 @@ const SearchPage = () => {
 
   // ─── 네비게이션 ────────────────────────────────────────
 
-  const handleBackClick = () => setExitDialogOpen(true);
+  const handleBackClick = () => {
+    if (view === "detail") {
+      setView("list");
+      return;
+    }
+    setExitDialogOpen(true);
+  };
   const handleExitConfirm = () => {
     setExitDialogOpen(false);
     navigate("/home");
@@ -397,7 +405,7 @@ const SearchPage = () => {
               />
             </Box>
           </>
-        ) : (
+        ) : view === "list" ? (
           <Box sx={{ flex: 1, overflow: "hidden" }}>
             <PaperListPanel
               papers={executeResult?.papers ?? []}
@@ -409,10 +417,22 @@ const SearchPage = () => {
               onFilterChange={handleFilterChange}
               onResetCondition={handleResetCondition}
               onBookmark={handleBookmark}
-              onPaperClick={(paperId) => navigate(`/papers/${paperId}`)}
+              onPaperClick={(paperId) => {
+                setSelectedPaperId(paperId);
+                setView("detail");
+              }}
             />
           </Box>
-        )}
+        ) : view === "detail" && selectedPaperId ? (
+          <Box sx={{ flex: 1, overflow: "auto", px: "63px", py: "29px" }}>
+            <PaperDetailContent
+              paperId={selectedPaperId}
+              onRelatedPaperClick={(paperId) => {
+                setSelectedPaperId(paperId);
+              }}
+            />
+          </Box>
+        ) : null}
       </Box>
       {isExecuting && (
         <Box
