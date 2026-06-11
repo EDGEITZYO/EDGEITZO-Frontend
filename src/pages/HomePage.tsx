@@ -13,12 +13,14 @@ import { useAuthStore } from "../stores/authStore";
 const HomePage = () => {
   const [isKeywordMapModalOpen, setIsKeywordMapModalOpen] = useState(false);
   const setUserName = useAuthStore((state) => state.setUserName);
+  const setUserId = useAuthStore((state) => state.setUserId);
 
   const { data, isPending, isError } = useQuery({
     queryKey: ["home"],
     queryFn: async () => {
       const res = await homeApi.getHome();
       setUserName(res.data.data.user.name);
+      setUserId(res.data.data.user.id);
       return res.data.data;
     },
     staleTime: 1000 * 60 * 5, // 5분

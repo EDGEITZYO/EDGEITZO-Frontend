@@ -5,11 +5,12 @@ import BookmarkIcon from "@mui/icons-material/Bookmark";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { type SxProps, type Theme } from "@mui/material/styles";
-import { type PaperListItem } from "../../types/search";
-import PaperTypeBadge from "./PaperTypeBadge";
+import { type SearchPaper } from "../../types/search";
+import PaperTypeBadge from "../common/PaperTypeBadge";
 
 interface PaperListCardProps {
-  paper: PaperListItem;
+  paper: SearchPaper;
+  isBookmarked: boolean;
   onBookmark: (paperId: string) => void;
   onClick: (paperId: string) => void;
 }
@@ -56,7 +57,6 @@ const abstractSx: SxProps<Theme> = {
   padding: "15px 12px",
   borderRadius: "12px",
   backgroundColor: "#F6F7F8",
-  // 2줄 말줄임
   overflow: "hidden",
   display: "-webkit-box",
   WebkitLineClamp: 2,
@@ -97,25 +97,29 @@ const bookmarkButtonSx: SxProps<Theme> = {
   "&:hover": { backgroundColor: "#EBEBEB" },
 };
 
-const PaperListCard = ({ paper, onBookmark, onClick }: PaperListCardProps) => {
+const PaperListCard = ({
+  paper,
+  isBookmarked,
+  onBookmark,
+  onClick,
+}: PaperListCardProps) => {
   const [authorExpanded, setAuthorExpanded] = useState(false);
 
   const {
-    id,
-    source,
-    date,
+    paper_id,
+    journal,
+    pub_year,
     title,
     authors,
     abstract,
     keywords,
-    kciType,
-    citationCount,
-    readAt,
-    isBookmarked,
+    trust_badge,
+    citation_count,
+    paper_type,
   } = paper;
 
   return (
-    <Box sx={containerSx} onClick={() => onClick(id)}>
+    <Box sx={containerSx} onClick={() => onClick(paper_id)}>
       {/* 배지 + 북마크 */}
       <Box
         sx={{
@@ -124,16 +128,12 @@ const PaperListCard = ({ paper, onBookmark, onClick }: PaperListCardProps) => {
           alignItems: "flex-start",
         }}
       >
-        {paper.paperType ? (
-          <PaperTypeBadge paperType={paper.paperType} />
-        ) : (
-          <Box />
-        )}
+        {paper_type ? <PaperTypeBadge paperType={paper_type} /> : <Box />}
         <IconButton
           sx={bookmarkButtonSx}
           onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
             e.stopPropagation();
-            onBookmark(id);
+            onBookmark(paper_id);
           }}
         >
           {isBookmarked ? (
@@ -146,8 +146,8 @@ const PaperListCard = ({ paper, onBookmark, onClick }: PaperListCardProps) => {
 
       {/* 출처/날짜 */}
       <Box sx={{ display: "flex", alignItems: "center", gap: "7px" }}>
-        <Typography sx={metaSx}>{source}</Typography>
-        <Typography sx={metaSx}>{date}</Typography>
+        <Typography sx={metaSx}>{journal}</Typography>
+        <Typography sx={metaSx}>{pub_year}</Typography>
       </Box>
 
       {/* 제목 */}
@@ -200,28 +200,10 @@ const PaperListCard = ({ paper, onBookmark, onClick }: PaperListCardProps) => {
         ))}
       </Box>
 
-      {/* 하단: 배지 + 읽음 날짜 */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <Box sx={{ display: "flex", gap: "6px" }}>
-          <Typography sx={badgeSx}>{kciType}</Typography>
-          <Typography sx={badgeSx}>인용수 {citationCount}</Typography>
-        </Box>
-        <Typography
-          sx={{
-            fontSize: "14px",
-            fontWeight: 500,
-            color: "#757A94",
-            lineHeight: "normal",
-          }}
-        >
-          {readAt} 읽음
-        </Typography>
+      {/* 하단: 배지 */}
+      <Box sx={{ display: "flex", gap: "6px" }}>
+        {trust_badge && <Typography sx={badgeSx}>{trust_badge}</Typography>}
+        <Typography sx={badgeSx}>인용수 {citation_count}</Typography>
       </Box>
     </Box>
   );
