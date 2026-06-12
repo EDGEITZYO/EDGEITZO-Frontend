@@ -40,8 +40,8 @@ const edgeTypes: EdgeTypes = { keywordEdge: KeywordEdge };
 
 // ─── 레이아웃 상수 ────────────────────────────────────────
 
-const DEPTH_GAP = 250;
-const SIBLING_GAP = 100;
+const DEPTH_GAP = 350;
+const SIBLING_GAP = 150;
 
 const getChildPosition = (
   parentX: number,
@@ -50,7 +50,8 @@ const getChildPosition = (
   index: number,
   total: number,
 ): { x: number; y: number } => {
-  const offset = (index - (total - 1) / 2) * SIBLING_GAP;
+  const dynamicGap = total > 3 ? SIBLING_GAP * (1 + (total - 3) * 0.1) : SIBLING_GAP;
+  const offset = (index - (total - 1) / 2) * dynamicGap;
   switch (direction) {
     case "top":
       return { x: parentX + offset, y: parentY - DEPTH_GAP };
@@ -131,14 +132,31 @@ const buildGraphFromTree = (
     // depth 1까지만 렌더링 (depth 0=루트, depth 1=2단계)
     if (node.depth >= 1) return;
 
-    const total = node.children.length;
-    node.children.forEach((child, index) => {
+    // 🌟 수정된 부분: 자식 노드를 방향(Top, Bottom, Left, Right)별로 그룹화
+    const childrenByDir: Record<NodeDirection, KMTreeNode[]> = {
+      top: [],
+      bottom: [],
+      left: [],
+      right: [],
+    };
+
+    node.children.forEach((child) => {
       const childDirection =
         child.edge_type !== null
           ? AXIS_TO_DIRECTION[child.edge_type]
           : direction;
-      const pos = getChildPosition(x, y, childDirection, index, total);
-      traverse(child, node.id, childDirection, pos.x, pos.y);
+      childrenByDir[childDirection].push(child);
+    });
+
+    // 🌟 그룹화된 방향별로 각각 독립적인 index와 total을 가지고 오프셋 계산
+    (Object.keys(childrenByDir) as NodeDirection[]).forEach((dir) => {
+      const dirChildren = childrenByDir[dir];
+      const total = dirChildren.length;
+
+      dirChildren.forEach((child, index) => {
+        const pos = getChildPosition(x, y, dir, index, total);
+        traverse(child, node.id, dir, pos.x, pos.y);
+      });
     });
   };
 
@@ -318,44 +336,61 @@ const KeywordMapGraph = () => {
         const { new_children } = res.data.data;
         const newDepth = Math.min(nodeData.depth + 1, 4) as 2 | 3 | 4;
 
-        const newNodes: Node<KeywordNodeData>[] = new_children.map(
-          (child: KMExpandedChild, index: number) => {
-            const childDirection =
-              AXIS_TO_DIRECTION[child.edge_type] ?? nodeData.direction;
+        const childrenByDir: Record<NodeDirection, KMExpandedChild[]> = {
+          top: [],
+          bottom: [],
+          left: [],
+          right: [],
+        };
+
+        new_children.forEach((child: KMExpandedChild) => {
+          const childDirection =
+            AXIS_TO_DIRECTION[child.edge_type] ?? nodeData.direction;
+          childrenByDir[childDirection].push(child);
+        });
+
+        const newNodes: Node<KeywordNodeData>[] = [];
+        const newEdges: Edge[] = [];
+
+        (Object.keys(childrenByDir) as NodeDirection[]).forEach((dir) => {
+          const dirChildren = childrenByDir[dir];
+          const total = dirChildren.length;
+
+          dirChildren.forEach((child, index) => {
             const pos = getChildPosition(
               targetNode.position.x,
               targetNode.position.y,
-              childDirection,
+              dir,
               index,
-              new_children.length,
+              total,
             );
-            return {
+
+            newNodes.push({
               id: child.id,
               type: "keywordNode",
               position: pos,
               data: {
                 label: child.ko,
                 depth: newDepth,
-                direction: childDirection,
+                direction: dir,
                 definition: child.definition ?? undefined,
                 isExpanded: false,
                 isSelected: false,
                 isFocused: false,
               },
-            };
-          },
-        );
+            });
 
-        const newEdges: Edge[] = new_children.map((child: KMExpandedChild) => ({
-          id: `edge-${nodeId}-${child.id}`,
-          source: nodeId,
-          target: child.id,
-          sourceHandle:
-            AXIS_TO_DIRECTION[child.edge_type] ?? nodeData.direction,
-          targetHandle: `${getOppositeDirection(AXIS_TO_DIRECTION[child.edge_type] ?? nodeData.direction)}-target`,
-          type: "keywordEdge",
-          data: { axisLabel: child.edge_type },
-        }));
+            newEdges.push({
+              id: `edge-${nodeId}-${child.id}`,
+              source: nodeId,
+              target: child.id,
+              sourceHandle: dir,
+              targetHandle: `${getOppositeDirection(dir)}-target`,
+              type: "keywordEdge",
+              data: { axisLabel: child.edge_type },
+            });
+          });
+        });
 
         setNodes((nds) => [
           ...nds.map((n) =>
