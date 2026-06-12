@@ -15,7 +15,7 @@ const aiTextSx: SxProps<Theme> = {
 
 const userBubbleSx: SxProps<Theme> = {
   display: 'inline-flex',
-  height: '76px',
+  height: '60px',
   alignItems: 'center',
   px: '28px',
   borderRadius: '20px',

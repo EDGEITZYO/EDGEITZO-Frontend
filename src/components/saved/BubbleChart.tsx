@@ -8,13 +8,13 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
-import { type RecentPaper } from "../../types/saved";
+import { type RecentPaperChartItem } from "../../types/saved";
 
 // ─── 타입 ─────────────────────────────────────────────────
 
 interface BubbleChartProps {
   variant: "normal" | "fullscreen";
-  papers: RecentPaper[];
+  papers: RecentPaperChartItem[];
   selectedPaperIds: string[] | null;
   onDotClick: (paperIds: string[]) => void;
   onBackgroundClick: () => void;
@@ -30,45 +30,34 @@ interface ChartDot {
 
 // ─── 상수 ─────────────────────────────────────────────────
 
-const CLUSTER_THRESHOLD = 40;
-const DOT_RADIUS = 12;
-const CLUSTER_RADIUS = 20;
+const DOT_RADIUS = 16;
 const DOT_COLOR = "#6B7280";
 const DOT_SELECTED_COLOR = "#31333F";
 const DOT_DIMMED_COLOR = "#D1D5DB";
 
 // ─── 클러스터링 로직 ──────────────────────────────────────
 
-const clusterPapers = (
-  papers: RecentPaper[],
-  width: number,
-  height: number,
-): ChartDot[] => {
-  const maxYear = Math.max(...papers.map((p) => p.publishYear));
-  const minYear = Math.min(...papers.map((p) => p.publishYear));
-  const maxCitation = Math.max(...papers.map((p) => p.citationForChart));
-
-  const toPixel = (paper: RecentPaper) => ({
-    px: ((paper.publishYear - minYear) / (maxYear - minYear || 1)) * width,
-    py: (1 - paper.citationForChart / (maxCitation || 1)) * height,
-  });
-
+const clusterPapers = (papers: RecentPaperChartItem[]): ChartDot[] => {
   const dots: ChartDot[] = [];
   const used = new Set<string>();
 
   papers.forEach((paper) => {
-    if (used.has(paper.id)) return;
-    const { px, py } = toPixel(paper);
+    if (used.has(paper.paper_id)) return;
+
     const nearby = papers.filter((other) => {
-      if (used.has(other.id)) return false;
-      const { px: ox, py: oy } = toPixel(other);
-      return Math.sqrt((px - ox) ** 2 + (py - oy) ** 2) < CLUSTER_THRESHOLD;
+      if (used.has(other.paper_id)) return false;
+      const sameYear = paper.published_year === other.published_year;
+      const citationDiff = Math.abs(
+        (paper.citation_count ?? 0) - (other.citation_count ?? 0),
+      );
+      return sameYear && citationDiff <= 3;
     });
-    nearby.forEach((p) => used.add(p.id));
+
+    nearby.forEach((p) => used.add(p.paper_id));
     dots.push({
-      x: paper.publishYear,
-      y: paper.citationForChart,
-      paperIds: nearby.map((p) => p.id),
+      x: paper.published_year,
+      y: paper.citation_count ?? 0,
+      paperIds: nearby.map((p) => p.paper_id),
       isCluster: nearby.length > 1,
       clusterCount: nearby.length,
     });
@@ -93,7 +82,9 @@ const CustomDot = (props: {
     ? payload.paperIds.some((id) => selectedPaperIds.includes(id))
     : false;
   const isDimmed = selectedPaperIds !== null && !isSelected;
-  const radius = payload.isCluster ? CLUSTER_RADIUS : DOT_RADIUS;
+  const radius = payload.isCluster
+    ? Math.min(DOT_RADIUS + payload.clusterCount * 5, 50)
+    : DOT_RADIUS;
   const color = isDimmed
     ? DOT_DIMMED_COLOR
     : isSelected
@@ -123,7 +114,7 @@ const CustomDot = (props: {
           textAnchor="middle"
           dominantBaseline="central"
           fill="#fff"
-          fontSize={12}
+          fontSize={18}
           fontWeight={600}
         >
           +{payload.clusterCount}
@@ -254,10 +245,7 @@ const BubbleChart = ({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [chartSize, setChartSize] = useState({ width: 600, height: 400 });
 
-  const dots = useMemo(
-    () => clusterPapers(papers, chartSize.width, chartSize.height),
-    [papers, chartSize],
-  );
+  const dots = useMemo(() => clusterPapers(papers), [papers]);
 
   const chartContent = (
     <Box
@@ -277,14 +265,27 @@ const BubbleChart = ({
           height={chartSize.height}
         />
       )}
+      {variant === "normal" && (
+        <NormalAxisOverlay width={chartSize.width} height={chartSize.height} />
+      )}
       <ResponsiveContainer
         width="100%"
         height="100%"
         onResize={(w, h) => setChartSize({ width: w, height: h })}
       >
-        <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-          <XAxis dataKey="x" hide />
-          <YAxis dataKey="y" hide />
+        <ScatterChart margin={{ top: 60, right: 60, bottom: 60, left: 60 }}>
+          <XAxis
+            dataKey="x"
+            hide
+            type="number"
+            domain={["dataMin", "dataMax"]}
+          />
+          <YAxis
+            dataKey="y"
+            hide
+            type="number"
+            domain={["dataMin", "dataMax"]}
+          />
           <Tooltip content={() => null} cursor={false} />
           <Scatter
             data={dots}
@@ -298,9 +299,6 @@ const BubbleChart = ({
           />
         </ScatterChart>
       </ResponsiveContainer>
-      {variant === "normal" && (
-        <NormalAxisOverlay width={chartSize.width} height={chartSize.height} />
-      )}
     </Box>
   );
 

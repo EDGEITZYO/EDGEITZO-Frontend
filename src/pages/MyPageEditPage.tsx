@@ -9,32 +9,23 @@ import {
   Button,
   Select,
   MenuItem,
+  CircularProgress,
 } from "@mui/material";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import CheckIcon from "@mui/icons-material/Check";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Header from "../components/layout/Header";
 import {
   profileEditSchema,
   type ProfileEditForm,
   type AgeGroup,
   AGE_OPTIONS,
-  JOB_OPTIONS,
+  ROLE_OPTIONS,
   PURPOSE_OPTIONS,
   GENDER_OPTIONS,
 } from "../types/mypage";
-import { type UserProfile } from "../types/user";
-import { birthYearToAgeGroup } from "../utils/userUtils";
-
-// TODO: API 연동 시 실제 유저 데이터로 교체
-const MOCK_USER: UserProfile = {
-  name: "홍길동",
-  gender: "여성",
-  birthYear: 2003,
-  job: "석사과정",
-  researchField: "생명과학 · 분자생물학",
-  purposes: ["연구 주제 탐색", "논문 작성 참고", "최신 트렌드 파악"],
-};
+import { mypageApi } from "../api/mypage";
 
 const containerSx: SxProps<Theme> = {
   display: "flex",
@@ -118,9 +109,24 @@ const buttonAreaSx: SxProps<Theme> = {
 
 const MyPageEditPage = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  // TODO: API 연동 시 실제 유저 데이터 fetch로 교체
-  const user = MOCK_USER;
+  const { data, isPending } = useQuery({
+    queryKey: ["mypage"],
+    queryFn: async () => {
+      const res = await mypageApi.getMypage();
+      return res.data.data;
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const { mutate: updateProfile, isPending: isSubmitting } = useMutation({
+    mutationFn: mypageApi.updateProfile,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["mypage"] });
+      navigate("/mypage");
+    },
+  });
 
   const {
     control,
@@ -129,25 +135,41 @@ const MyPageEditPage = () => {
   } = useForm<ProfileEditForm>({
     resolver: zodResolver(profileEditSchema),
     mode: "onChange",
-    defaultValues: {
-      name: user.name,
-      gender: user.gender,
-      ageGroup: birthYearToAgeGroup(user.birthYear) as AgeGroup,
-      job: user.job,
-      researchField: user.researchField,
-      purposes: user.purposes,
-    },
+    values: data
+      ? {
+          name: data.profile.name,
+          gender: (data.profile.gender ??
+            "선택 안함") as ProfileEditForm["gender"],
+          age: data.profile.age as AgeGroup,
+          role: data.profile.role as ProfileEditForm["role"],
+          research_field: data.profile.research_field,
+          purposes: data.profile.purposes as ProfileEditForm["purposes"],
+        }
+      : undefined,
   });
 
-  const onSubmit: SubmitHandler<ProfileEditForm> = (data) => {
-    // TODO: API 연동 시 PATCH /users/me 호출
-    console.log("저장할 데이터:", data);
-    navigate("/mypage");
+  const onSubmit: SubmitHandler<ProfileEditForm> = (formData) => {
+    updateProfile(formData);
   };
 
   const handleCancel = () => {
     navigate("/mypage");
   };
+
+  if (isPending) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={containerSx}>
@@ -245,7 +267,7 @@ const MyPageEditPage = () => {
           <Box sx={{ display: "flex", flexDirection: "column", gap: "6px" }}>
             <Typography sx={fieldLabelSx}>나이</Typography>
             <Controller
-              name="ageGroup"
+              name="age"
               control={control}
               render={({ field }) => (
                 <Select {...field} fullWidth sx={selectSx}>
@@ -276,11 +298,11 @@ const MyPageEditPage = () => {
           <Box sx={{ display: "flex", flexDirection: "column", gap: "6px" }}>
             <Typography sx={fieldLabelSx}>역할</Typography>
             <Controller
-              name="job"
+              name="role"
               control={control}
               render={({ field }) => (
                 <Select {...field} fullWidth sx={selectSx}>
-                  {JOB_OPTIONS.map((option) => (
+                  {ROLE_OPTIONS.map((option) => (
                     <MenuItem key={option} value={option}>
                       {option}
                     </MenuItem>
@@ -294,7 +316,7 @@ const MyPageEditPage = () => {
           <Box sx={{ display: "flex", flexDirection: "column", gap: "6px" }}>
             <Typography sx={fieldLabelSx}>전공 · 연구 분야 변경</Typography>
             <Controller
-              name="researchField"
+              name="research_field"
               control={control}
               render={({ field }) => (
                 <TextField
@@ -358,7 +380,6 @@ const MyPageEditPage = () => {
                         field.onChange(next);
                       }}
                     >
-                      {/* 커스텀 체크박스 */}
                       <Box
                         sx={{
                           width: 24,
@@ -413,7 +434,7 @@ const MyPageEditPage = () => {
           </Button>
           <Button
             onClick={handleSubmit(onSubmit)}
-            disabled={!isValid}
+            disabled={!isValid || isSubmitting}
             sx={{
               width: "136px",
               height: "45px",

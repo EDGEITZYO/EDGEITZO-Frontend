@@ -1,7 +1,7 @@
 import { Box, Typography } from "@mui/material";
 import { type RecentPaper } from "../../types/home";
 import { useNavigate } from "react-router-dom";
-import PaperTypeBadge from '../common/PaperTypeBadge';
+import PaperTypeBadge from "../common/PaperTypeBadge";
 
 interface RecentPaperCardProps {
   data: RecentPaper;
@@ -9,13 +9,21 @@ interface RecentPaperCardProps {
 
 const RecentPaperCard = ({ data }: RecentPaperCardProps) => {
   const navigate = useNavigate();
-  const { id, source, date, title, keywords, kciType, citationCount, readAt, paperType } =
-    data;
+  const {
+    paper_id,
+    paper_type,
+    journal_name,
+    published_at,
+    title,
+    keywords,
+    badges,
+    viewed_at,
+  } = data;
 
   return (
     <Box
       onClick={() =>
-        navigate(`/papers/${id}?returnTo=${encodeURIComponent("/home")}`)
+        navigate(`/papers/${paper_id}?returnTo=${encodeURIComponent("/home")}`)
       }
       sx={{
         padding: "18px 16px",
@@ -30,22 +38,26 @@ const RecentPaperCard = ({ data }: RecentPaperCardProps) => {
       }}
     >
       {/* 배지 행 */}
-      {paperType && <PaperTypeBadge paperType={paperType} />}
+      {paper_type && <PaperTypeBadge paperType={paper_type} />}
 
       {/* 출처 + 날짜 */}
       <Box sx={{ display: "flex", alignItems: "center", gap: "7px" }}>
-        <Typography
-          variant="caption"
-          sx={{ color: "#757A94", fontWeight: 500 }}
-        >
-          {source}
-        </Typography>
-        <Typography
-          variant="caption"
-          sx={{ color: "#757A94", fontWeight: 500 }}
-        >
-          {date}
-        </Typography>
+        {journal_name && (
+          <Typography
+            variant="caption"
+            sx={{ color: "#757A94", fontWeight: 500 }}
+          >
+            {journal_name}
+          </Typography>
+        )}
+        {published_at && (
+          <Typography
+            variant="caption"
+            sx={{ color: "#757A94", fontWeight: 500 }}
+          >
+            {published_at}
+          </Typography>
+        )}
       </Box>
 
       {/* 논문 제목 */}
@@ -88,56 +100,60 @@ const RecentPaperCard = ({ data }: RecentPaperCardProps) => {
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <Box
-            sx={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              px: "8px",
-              py: "3px",
-              borderRadius: "68px",
-              backgroundColor: "#31333F",
-            }}
-          >
-            <Typography
-              variant="caption"
+          {badges.kci && (
+            <Box
               sx={{
-                color: "static.white",
-                fontWeight: 400,
-                letterSpacing: "-0.28px",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                px: "8px",
+                py: "3px",
+                borderRadius: "68px",
+                backgroundColor: "#31333F",
               }}
             >
-              {kciType}
-            </Typography>
-          </Box>
-          <Box
-            sx={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              px: "8px",
-              py: "3px",
-              borderRadius: "68px",
-              backgroundColor: "#31333F",
-            }}
-          >
-            <Typography
-              variant="caption"
+              <Typography
+                variant="caption"
+                sx={{
+                  color: "static.white",
+                  fontWeight: 400,
+                  letterSpacing: "-0.28px",
+                }}
+              >
+                KCI {badges.kci}
+              </Typography>
+            </Box>
+          )}
+          {badges.citation_count !== null && (
+            <Box
               sx={{
-                color: "static.white",
-                fontWeight: 400,
-                letterSpacing: "-0.28px",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                px: "8px",
+                py: "3px",
+                borderRadius: "68px",
+                backgroundColor: "#31333F",
               }}
             >
-              인용수 {citationCount}
-            </Typography>
-          </Box>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: "static.white",
+                  fontWeight: 400,
+                  letterSpacing: "-0.28px",
+                }}
+              >
+                인용수 {badges.citation_count}
+              </Typography>
+            </Box>
+          )}
         </Box>
         <Typography
           variant="caption"
           sx={{ color: "#757A94", fontWeight: 500 }}
         >
-          {readAt} 읽음
+          {viewed_at} 읽음
         </Typography>
       </Box>
     </Box>

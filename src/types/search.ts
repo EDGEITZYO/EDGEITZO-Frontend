@@ -1,91 +1,129 @@
-import { type PaperType } from './paper';
+import { type PaperType } from "./paper";
+
 // ─── 공통 ───────────────────────────────────────────────
 
-export type SearchView = 'chat' | 'list';
+export type SearchView = "chat" | "list" | "detail";
 
-export type ChatRole = 'user' | 'ai';
-
-export type SearchStep =
-  | 'purpose'      // 연구 목적
-  | 'scope'        // 논문 범위
-  | 'period'       // 발행 시기
-  | 'narrowDown'   // 범위 축소
-  | 'final';       // 탐색 시작
+export type ChatRole = "user" | "ai";
 
 // ─── 대화 메시지 ─────────────────────────────────────────
 
-export interface ChatChoice {
-  id: string;
+export interface ChatOption {
   label: string;
-  isEtc?: boolean;
-  isSkip?: boolean;
-  isMultiple?: boolean;
+  value: string;
 }
 
 export interface ChatMessage {
   id: string;
   role: ChatRole;
   content: string;
-  choices?: ChatChoice[];   // AI 메시지일 때 선택지
-  isLoading?: boolean;      // AI 응답 로딩 중
-  // TODO: API 연동 시 백엔드 응답에서 받아올 것 - 마지막 단계 여부
-  isFinal?: boolean;
+  options?: ChatOption[];
+  allowMultiple?: boolean;
+  isLoading?: boolean;
 }
 
-// ─── 검색 구체화 ──────────────────────────────────────────
+// ─── SSE 슬롯/이벤트 ─────────────────────────────────────
 
-export interface SearchProgress {
-  specificity: number;        // 구체화 % (0~100)
-  currentStep: SearchStep;    // 현재 완료된 단계
-}
+export type SlotType =
+  | "research_purpose"
+  | "paper_scope"
+  | "pub_year_range"
+  | "keywords";
 
-// ─── 논문 (우측 패널 미니 카드용) ────────────────────────
+export type SearchStage = "none" | "ready" | "emphasized" | "complete";
 
-export type PaperFeedback = 'like' | 'dislike' | null;
+export type ResponseType = "options" | "free_input" | "confirm";
 
-export interface MiniPaper {
-  id: string;
-  source: string;
-  date: string;
-  title: string;
-  tags: string[];             // KCI, SCI 등
+// ─── SSE done 이벤트 ─────────────────────────────────────
+
+export interface SearchPreview {
+  topic: string;
+  purpose: string;
+  scope: string;
+  pub_year: string;
   keywords: string[];
-  feedback: PaperFeedback;
+  completeness_pct: number;
 }
 
-// ─── 논문 (리스트 전체화면용) ────────────────────────────
+export interface FinalSearchParams {
+  keywords: string[];
+  scope: string;
+  pub_year_start: number;
+  research_purpose: string;
+  trust_level: string;
+  advanced_filters: Record<string, string>;
+}
 
-export interface PaperListItem {
-  id: string;
-  source: string;
-  date: string;
+export interface SearchChatDoneEvent {
+  session_id: string;
+  turn: number;
+  ai_message: string;
+  response_type: ResponseType;
+  options: ChatOption[];
+  allow_multiple: boolean;
+  search_preview: SearchPreview;
+  search_ready: boolean;
+  completeness_pct: number;
+  search_stage: SearchStage;
+  interim_papers?: SearchPaper[];
+  final_search_params: FinalSearchParams | null;
+}
+
+// ─── 논문 ────────────────────────────────────────────────
+
+export interface SearchPaper {
+  paper_id: string;
   title: string;
   authors: string[];
+  pub_year: number;
+  journal: string;
+  paper_type: PaperType;
   abstract: string;
   keywords: string[];
-  kciType: string;
-  citationCount: number;
-  readAt: string;
-  isBookmarked: boolean;
-  paperType?: PaperType;
+  doi: string;
+  scope_badge: string;
+  citation_count: number;
+  relevance_score: number;
+  trust_badge: string;
+  keyword_map_data: null;
 }
 
-// ─── 검색 결과 ────────────────────────────────────────────
+// ─── 피드백 ──────────────────────────────────────────────
 
-export interface SearchResult {
-  totalCount: number;
-  papers: MiniPaper[];
+export type FeedbackType = "like" | "dislike";
+
+// ─── API 요청/응답 ────────────────────────────────────────
+
+export interface SearchChatRequest {
+  session_id: string | null;
+  message: string;
+  selected_options: string[];
+  force_start: boolean;
+}
+
+export interface SearchExecuteRequest {
+  session_id: string;
+  search_params: FinalSearchParams;
+  filter_paper_type: PaperType | null;
+  sort_order: "relevance" | "year_asc" | "year_desc";
+  user_id: string | null;
+}
+
+export interface SearchExecuteResult {
+  papers: SearchPaper[];
+  total: number;
+  search_id: string;
+}
+
+export interface SearchPapersRequest {
+  query: string;
+  paper_scope: string;
+  time_range: string;
+  keywords: string[];
+  page: number;
+  size: number;
 }
 
 // ─── 필터/정렬 ───────────────────────────────────────────
 
-export type PaperSortType = 'relevance' | 'newest' | 'oldest';
-
-export type PaperFilterType = 'all' | 'journal' | 'thesis' | 'conference';
-
-export interface PaperFilter {
-  sort: PaperSortType;
-  paperType: PaperFilterType;
-  publishYear?: string;
-  sciOnly?: boolean;
-}
+export type SortOrder = "relevance" | "year_asc" | "year_desc";

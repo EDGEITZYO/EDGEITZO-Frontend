@@ -1,25 +1,18 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, CircularProgress } from "@mui/material";
 import { type SxProps, type Theme } from "@mui/material/styles";
+import { useQuery } from "@tanstack/react-query";
 import RecentPaperHeader from "../components/saved/RecentPaperHeader";
 import BubbleChart from "../components/saved/BubbleChart";
 import ChartRightPanel from "../components/saved/ChartRightPanel";
 import { type ChartFilter, type PeriodMode } from "../types/saved";
-import { MOCK_RECENT_PAPERS } from "../components/saved/RecentPaperListView";
+import { savedApi } from "../api/saved";
 import {
   parseDateParam,
   formatDateParam,
   isPeriodMode,
 } from "../utils/savedUtils";
-
-// ─── 목 데이터 ────────────────────────────────────────────
-// TODO: API 연동 시 교체
-const MOCK_SUMMARY = {
-  totalCount: 16,
-  keywordCount: 12,
-  mostSearchedKeyword: "IBS",
-};
 
 // ─── 스타일 ───────────────────────────────────────────────
 
@@ -112,18 +105,29 @@ const RecentPaperFullscreenPage = () => {
     null,
   );
 
-  const papers = MOCK_RECENT_PAPERS;
-
   const periodMode: PeriodMode = isPeriodMode(searchParams.get("mode"))
     ? (searchParams.get("mode") as PeriodMode)
     : "day";
 
   const currentDate = parseDateParam(searchParams.get("date"));
+  const dateParam = formatDateParam(currentDate);
 
   const filter: ChartFilter = {
     publish: (searchParams.get("publish") as ChartFilter["publish"]) || null,
     citation: (searchParams.get("citation") as ChartFilter["citation"]) || null,
   };
+
+  const { data, isPending, isError } = useQuery({
+    queryKey: ["recent-paper-stats", periodMode, dateParam],
+    queryFn: async () => {
+      const res = await savedApi.getRecentPaperStats({
+        period: periodMode,
+        date: dateParam,
+      });
+      return res.data.data;
+    },
+    staleTime: 1000 * 60 * 5,
+  });
 
   const updateParams = (updates: Record<string, string | null>) => {
     const next = new URLSearchParams(searchParams);
@@ -175,9 +179,42 @@ const RecentPaperFullscreenPage = () => {
     navigate(`/papers/${paperId}?returnTo=${encodeURIComponent(returnTo)}`);
   };
 
+  if (isPending) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <Typography sx={{ fontSize: "16px", color: "label.alternative" }}>
+          데이터를 불러오지 못했어요. 다시 시도해주세요.
+        </Typography>
+      </Box>
+    );
+  }
+
+  const chartData = data.chart_data;
+
   return (
     <Box sx={pageWrapperSx}>
-      {/* 날짜/필터 헤더 */}
       <RecentPaperHeader
         variant="fullscreen"
         periodMode={periodMode}
@@ -195,29 +232,22 @@ const RecentPaperFullscreenPage = () => {
       <Box sx={summarySx}>
         <Box sx={summaryItemSx}>
           <Typography sx={summaryLabelSx}>총 탐색 논문</Typography>
-          <Typography sx={summaryValueSx}>
-            {MOCK_SUMMARY.totalCount}건
-          </Typography>
+          <Typography sx={summaryValueSx}>{data.total_papers}건</Typography>
         </Box>
         <Box sx={summaryDividerSx} />
         <Box sx={summaryItemSx}>
           <Typography sx={summaryLabelSx}>키워드 수</Typography>
-          <Typography sx={summaryValueSx}>
-            {MOCK_SUMMARY.keywordCount}개
-          </Typography>
+          <Typography sx={summaryValueSx}>{data.keyword_count}개</Typography>
         </Box>
         <Box sx={summaryDividerSx} />
         <Box sx={summaryItemSx}>
           <Typography sx={summaryLabelSx}>가장 많이 탐색한 키워드</Typography>
-          <Typography sx={summaryValueSx}>
-            {MOCK_SUMMARY.mostSearchedKeyword}
-          </Typography>
+          <Typography sx={summaryValueSx}>{data.top_keyword}</Typography>
         </Box>
       </Box>
 
       {/* 차트 영역 */}
       <Box sx={chartAreaSx}>
-        {/* 차트 + 라벨 전체 묶음 */}
         <Box
           sx={{
             display: "flex",
@@ -227,9 +257,7 @@ const RecentPaperFullscreenPage = () => {
             gap: "5px",
           }}
         >
-          {/* 차트 + 우측 라벨 묶음 */}
           <Box sx={{ display: "flex", flex: 1, minHeight: 0, gap: "10px" }}>
-            {/* 차트 + 상단 라벨 묶음 */}
             <Box
               sx={{
                 display: "flex",
@@ -239,7 +267,6 @@ const RecentPaperFullscreenPage = () => {
                 gap: "10px",
               }}
             >
-              {/* 상단 라벨 */}
               <Box sx={{ display: "flex", gap: "5px", flexShrink: 0 }}>
                 <Box sx={{ ...axisLabelSx, flex: 1 }}>
                   <Typography sx={axisLabelTextSx}>오래된 논문</Typography>
@@ -248,18 +275,16 @@ const RecentPaperFullscreenPage = () => {
                   <Typography sx={axisLabelTextSx}>최신 논문</Typography>
                 </Box>
               </Box>
-              {/* 차트 */}
               <Box sx={chartWrapperSx}>
                 <BubbleChart
                   variant="fullscreen"
-                  papers={papers}
+                  papers={chartData}
                   selectedPaperIds={selectedPaperIds}
                   onDotClick={setSelectedPaperIds}
                   onBackgroundClick={() => setSelectedPaperIds(null)}
                 />
               </Box>
             </Box>
-            {/* 우측 라벨 */}
             <Box
               sx={{
                 display: "flex",
@@ -268,7 +293,6 @@ const RecentPaperFullscreenPage = () => {
                 flexShrink: 0,
               }}
             >
-              {/* 상단 라벨 높이만큼 spacer */}
               <Box sx={{ height: "40px", flexShrink: 0 }} />
               <Box
                 sx={{
@@ -295,9 +319,8 @@ const RecentPaperFullscreenPage = () => {
             </Box>
           </Box>
         </Box>
-        {/* 우측 패널 */}
         <ChartRightPanel
-          papers={papers}
+          papers={chartData}
           filter={filter}
           selectedPaperIds={selectedPaperIds}
           onFilterChange={handleFilterChange}

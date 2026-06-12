@@ -1,6 +1,7 @@
 import { AppBar, Toolbar, Box, Typography, Button } from "@mui/material";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuthStore } from "../../stores/authStore";
 
 interface HeaderProps {
   isLoggedIn?: boolean;
@@ -14,6 +15,7 @@ const NAV_ITEMS = [
 const Header = ({ isLoggedIn = false }: HeaderProps) => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const userName = useAuthStore((state) => state.userName);
 
   return (
     <AppBar
@@ -82,7 +84,7 @@ const Header = ({ isLoggedIn = false }: HeaderProps) => {
           >
             <AccountCircleIcon sx={{ color: "text.secondary" }} />
             <Typography variant="body2" color="text.primary">
-              홍길동님
+              {userName ? `${userName}님` : ''}
             </Typography>
             <Button
               variant="text"

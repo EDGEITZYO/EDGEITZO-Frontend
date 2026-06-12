@@ -21,13 +21,15 @@ import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import { useNavigate, useLocation } from "react-router-dom";
+import { authApi } from "../../api/auth";
+import axios from "axios";
 
 // ---- Zod 스키마 ----
 const signupSchema = z.object({
   email: z
     .string()
     .min(1, "이메일을 입력해주세요")
-    .email({ message: "올바른 이메일 형식이 아니에요" }),
+    .check(z.email({ error: "올바른 이메일 형식이 아니에요" })),
   password: z
     .string()
     .min(8, "")
@@ -108,6 +110,7 @@ const SignupForm = () => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [passwordTouched, setPasswordTouched] = useState(false);
+  const [emailApiError, setEmailApiError] = useState<string | null>(null);
 
   const {
     register,
@@ -139,7 +142,7 @@ const SignupForm = () => {
 
   // 이메일 테두리 색상
   const getEmailBorderColor = () => {
-    if (errors.email) return "status.negative";
+    if (errors.email || emailApiError) return "status.negative";
     return "static.black";
   };
 
@@ -149,9 +152,18 @@ const SignupForm = () => {
     isPasswordValid &&
     nameValue.length > 0;
 
-  const onSubmit: SubmitHandler<SignupFormValues> = (/* data */) => {
-    // TODO: API 연동 시 교체
-    navigate("/signup/verify", { state: { email: emailValue } });
+  const onSubmit: SubmitHandler<SignupFormValues> = async (data) => {
+    setEmailApiError(null);
+    try {
+      await authApi.checkEmail({ email: data.email });
+      navigate("/signup/verify", {
+        state: { type: "email", email: data.email, password: data.password },
+      });
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response?.status === 400) {
+        setEmailApiError("이미 가입된 이메일이에요");
+      }
+    }
   };
 
   return (
@@ -197,7 +209,7 @@ const SignupForm = () => {
                 },
               }}
             />
-            {errors.email && (
+            {(errors.email || emailApiError) && (
               <Typography
                 sx={{
                   mt: "4px",
@@ -207,7 +219,7 @@ const SignupForm = () => {
                   fontWeight: 400,
                 }}
               >
-                {errors.email.message}
+                {errors.email?.message ?? emailApiError}
               </Typography>
             )}
           </Box>

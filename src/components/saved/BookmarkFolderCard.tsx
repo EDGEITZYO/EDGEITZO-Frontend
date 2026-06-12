@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Box, Typography, IconButton, Menu, MenuItem } from "@mui/material";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import { type SxProps, type Theme } from "@mui/material/styles";
+import { formatDistanceToNow } from "date-fns";
+import { ko } from "date-fns/locale";
 import { type BookmarkFolder } from "../../types/saved";
 
 interface BookmarkFolderCardProps {
@@ -70,13 +72,26 @@ const menuItemSx: SxProps<Theme> = {
   px: "12px",
 };
 
+const formatUpdatedAt = (updatedAt: string): string => {
+  if (!updatedAt) return "";
+  try {
+    return formatDistanceToNow(new Date(updatedAt), {
+      addSuffix: true,
+      locale: ko,
+    });
+  } catch {
+    return "";
+  }
+};
+
 const BookmarkFolderCard = ({
   folder,
   onClick,
   onMoreClick,
 }: BookmarkFolderCardProps) => {
-  const { id, name, keywords, paperCount, updatedAt, isDefault } = folder;
+  const { id, name, representative_keywords, paper_count, updated_at } = folder;
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+  const isAllFolder = id === "all";
 
   const handleMoreClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
@@ -96,7 +111,7 @@ const BookmarkFolderCard = ({
     <Box sx={cardSx} onClick={() => onClick(id)}>
       <Box sx={headerSx}>
         <Typography sx={nameSx}>{name}</Typography>
-        {!isDefault && (
+        {!isAllFolder && (
           <>
             <IconButton
               size="small"
@@ -143,14 +158,15 @@ const BookmarkFolderCard = ({
         )}
       </Box>
       <Box sx={keywordRowSx}>
-        {keywords.map((keyword, index) => (
+        {representative_keywords.map((keyword, index) => (
           <Typography key={`${keyword}-${index}`} sx={keywordTagSx}>
             {keyword}
           </Typography>
         ))}
       </Box>
       <Typography sx={metaSx}>
-        논문 {paperCount}개 &nbsp; {updatedAt}
+        논문 {paper_count}개 &nbsp;{" "}
+        {updated_at ? formatUpdatedAt(updated_at) : ""}
       </Typography>
     </Box>
   );
