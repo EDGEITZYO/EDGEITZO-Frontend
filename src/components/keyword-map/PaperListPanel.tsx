@@ -1,71 +1,17 @@
-import { Box, Typography, IconButton } from "@mui/material";
+import { Box, Typography, IconButton, CircularProgress } from "@mui/material";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import CloseIcon from "@mui/icons-material/Close";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
+import { useQuery } from "@tanstack/react-query";
 import PaperCard from "./PaperCard";
 import {
   usePaperPanel,
   useKeywordMapActions,
 } from "../../stores/keywordMapStore";
-import { type KeywordPaper } from "../../types/keywordMap";
-
-// ─── 목 데이터 ────────────────────────────────────────────
-// TODO: API 연동 시 백엔드 응답으로 교체
-
-const MOCK_PAPERS: KeywordPaper[] = [
-  {
-    id: "1",
-    source: "2024한국분자세포생물학회 논문지",
-    date: "2024.03.12",
-    title: "미토콘드리아 막전위 손실이 세포 노화에 미치는 영향",
-    authors: ["박민준", "김철수", "이영희", "홍길동"],
-    keywords: ["논문 키워드", "논문 키워드"],
-    kciType: "KCI O",
-    citationCount: 0,
-    isBookmarked: false,
-    paperType: "박사 학위 논문",
-  },
-  {
-    id: "2",
-    source: "2023한국생화학분자생물학회",
-    date: "2023.11.05",
-    title: "노화 세포의 SASP 분비 기전 및 조절 전략",
-    authors: ["박민준", "김철수", "이영희", "홍길동"],
-    keywords: ["논문 키워드", "논문 키워드"],
-    kciType: "KCI O",
-    citationCount: 0,
-    isBookmarked: false,
-    paperType: "학술 저널",
-  },
-  {
-    id: "3",
-    source: "2024한국분자세포생물학회 논문지",
-    date: "2024.03.12",
-    title: "미토콘드리아 막전위 손실이 세포 노화에 미치는 영향",
-    authors: ["박민준", "김철수", "이영희", "홍길동"],
-    keywords: ["논문 키워드", "논문 키워드"],
-    kciType: "KCI O",
-    citationCount: 0,
-    isBookmarked: false,
-    paperType: "박사 학위 논문",
-  },
-  {
-    id: "4",
-    source: "2023한국생화학분자생물학회",
-    date: "2023.11.05",
-    title: "노화 세포의 SASP 분비 기전 및 조절 전략",
-    authors: ["박민준", "김철수", "이영희", "홍길동"],
-    keywords: ["논문 키워드", "논문 키워드"],
-    kciType: "KCI O",
-    citationCount: 0,
-    isBookmarked: false,
-    paperType: "학술 저널",
-  },
-];
-
-// ─── 필터 바 ──────────────────────────────────────────────
+import { keywordMapApi } from "../../api/keywordMap";
+import { useAuthStore } from "../../stores/authStore";
 
 const filterChipSx: SxProps<Theme> = {
   px: "13px",
@@ -79,33 +25,48 @@ const filterChipSx: SxProps<Theme> = {
   "&:hover": { backgroundColor: "fill.normal" },
 };
 
-// ─── 컴포넌트 ─────────────────────────────────────────────
-
 interface PaperListPanelProps {
   onFullscreen: () => void;
 }
 
 const PaperListPanel = ({ onFullscreen }: PaperListPanelProps) => {
-  const { isPaperPanelOpen, panelKeyword, papers, totalCount, currentPage } =
-    usePaperPanel();
+  const {
+    isPaperPanelOpen,
+    panelNodeId,
+    panelKeyword,
+    currentPage,
+    paperFilter,
+  } = usePaperPanel();
   const { closePaperPanel, selectPaper, setCurrentPage } =
     useKeywordMapActions();
 
-  // TODO: API 연동 시 실제 데이터로 교체
-  const displayPapers = papers.length > 0 ? papers : MOCK_PAPERS;
-  const displayTotal = totalCount > 0 ? totalCount : MOCK_PAPERS.length;
-  const totalPages = Math.ceil(displayTotal / 4);
+  const userId = useAuthStore((state) => state.userId);
+  const PAGE_SIZE = 20;
+
+  const { data, isPending, isError } = useQuery({
+    queryKey: ["km-papers", panelNodeId, paperFilter, currentPage],
+    queryFn: async () => {
+      const res = await keywordMapApi.getNodePapers(panelNodeId!, {
+        ...paperFilter,
+        page: currentPage,
+        size: PAGE_SIZE,
+        user_id: userId ?? undefined,
+      });
+      return res.data.data;
+    },
+    enabled: isPaperPanelOpen && panelNodeId !== null,
+    staleTime: 1000 * 60 * 3,
+  });
 
   if (!isPaperPanelOpen) return null;
+
+  const papers = data?.papers ?? [];
+  const totalCount = data?.total ?? 0;
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   const handlePaperClick = (paperId: string) => {
     selectPaper(paperId);
     onFullscreen();
-  };
-
-  const handleBookmark = (paperId: string) => {
-    // TODO: API 연동 시 북마크 처리
-    console.log("bookmark", paperId);
   };
 
   return (
@@ -138,7 +99,6 @@ const PaperListPanel = ({ onFullscreen }: PaperListPanelProps) => {
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          {/* 키워드 칩 */}
           <Box
             sx={{
               px: "9px",
@@ -166,7 +126,7 @@ const PaperListPanel = ({ onFullscreen }: PaperListPanelProps) => {
               letterSpacing: "-0.34px",
             }}
           >
-            검색 결과 {displayTotal}건
+            검색 결과 {totalCount}건
           </Typography>
         </Box>
         <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -231,10 +191,33 @@ const PaperListPanel = ({ onFullscreen }: PaperListPanelProps) => {
 
       {/* 논문 목록 */}
       <Box sx={{ flex: 1, overflowY: "auto" }}>
-        {displayPapers.length === 0 ? (
+        {isPending ? (
           <Box
             sx={{
-              flex: 1,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "100%",
+            }}
+          >
+            <CircularProgress />
+          </Box>
+        ) : isError ? (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "100%",
+            }}
+          >
+            <Typography sx={{ fontSize: "16px", color: "label.alternative" }}>
+              논문을 불러오지 못했어요. 다시 시도해주세요.
+            </Typography>
+          </Box>
+        ) : papers.length === 0 ? (
+          <Box
+            sx={{
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -253,19 +236,18 @@ const PaperListPanel = ({ onFullscreen }: PaperListPanelProps) => {
             </Typography>
           </Box>
         ) : (
-          displayPapers.map((paper) => (
+          papers.map((paper) => (
             <PaperCard
-              key={paper.id}
+              key={paper.paper_id}
               paper={paper}
               onClick={handlePaperClick}
-              onBookmark={handleBookmark}
             />
           ))
         )}
       </Box>
 
       {/* 페이지네이션 */}
-      {displayPapers.length > 0 && (
+      {totalPages > 1 && (
         <Box
           sx={{
             display: "flex",
