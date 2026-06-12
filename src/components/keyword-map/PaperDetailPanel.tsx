@@ -3,6 +3,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import {
   useKeywordMapActions,
   useSelectedPaperId,
+  usePaperPanel,
 } from "../../stores/keywordMapStore";
 import PaperDetailContent from "../common/PaperDetailContent";
 
@@ -12,6 +13,7 @@ interface PaperDetailPanelProps {
 
 const PaperDetailPanel = ({ onClose }: PaperDetailPanelProps) => {
   const selectedPaperId = useSelectedPaperId();
+  const { panelKeyword } = usePaperPanel();
   const { selectPaper } = useKeywordMapActions();
 
   if (!selectedPaperId) return null;
@@ -66,8 +68,7 @@ const PaperDetailPanel = ({ onClose }: PaperDetailPanelProps) => {
             letterSpacing: "-0.34px",
           }}
         >
-          {/* TODO: API 연동 시 검색 키워드로 교체 */}
-          검색 결과
+          {panelKeyword ?? "검색 결과"}
         </Typography>
         <IconButton onClick={handleClose} size="small">
           <CloseIcon sx={{ fontSize: "24px", color: "label.strong" }} />

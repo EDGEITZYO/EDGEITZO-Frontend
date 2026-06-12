@@ -11,4 +11,9 @@ export const mypageApi = {
 
   updateProfile: (data: ProfileEditForm) =>
     apiClient.patch<ApiResponse<MypageProfile>>("/mypage/profile", data),
+
+  updateResearchField: (researchField: string) =>
+    apiClient.patch<ApiResponse<MypageProfile>>("/mypage/profile", {
+      research_field: researchField,
+    }),
 };

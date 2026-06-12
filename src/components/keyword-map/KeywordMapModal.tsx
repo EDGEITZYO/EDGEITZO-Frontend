@@ -2,7 +2,8 @@ import { Box, Typography, Button, Modal } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
-import { useResearchField } from "../../stores/keywordMapStore";
+import { useQueryClient } from "@tanstack/react-query";
+import { type MypageData } from "../../types/mypage";
 
 interface KeywordMapModalProps {
   open: boolean;
@@ -58,7 +59,11 @@ const generateButtonSx: SxProps<Theme> = {
 
 const KeywordMapModal = ({ open, onClose }: KeywordMapModalProps) => {
   const navigate = useNavigate();
-  const researchField = useResearchField();
+  const queryClient = useQueryClient();
+
+  // keywordMapStore 대신 mypage 캐시에서 research_field 읽기
+  const mypageData = queryClient.getQueryData<MypageData>(["mypage"]);
+  const researchField = mypageData?.profile.research_field ?? null;
 
   const handleEdit = () => {
     onClose();
@@ -81,7 +86,6 @@ const KeywordMapModal = ({ open, onClose }: KeywordMapModalProps) => {
           transform: "translate(-50%, -50%)",
         }}
       >
-        {/* 닫기 버튼 - 래퍼 기준 absolute */}
         <Box
           onClick={onClose}
           sx={{
@@ -101,7 +105,6 @@ const KeywordMapModal = ({ open, onClose }: KeywordMapModalProps) => {
           <CloseIcon sx={{ fontSize: "24px", color: "static.black" }} />
         </Box>
         <Box sx={overlayContentSx}>
-          {/* 헤더 텍스트 묶음만 */}
           <Box
             sx={{
               display: "flex",
@@ -132,7 +135,6 @@ const KeywordMapModal = ({ open, onClose }: KeywordMapModalProps) => {
               현재 설정된 연구분야를 수정할 수 있어요.
             </Typography>
           </Box>
-          {/* 현재 설정 연구 분야 */}
           <Typography
             sx={{
               fontSize: "17px",
@@ -145,7 +147,6 @@ const KeywordMapModal = ({ open, onClose }: KeywordMapModalProps) => {
               ? `현재 설정 연구 분야 - ${researchField}`
               : "현재 설정된 연구 분야가 없어요"}
           </Typography>
-          {/* 버튼 */}
           <Box sx={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             <Button
               fullWidth

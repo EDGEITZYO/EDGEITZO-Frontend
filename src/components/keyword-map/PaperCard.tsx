@@ -1,15 +1,13 @@
 import { Box, Typography, Chip } from "@mui/material";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
-import BookmarkIcon from "@mui/icons-material/Bookmark";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { type SxProps, type Theme } from "@mui/material/styles";
-import { type KeywordPaper } from "../../types/keywordMap";
-import PaperTypeBadge from '../common/PaperTypeBadge';
+import { type KMNodePaper } from "../../types/keywordMap";
+import PaperTypeBadge from "../common/PaperTypeBadge";
 
 interface PaperCardProps {
-  paper: KeywordPaper;
+  paper: KMNodePaper;
   onClick: (paperId: string) => void;
-  onBookmark: (paperId: string) => void;
 }
 
 const cardSx: SxProps<Theme> = {
@@ -28,14 +26,9 @@ const cardSx: SxProps<Theme> = {
   },
 };
 
-const PaperCard = ({ paper, onClick, onBookmark }: PaperCardProps) => {
-  const handleBookmarkClick = (e: React.MouseEvent<SVGSVGElement>) => {
-    e.stopPropagation();
-    onBookmark(paper.id);
-  };
-
+const PaperCard = ({ paper, onClick }: PaperCardProps) => {
   return (
-    <Box sx={cardSx} onClick={() => onClick(paper.id)}>
+    <Box sx={cardSx} onClick={() => onClick(paper.paper_id)}>
       {/* 배지 + 북마크 */}
       <Box
         sx={{
@@ -44,29 +37,14 @@ const PaperCard = ({ paper, onClick, onBookmark }: PaperCardProps) => {
           alignItems: "flex-start",
         }}
       >
-        {paper.paperType ? (
-          <PaperTypeBadge paperType={paper.paperType} />
-        ) : (
-          <Box />
-        )}
-        {paper.isBookmarked ? (
-          <BookmarkIcon
-            onClick={handleBookmarkClick}
-            sx={{ fontSize: "24px", color: "primary.main", cursor: "pointer" }}
-          />
-        ) : (
-          <BookmarkBorderIcon
-            onClick={handleBookmarkClick}
-            sx={{
-              fontSize: "24px",
-              color: "label.assistive",
-              cursor: "pointer",
-            }}
-          />
-        )}
+        <PaperTypeBadge paperType={paper.paper_type} />
+        {/* TODO: 백엔드 isBookmarked 필드 추가 후 북마크 기능 연동 */}
+        <BookmarkBorderIcon
+          sx={{ fontSize: "24px", color: "label.assistive", cursor: "pointer" }}
+        />
       </Box>
 
-      {/* 출처 + 날짜 */}
+      {/* 출처 + 연도 */}
       <Typography
         sx={{
           fontSize: "13px",
@@ -75,7 +53,7 @@ const PaperCard = ({ paper, onClick, onBookmark }: PaperCardProps) => {
           letterSpacing: "-0.26px",
         }}
       >
-        {paper.source} {paper.date}
+        {paper.journal_name} {paper.pub_year}
       </Typography>
 
       {/* 제목 */}
@@ -135,20 +113,36 @@ const PaperCard = ({ paper, onClick, onBookmark }: PaperCardProps) => {
 
       {/* KCI + 인용수 */}
       <Box sx={{ display: "flex", gap: "6px" }}>
+        {paper.trust_badge.kci && (
+          <Chip
+            label="KCI"
+            size="small"
+            sx={{
+              backgroundColor: "static.black",
+              color: "static.white",
+              fontSize: "12px",
+              fontWeight: 600,
+              height: "24px",
+              borderRadius: "12px",
+            }}
+          />
+        )}
+        {paper.trust_badge.sci && (
+          <Chip
+            label="SCI"
+            size="small"
+            sx={{
+              backgroundColor: "static.black",
+              color: "static.white",
+              fontSize: "12px",
+              fontWeight: 600,
+              height: "24px",
+              borderRadius: "12px",
+            }}
+          />
+        )}
         <Chip
-          label={paper.kciType}
-          size="small"
-          sx={{
-            backgroundColor: "static.black",
-            color: "static.white",
-            fontSize: "12px",
-            fontWeight: 600,
-            height: "24px",
-            borderRadius: "12px",
-          }}
-        />
-        <Chip
-          label={`인용수 ${paper.citationCount}`}
+          label={`인용수 ${paper.citation_count}`}
           size="small"
           sx={{
             backgroundColor: "static.black",

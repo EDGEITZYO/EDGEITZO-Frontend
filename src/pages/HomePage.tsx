@@ -8,6 +8,7 @@ import RecentSearchSection from "../components/home/RecentSearchSection";
 import RecentPaperSection from "../components/home/RecentPaperSection";
 import KeywordMapModal from "../components/keyword-map/KeywordMapModal";
 import { homeApi } from "../api/home";
+import { mypageApi } from "../api/mypage";
 import { useAuthStore } from "../stores/authStore";
 
 const HomePage = () => {
@@ -24,6 +25,15 @@ const HomePage = () => {
       return res.data.data;
     },
     staleTime: 1000 * 60 * 5, // 5분
+  });
+
+  useQuery({
+    queryKey: ["mypage"],
+    queryFn: async () => {
+      const res = await mypageApi.getMypage();
+      return res.data.data;
+    },
+    staleTime: 1000 * 60 * 5,
   });
 
   if (isPending) {
