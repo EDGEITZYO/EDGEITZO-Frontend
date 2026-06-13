@@ -105,3 +105,12 @@ export interface ChartFilter {
   publish: ChartFilterPublish | null;
   citation: ChartFilterCitation | null;
 }
+
+// ─── 북마크 필터 ──────────────────────────────────────────
+
+export interface BookmarkFilter {
+  year: number | null;
+  type: string | null;
+  kci: boolean | null;
+  sci: boolean | null;
+}
