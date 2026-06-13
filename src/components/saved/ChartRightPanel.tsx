@@ -97,20 +97,42 @@ const ChartRightPanel = ({
       ? papers.filter((p) => selectedPaperIds.includes(p.paper_id))
       : [...papers];
 
-    if (filter.publish === "old") {
-      result = result.sort((a, b) => a.published_year - b.published_year);
-    } else if (filter.publish === "recent") {
-      result = result.sort((a, b) => b.published_year - a.published_year);
+    // 필터 없을 때 기본: 최근 읽은 순 (viewed_at 내림차순)
+    if (!filter.publish && !filter.citation) {
+      return result.sort(
+        (a, b) =>
+          new Date(b.viewed_at).getTime() - new Date(a.viewed_at).getTime(),
+      );
     }
 
-    if (filter.citation === "low") {
-      result = result.sort(
-        (a, b) => (a.citation_count ?? 0) - (b.citation_count ?? 0),
+    // 인용수 필터가 있으면 인용수 기준 정렬
+    if (filter.citation) {
+      result = result.sort((a, b) =>
+        filter.citation === "high"
+          ? (b.citation_count ?? 0) - (a.citation_count ?? 0)
+          : (a.citation_count ?? 0) - (b.citation_count ?? 0),
       );
-    } else if (filter.citation === "high") {
-      result = result.sort(
-        (a, b) => (b.citation_count ?? 0) - (a.citation_count ?? 0),
-      );
+
+      // 인용수 동일한 경우 출판시기 기준 보조 정렬
+      if (filter.publish) {
+        result = result.sort((a, b) => {
+          if ((a.citation_count ?? 0) !== (b.citation_count ?? 0)) return 0;
+          const dateA = new Date(a.published_at ?? "").getTime();
+          const dateB = new Date(b.published_at ?? "").getTime();
+          return filter.publish === "recent" ? dateB - dateA : dateA - dateB;
+        });
+      }
+
+      return result;
+    }
+
+    // 출판시기만 있을 때
+    if (filter.publish) {
+      return result.sort((a, b) => {
+        const dateA = new Date(a.published_at ?? "").getTime();
+        const dateB = new Date(b.published_at ?? "").getTime();
+        return filter.publish === "recent" ? dateB - dateA : dateA - dateB;
+      });
     }
 
     return result;
