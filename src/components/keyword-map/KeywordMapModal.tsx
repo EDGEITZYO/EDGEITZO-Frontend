@@ -1,9 +1,19 @@
-import { Box, Typography, Button, Modal } from "@mui/material";
+import { useState } from "react";
+import {
+  Box,
+  Typography,
+  Button,
+  Modal,
+  CircularProgress,
+} from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { type MypageData } from "../../types/mypage";
+import { keywordMapApi } from "../../api/keywordMap";
+import { useAuthStore } from "../../stores/authStore";
+import { useKeywordMapActions } from "../../stores/keywordMapStore";
 
 interface KeywordMapModalProps {
   open: boolean;
@@ -61,6 +71,10 @@ const KeywordMapModal = ({ open, onClose }: KeywordMapModalProps) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
+  const userId = useAuthStore((state) => state.userId);
+  const { setResearchField } = useKeywordMapActions();
+  const [isLoading, setIsLoading] = useState(false);
+
   // keywordMapStore 대신 mypage 캐시에서 research_field 읽기
   const mypageData = queryClient.getQueryData<MypageData>(["mypage"]);
   const researchField = mypageData?.profile.research_field ?? null;
@@ -70,9 +84,30 @@ const KeywordMapModal = ({ open, onClose }: KeywordMapModalProps) => {
     navigate("/keyword-map/edit");
   };
 
-  const handleGenerate = () => {
-    onClose();
-    navigate("/keyword-map");
+  const handleGenerate = async () => {
+    if (!userId || !researchField) {
+      onClose();
+      navigate("/keyword-map");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const res = await keywordMapApi.getMap(userId);
+      const { research_field: savedField } = res.data.data;
+
+      if (savedField !== researchField) {
+        await keywordMapApi.generate(researchField, userId);
+        setResearchField(researchField);
+      }
+      onClose();
+      navigate("/keyword-map");
+    } catch {
+      onClose();
+      navigate("/keyword-map");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -152,6 +187,7 @@ const KeywordMapModal = ({ open, onClose }: KeywordMapModalProps) => {
               fullWidth
               variant="contained"
               onClick={handleEdit}
+              disabled={isLoading}
               sx={editButtonSx}
             >
               연구 분야 수정하기
@@ -160,9 +196,14 @@ const KeywordMapModal = ({ open, onClose }: KeywordMapModalProps) => {
               fullWidth
               variant="contained"
               onClick={handleGenerate}
+              disabled={isLoading}
               sx={generateButtonSx}
             >
-              키워드맵 생성하기
+              {isLoading ? (
+                <CircularProgress size={24} sx={{ color: "static.white" }} />
+              ) : (
+                "키워드맵 생성하기"
+              )}
             </Button>
           </Box>
         </Box>
