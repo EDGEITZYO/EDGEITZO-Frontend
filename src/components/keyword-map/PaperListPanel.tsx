@@ -5,7 +5,7 @@ import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import PaperCard from "./PaperCard";
 import {
   usePaperPanel,
@@ -39,13 +39,19 @@ const PaperListPanel = ({ onFullscreen }: PaperListPanelProps) => {
     currentPage,
     paperFilter,
   } = usePaperPanel();
-  const { closePaperPanel, selectPaper, setCurrentPage, setSearchId } =
-    useKeywordMapActions();
+  const {
+    closePaperPanel,
+    selectPaper,
+    setCurrentPage,
+    setSearchId,
+    setPaperFilter,
+  } = useKeywordMapActions();
   const breadcrumbs = useBreadcrumbs();
 
   const userId = useAuthStore((state) => state.userId);
   const queryClient = useQueryClient();
   const PAGE_SIZE = 20;
+  const [openFilter, setOpenFilter] = useState<"year" | "type" | null>(null);
   const keywordPath = breadcrumbs.map((b) => b.label).join(",");
 
   useEffect(() => {
@@ -163,43 +169,234 @@ const PaperListPanel = ({ onFullscreen }: PaperListPanelProps) => {
           borderColor: "line.normal",
           backgroundColor: "background.paper",
           flexShrink: 0,
+          position: "relative",
         }}
       >
-        {["발행 연도", "논문 유형"].map((filter) => (
-          <Box key={filter} sx={filterChipSx}>
+        {/* 발행 연도 드롭다운 */}
+        <Box sx={{ position: "relative" }}>
+          <Box
+            sx={{
+              ...filterChipSx,
+              backgroundColor: paperFilter.year_range
+                ? "static.black"
+                : "background.default",
+            }}
+            onClick={() =>
+              setOpenFilter((prev) => (prev === "year" ? null : "year"))
+            }
+          >
             <Typography
               sx={{
                 fontSize: "17px",
                 fontWeight: 600,
-                color: "label.strong",
+                color: paperFilter.year_range ? "static.white" : "label.strong",
                 letterSpacing: "-0.34px",
               }}
             >
-              {filter}
+              {paperFilter.year_range === "3y"
+                ? "3년"
+                : paperFilter.year_range === "5y"
+                  ? "5년"
+                  : paperFilter.year_range === "10y"
+                    ? "10년"
+                    : "발행 연도"}
             </Typography>
             <KeyboardArrowRightIcon
               sx={{
                 fontSize: "24px",
-                color: "label.strong",
+                color: paperFilter.year_range ? "static.white" : "label.strong",
                 transform: "rotate(90deg)",
               }}
             />
           </Box>
-        ))}
-        {["SCI 등재", "KCI 등재"].map((filter) => (
-          <Box key={filter} sx={filterChipSx}>
+          {openFilter === "year" && (
+            <Box
+              sx={{
+                position: "absolute",
+                top: "calc(100% + 4px)",
+                left: 0,
+                zIndex: 100,
+                borderRadius: "8px",
+                border: "1px solid",
+                borderColor: "line.normal",
+                backgroundColor: "background.default",
+                minWidth: "120px",
+                overflow: "hidden",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+              }}
+            >
+              {([null, "3y", "5y", "10y"] as const).map((val) => (
+                <Box
+                  key={val ?? "all"}
+                  sx={{
+                    px: "16px",
+                    py: "10px",
+                    cursor: "pointer",
+                    backgroundColor:
+                      paperFilter.year_range === val
+                        ? "fill.normal"
+                        : "transparent",
+                    "&:hover": { backgroundColor: "fill.normal" },
+                  }}
+                  onClick={() => {
+                    setPaperFilter({ year_range: val ?? undefined });
+                    setOpenFilter(null);
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontSize: "16px",
+                      fontWeight: paperFilter.year_range === val ? 600 : 400,
+                      color: "label.strong",
+                    }}
+                  >
+                    {val === null
+                      ? "전체"
+                      : val === "3y"
+                        ? "3년"
+                        : val === "5y"
+                          ? "5년"
+                          : "10년"}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          )}
+        </Box>
+
+        {/* 논문 유형 드롭다운 */}
+        <Box sx={{ position: "relative" }}>
+          <Box
+            sx={{
+              ...filterChipSx,
+              backgroundColor: paperFilter.paper_type
+                ? "static.black"
+                : "background.default",
+            }}
+            onClick={() =>
+              setOpenFilter((prev) => (prev === "type" ? null : "type"))
+            }
+          >
             <Typography
               sx={{
                 fontSize: "17px",
                 fontWeight: 600,
-                color: "label.strong",
+                color: paperFilter.paper_type ? "static.white" : "label.strong",
                 letterSpacing: "-0.34px",
               }}
             >
-              {filter}
+              {paperFilter.paper_type ?? "논문 유형"}
             </Typography>
+            <KeyboardArrowRightIcon
+              sx={{
+                fontSize: "24px",
+                color: paperFilter.paper_type ? "static.white" : "label.strong",
+                transform: "rotate(90deg)",
+              }}
+            />
           </Box>
-        ))}
+          {openFilter === "type" && (
+            <Box
+              sx={{
+                position: "absolute",
+                top: "calc(100% + 4px)",
+                left: 0,
+                zIndex: 100,
+                borderRadius: "8px",
+                border: "1px solid",
+                borderColor: "line.normal",
+                backgroundColor: "background.default",
+                minWidth: "160px",
+                overflow: "hidden",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+              }}
+            >
+              {(
+                [null, "학술 저널", "박사학위 논문", "석사학위 논문"] as const
+              ).map((val) => (
+                <Box
+                  key={val ?? "all"}
+                  sx={{
+                    px: "16px",
+                    py: "10px",
+                    cursor: "pointer",
+                    backgroundColor:
+                      paperFilter.paper_type === val
+                        ? "fill.normal"
+                        : "transparent",
+                    "&:hover": { backgroundColor: "fill.normal" },
+                  }}
+                  onClick={() => {
+                    setPaperFilter({ paper_type: val ?? undefined });
+                    setOpenFilter(null);
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontSize: "16px",
+                      fontWeight: paperFilter.paper_type === val ? 600 : 400,
+                      color: "label.strong",
+                    }}
+                  >
+                    {val ?? "전체"}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          )}
+        </Box>
+
+        {/* SCI 등재 */}
+        <Box
+          sx={{
+            ...filterChipSx,
+            backgroundColor:
+              paperFilter.sci === true ? "static.black" : "background.default",
+          }}
+          onClick={() => {
+            setPaperFilter({
+              sci: paperFilter.sci === true ? undefined : true,
+            });
+            setOpenFilter(null);
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: "17px",
+              fontWeight: 600,
+              color: paperFilter.sci === true ? "static.white" : "label.strong",
+              letterSpacing: "-0.34px",
+            }}
+          >
+            SCI 등재
+          </Typography>
+        </Box>
+
+        {/* KCI 등재 */}
+        <Box
+          sx={{
+            ...filterChipSx,
+            backgroundColor:
+              paperFilter.kci === true ? "static.black" : "background.default",
+          }}
+          onClick={() => {
+            setPaperFilter({
+              kci: paperFilter.kci === true ? undefined : true,
+            });
+            setOpenFilter(null);
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: "17px",
+              fontWeight: 600,
+              color: paperFilter.kci === true ? "static.white" : "label.strong",
+              letterSpacing: "-0.34px",
+            }}
+          >
+            KCI 등재
+          </Typography>
+        </Box>
       </Box>
 
       {/* 논문 목록 */}

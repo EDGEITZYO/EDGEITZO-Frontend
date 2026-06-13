@@ -134,8 +134,7 @@ export type KMYearRange = "3y" | "5y" | "10y";
 export type KMPaperType =
   | "학술 저널"
   | "박사학위 논문"
-  | "석사학위 논문"
-  | "학위논문";
+  | "석사학위 논문";
 
 export interface KMPaperFilter {
   sort: KMPaperSortType;
