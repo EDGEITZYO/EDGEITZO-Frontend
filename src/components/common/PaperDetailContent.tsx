@@ -171,6 +171,8 @@ const PaperDetailContent = ({
       .recordRecentRead(paperId, searchId)
       .then(() => {
         queryClient.invalidateQueries({ queryKey: ["home"] });
+        queryClient.invalidateQueries({ queryKey: ["recent-papers"] });
+        queryClient.invalidateQueries({ queryKey: ["recent-paper-stats"] });
       })
       .catch(() => {});
   }, [paperId, searchId, queryClient]);
