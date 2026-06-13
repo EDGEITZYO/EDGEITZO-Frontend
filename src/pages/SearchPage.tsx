@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import SearchHeader from "../components/search/SearchHeader";
 import ExitConfirmDialog from "../components/search/ExitConfirmDialog";
@@ -77,6 +78,7 @@ const SearchPage = () => {
   const query = state?.query ?? "";
   const title = state?.title ?? "검색";
   const directSearch = state?.directSearch ?? false;
+  const queryClient = useQueryClient();
 
   // ─── 뷰 상태 ───────────────────────────────────────────
   const [view, setView] = useState<SearchView>(directSearch ? "list" : "chat");
@@ -132,6 +134,7 @@ const SearchPage = () => {
           sort_order: sort,
         });
         setExecuteResult(result);
+        queryClient.invalidateQueries({ queryKey: ["home"] });
         setView("list");
       } catch {
         // 에러 처리
@@ -139,7 +142,7 @@ const SearchPage = () => {
         setIsExecuting(false);
       }
     },
-    [],
+    [queryClient],
   );
 
   // ─── SSE 스트리밍 핸들러 ───────────────────────────────

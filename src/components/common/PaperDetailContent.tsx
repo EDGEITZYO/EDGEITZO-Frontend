@@ -165,8 +165,13 @@ const PaperDetailContent = ({
   useEffect(() => {
     if (recentReadCalled.current) return;
     recentReadCalled.current = true;
-    paperApi.recordRecentRead(paperId).catch(() => {});
-  }, [paperId]);
+    paperApi
+      .recordRecentRead(paperId)
+      .then(() => {
+        queryClient.invalidateQueries({ queryKey: ["home"] });
+      })
+      .catch(() => {});
+  }, [paperId, queryClient]);
 
   // 북마크 낙관적 업데이트
   const { mutate: toggleBookmark } = useMutation({

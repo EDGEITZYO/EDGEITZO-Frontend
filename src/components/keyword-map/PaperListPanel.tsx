@@ -4,7 +4,8 @@ import CloseIcon from "@mui/icons-material/Close";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import PaperCard from "./PaperCard";
 import {
   usePaperPanel,
@@ -41,7 +42,14 @@ const PaperListPanel = ({ onFullscreen }: PaperListPanelProps) => {
     useKeywordMapActions();
 
   const userId = useAuthStore((state) => state.userId);
+  const queryClient = useQueryClient();
   const PAGE_SIZE = 20;
+
+  useEffect(() => {
+    if (isPaperPanelOpen) {
+      queryClient.invalidateQueries({ queryKey: ["home"] });
+    }
+  }, [isPaperPanelOpen, queryClient]);
 
   const { data, isPending, isError } = useQuery({
     queryKey: ["km-papers", panelNodeId, paperFilter, currentPage],
