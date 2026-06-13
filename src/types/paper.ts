@@ -23,10 +23,10 @@ export interface PaperCredibility {
 export interface PaperTrustBadge {
   kci: boolean;
   sci: boolean;
-  citation_count: number;
-  if_value: number;
-  degree_type: string;
-  institution: string;
+  citation_count: number | null;
+  if_value: number | null;
+  degree_type: string | null;
+  institution: string | null;
   full_text_available: boolean | null;
 }
 
