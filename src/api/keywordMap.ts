@@ -35,7 +35,7 @@ export const keywordMapApi = {
   // GET /keyword-map/node/{node_id}/papers
   getNodePapers: (
     nodeId: string,
-    filter: KMPaperFilter & { page: number; size: number; user_id?: string },
+    filter: KMPaperFilter & { page: number; size: number; user_id?: string; keyword_path?: string },
   ) =>
     apiClient.get<ApiResponse<KMNodePapersResponse>>(
       `/keyword-map/node/${encodeURIComponent(nodeId)}/papers`,

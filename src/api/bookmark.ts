@@ -1,6 +1,10 @@
 import apiClient from "./client";
 import type { ApiResponse } from "../types/auth";
-import type { BookmarkFolder, BookmarkListResponse, SavedBookmarkListResponse } from "../types/saved";
+import type {
+  BookmarkFolder,
+  BookmarkListResponse,
+  SavedBookmarkListResponse,
+} from "../types/saved";
 
 export type BookmarkSortType =
   | "bookmark_latest"
@@ -9,13 +13,11 @@ export type BookmarkSortType =
   | "pubyear_oldest";
 
 export type BookmarkPaperTypeFilter =
-  | "all"
-  | "journal"
-  | "thesis_phd"
-  | "thesis_master"
-  | "conference";
+  | "학술 저널"
+  | "박사학위 논문"
+  | "석사학위 논문";
 
-export type BookmarkYearFilter = "3y" | "5y" | "10y" | "all";
+export type BookmarkYearFilter = number;
 
 export interface GetBookmarksParams {
   folder_id?: string;
@@ -29,7 +31,8 @@ export interface GetBookmarksParams {
 export interface GetSavedBookmarksParams {
   folder_id?: string;
   year?: BookmarkYearFilter;
-  type?: Exclude<BookmarkPaperTypeFilter, "all">;
+  type?: string;
+  kci?: boolean;
   sci?: boolean;
   page?: number;
   size?: number;

@@ -9,8 +9,9 @@ export const paperApi = {
   getSimilarPapers: (paperId: string) =>
     apiClient.get<ApiResponse<SimilarPaper[]>>(`/papers/${paperId}/similar`),
 
-  recordRecentRead: (paperId: string) =>
+  recordRecentRead: (paperId: string, searchId?: string) =>
     apiClient.post<ApiResponse<null>>("/home/recent-reads", {
       paper_id: paperId,
+      ...(searchId ? { search_id: searchId } : {}),
     }),
 };

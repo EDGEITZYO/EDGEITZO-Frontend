@@ -84,8 +84,11 @@ export interface RecentPaperChartItem {
   keywords: string[];
   doi: string | null;
   published_year: number;
+  published_at: string | null;
   citation_count: number | null;
   view_count: number;
+  viewed_at: string;
+  trust_badge: PaperTrustBadge;
 }
 
 export interface RecentPaperStats {
@@ -101,4 +104,13 @@ export type ChartFilterCitation = "low" | "high";
 export interface ChartFilter {
   publish: ChartFilterPublish | null;
   citation: ChartFilterCitation | null;
+}
+
+// ─── 북마크 필터 ──────────────────────────────────────────
+
+export interface BookmarkFilter {
+  year: number | null;
+  type: string | null;
+  kci: boolean | null;
+  sci: boolean | null;
 }

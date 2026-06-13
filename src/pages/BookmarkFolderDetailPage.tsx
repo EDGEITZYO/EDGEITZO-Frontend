@@ -19,7 +19,7 @@ import {
 import BookmarkFilterBar from "../components/saved/BookmarkFilterBar";
 import FolderDialog from "../components/saved/FolderDialog";
 import BookmarkPaperCard from "../components/saved/BookmarkPaperCard";
-import { type FolderDialogState } from "../types/saved";
+import { type FolderDialogState, type BookmarkFilter } from "../types/saved";
 import { bookmarkApi } from "../api/bookmark";
 
 const pageWrapperSx: SxProps<Theme> = {
@@ -80,6 +80,12 @@ const BookmarkFolderDetailPage = () => {
   const queryClient = useQueryClient();
   const [dialogState, setDialogState] =
     useState<FolderDialogState>(INITIAL_DIALOG_STATE);
+  const [filter, setFilter] = useState<BookmarkFilter>({
+    year: null,
+    type: null,
+    kci: null,
+    sci: null,
+  });
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -112,12 +118,16 @@ const BookmarkFolderDetailPage = () => {
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    queryKey: ["saved-bookmarks", folderId],
+    queryKey: ["saved-bookmarks", folderId, filter],
     queryFn: async ({ pageParam }) => {
       const res = await bookmarkApi.getSavedBookmarks({
         folder_id: folderId === "all" ? undefined : folderId,
         page: pageParam,
         size: 20,
+        year: filter.year ?? undefined,
+        type: filter.type ?? undefined,
+        kci: filter.kci ?? undefined,
+        sci: filter.sci ?? undefined,
       });
       return res.data.data;
     },
@@ -270,7 +280,12 @@ const BookmarkFolderDetailPage = () => {
             : (folder?.paper_count ?? 0)}
           개
         </Typography>
-        <BookmarkFilterBar onEdit={handleEdit} onDelete={handleDelete} />
+        <BookmarkFilterBar
+          filter={filter}
+          onFilterChange={setFilter}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
 
         {isBookmarksPending ? (
           <Box sx={{ display: "flex", justifyContent: "center", py: "40px" }}>

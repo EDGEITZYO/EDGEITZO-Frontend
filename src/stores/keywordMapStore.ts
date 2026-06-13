@@ -26,6 +26,7 @@ interface KeywordMapState {
   selectedPaperId: string | null;
   isGenerating: boolean;
   generateError: string | null;
+  searchId: string | null;
 }
 
 interface KeywordMapActions {
@@ -44,6 +45,7 @@ interface KeywordMapActions {
   setIsGenerating: (isGenerating: boolean) => void;
   setGenerateError: (error: string | null) => void;
   reset: () => void;
+  setSearchId: (searchId: string | null) => void;
 }
 
 // ─── 초기값 ───────────────────────────────────────────────
@@ -65,6 +67,7 @@ const initialState: KeywordMapState = {
   selectedPaperId: null,
   isGenerating: false,
   generateError: null,
+  searchId: null,
 };
 
 // ─── 스토어 ───────────────────────────────────────────────
@@ -122,6 +125,7 @@ const useKeywordMapStore = create<KeywordMapState & KeywordMapActions>()(
     setIsGenerating: (isGenerating) => set({ isGenerating }),
     setGenerateError: (error) => set({ generateError: error }),
     reset: () => set(initialState),
+    setSearchId: (searchId) => set({ searchId }),
   }),
 );
 
@@ -182,6 +186,7 @@ export const useKeywordMapActions = () =>
       setIsGenerating: state.setIsGenerating,
       setGenerateError: state.setGenerateError,
       reset: state.reset,
+      setSearchId: state.setSearchId,
     })),
   );
 
