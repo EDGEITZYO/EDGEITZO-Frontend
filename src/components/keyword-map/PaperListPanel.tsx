@@ -10,6 +10,7 @@ import PaperCard from "./PaperCard";
 import {
   usePaperPanel,
   useKeywordMapActions,
+  useBreadcrumbs,
 } from "../../stores/keywordMapStore";
 import { keywordMapApi } from "../../api/keywordMap";
 import { useAuthStore } from "../../stores/authStore";
@@ -38,12 +39,14 @@ const PaperListPanel = ({ onFullscreen }: PaperListPanelProps) => {
     currentPage,
     paperFilter,
   } = usePaperPanel();
-  const { closePaperPanel, selectPaper, setCurrentPage } =
+  const { closePaperPanel, selectPaper, setCurrentPage, setSearchId } =
     useKeywordMapActions();
+  const breadcrumbs = useBreadcrumbs();
 
   const userId = useAuthStore((state) => state.userId);
   const queryClient = useQueryClient();
   const PAGE_SIZE = 20;
+  const keywordPath = breadcrumbs.map((b) => b.label).join(",");
 
   useEffect(() => {
     if (isPaperPanelOpen) {
@@ -52,14 +55,16 @@ const PaperListPanel = ({ onFullscreen }: PaperListPanelProps) => {
   }, [isPaperPanelOpen, queryClient]);
 
   const { data, isPending, isError } = useQuery({
-    queryKey: ["km-papers", panelNodeId, paperFilter, currentPage],
+    queryKey: ["km-papers", panelNodeId, paperFilter, currentPage, breadcrumbs],
     queryFn: async () => {
       const res = await keywordMapApi.getNodePapers(panelNodeId!, {
         ...paperFilter,
         page: currentPage,
         size: PAGE_SIZE,
         user_id: userId ?? undefined,
+        keyword_path: keywordPath || undefined,
       });
+      setSearchId(res.data.data.search_id ?? null);
       return res.data.data;
     },
     enabled: isPaperPanelOpen && panelNodeId !== null,

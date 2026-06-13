@@ -14,6 +14,7 @@ import BookmarkFolderSelectDialog from "./BookmarkFolderSelectDialog";
 
 interface PaperDetailContentProps {
   paperId: string;
+  searchId?: string;
   onRelatedPaperClick?: (paperId: string) => void;
 }
 
@@ -123,6 +124,7 @@ const SimilarPaperCard = ({
 
 const PaperDetailContent = ({
   paperId,
+  searchId,
   onRelatedPaperClick,
 }: PaperDetailContentProps) => {
   const queryClient = useQueryClient();
@@ -166,12 +168,12 @@ const PaperDetailContent = ({
     if (recentReadCalled.current) return;
     recentReadCalled.current = true;
     paperApi
-      .recordRecentRead(paperId)
+      .recordRecentRead(paperId, searchId)
       .then(() => {
         queryClient.invalidateQueries({ queryKey: ["home"] });
       })
       .catch(() => {});
-  }, [paperId, queryClient]);
+  }, [paperId, searchId, queryClient]);
 
   // 북마크 낙관적 업데이트
   const { mutate: toggleBookmark } = useMutation({

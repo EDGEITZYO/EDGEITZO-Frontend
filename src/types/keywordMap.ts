@@ -122,6 +122,7 @@ export interface KMNodePapersResponse {
   total: number;
   page: number;
   size: number;
+  search_id: string | null;
 }
 
 // ─── 논문 필터 ────────────────────────────────────────────

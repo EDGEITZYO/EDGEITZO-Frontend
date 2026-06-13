@@ -430,6 +430,7 @@ const SearchPage = () => {
           <Box sx={{ flex: 1, overflow: "auto", px: "63px", py: "29px" }}>
             <PaperDetailContent
               paperId={selectedPaperId}
+              searchId={executeResult?.search_id || undefined}
               onRelatedPaperClick={(paperId) => {
                 setSelectedPaperId(paperId);
               }}
