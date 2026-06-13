@@ -8,11 +8,15 @@ import { type PaperType } from "../../types/paper";
 interface PaperListPanelProps {
   papers: SearchPaper[];
   totalCount: number;
-  sortOrder: "relevance" | "year_asc" | "year_desc";
   filterPaperType: PaperType | null;
+  filterYear: number | null;
+  filterKci: boolean | null;
+  filterSci: boolean | null;
   bookmarks: Record<string, boolean>;
-  onSortChange: (sort: "relevance" | "year_asc" | "year_desc") => void;
-  onFilterChange: (paperType: PaperType | null) => void;
+  onFilterPaperTypeChange: (paperType: PaperType | null) => void;
+  onFilterYearChange: (year: number | null) => void;
+  onFilterKciChange: (kci: boolean | null) => void;
+  onFilterSciChange: (sci: boolean | null) => void;
   onResetCondition: () => void;
   onBookmark: (paperId: string) => void;
   onPaperClick: (paperId: string) => void;
@@ -54,11 +58,15 @@ const paperListSx: SxProps<Theme> = {
 const PaperListPanel = ({
   papers,
   totalCount,
-  sortOrder,
   filterPaperType,
+  filterYear,
+  filterKci,
+  filterSci,
   bookmarks,
-  onSortChange,
-  onFilterChange,
+  onFilterPaperTypeChange,
+  onFilterYearChange,
+  onFilterKciChange,
+  onFilterSciChange,
   onResetCondition,
   onBookmark,
   onPaperClick,
@@ -68,10 +76,14 @@ const PaperListPanel = ({
       <Box sx={headerSx}>
         <Typography sx={totalCountSx}>검색 결과 {totalCount}건</Typography>
         <FilterBar
-          sortOrder={sortOrder}
           filterPaperType={filterPaperType}
-          onSortChange={onSortChange}
-          onFilterChange={onFilterChange}
+          filterYear={filterYear}
+          filterKci={filterKci}
+          filterSci={filterSci}
+          onFilterPaperTypeChange={onFilterPaperTypeChange}
+          onFilterYearChange={onFilterYearChange}
+          onFilterKciChange={onFilterKciChange}
+          onFilterSciChange={onFilterSciChange}
           onResetCondition={onResetCondition}
         />
       </Box>

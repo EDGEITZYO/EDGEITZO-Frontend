@@ -24,7 +24,6 @@ import {
   type SearchPaper,
   type SearchExecuteResult,
   type FeedbackType,
-  type SortOrder,
 } from "../types/search";
 import { type PaperType } from "../types/paper";
 
@@ -110,11 +109,13 @@ const SearchPage = () => {
   const [feedbacks, setFeedbacks] = useState<Record<string, FeedbackType>>({});
   const [bookmarks, setBookmarks] = useState<Record<string, boolean>>({});
 
-  // ─── 필터/정렬 상태 ────────────────────────────────────
-  const [sortOrder, setSortOrder] = useState<SortOrder>("relevance");
+  // ─── 필터 상태 ─────────────────────────────────────────
   const [filterPaperType, setFilterPaperType] = useState<PaperType | null>(
     null,
   );
+  const [filterYear, setFilterYear] = useState<number | null>(null);
+  const [filterKci, setFilterKci] = useState<boolean | null>(null);
+  const [filterSci, setFilterSci] = useState<boolean | null>(null);
 
   // ─── 검색 실행 ─────────────────────────────────────────
 
@@ -122,8 +123,10 @@ const SearchPage = () => {
     async (
       currentSessionId: string,
       params: FinalSearchParams,
-      sort: SortOrder,
       paperType: PaperType | null,
+      year: number | null,
+      kci: boolean | null,
+      sci: boolean | null,
     ) => {
       setIsExecuting(true);
       try {
@@ -131,7 +134,10 @@ const SearchPage = () => {
           session_id: currentSessionId,
           search_params: params,
           filter_paper_type: paperType,
-          sort_order: sort,
+          filter_year: year,
+          filter_kci: kci,
+          filter_sci: sci,
+          sort_order: "relevance",
         });
         setExecuteResult(result);
         queryClient.invalidateQueries({ queryKey: ["home"] });
@@ -149,12 +155,10 @@ const SearchPage = () => {
 
   const handleSend = useCallback(
     async (message: string, selectedOptions: string[], forceStart = false) => {
-      // 이전 스트림 중단
       abortControllerRef.current?.abort();
       const controller = new AbortController();
       abortControllerRef.current = controller;
 
-      // 사용자 메시지 추가
       if (message) {
         setMessages((prev) => [
           ...prev,
@@ -162,7 +166,6 @@ const SearchPage = () => {
         ]);
       }
 
-      // AI 로딩 메시지 추가
       const loadingId = (Date.now() + 1).toString();
       setMessages((prev) => [
         ...prev,
@@ -181,9 +184,7 @@ const SearchPage = () => {
             force_start: forceStart,
           },
           callbacks: {
-            onSlotUpdate: () => {
-              // 슬롯 업데이트 — 현재는 별도 UI 처리 없음
-            },
+            onSlotUpdate: () => {},
             onCompleteness: (pct, stage) => {
               setCompletenessPct(pct);
               setSearchStage(stage);
@@ -191,7 +192,6 @@ const SearchPage = () => {
             onKeywordProgress: (stage, keywords) => {
               if (stage === "completed" && keywords) {
                 setInterimPapers([]);
-                // interim_papers는 done 이벤트에서 처리
               }
             },
             onToken: (text) => {
@@ -239,8 +239,10 @@ const SearchPage = () => {
                 await handleExecute(
                   event.session_id,
                   event.final_search_params,
-                  sortOrder,
                   filterPaperType,
+                  filterYear,
+                  filterKci,
+                  filterSci,
                 );
               }
             },
@@ -260,41 +262,118 @@ const SearchPage = () => {
         setIsStreaming(false);
       }
     },
-    [sessionId, sortOrder, filterPaperType, handleExecute],
+    [
+      sessionId,
+      filterPaperType,
+      filterYear,
+      filterKci,
+      filterSci,
+      handleExecute,
+    ],
   );
 
-  // ─── 필터/정렬 변경 시 재검색 ──────────────────────────
+  // ─── 필터 변경 시 재검색 ───────────────────────────────
 
-  const handleSortChange = useCallback(
-    async (sort: SortOrder) => {
-      setSortOrder(sort);
+  const handleFilterPaperTypeChange = useCallback(
+    async (paperType: PaperType | null) => {
+      setFilterPaperType(paperType);
       if (finalSearchParams && sessionId) {
         await handleExecute(
           sessionId,
           finalSearchParams,
-          sort,
-          filterPaperType,
+          paperType,
+          filterYear,
+          filterKci,
+          filterSci,
         );
       }
     },
-    [finalSearchParams, sessionId, filterPaperType, handleExecute],
+    [
+      finalSearchParams,
+      sessionId,
+      filterYear,
+      filterKci,
+      filterSci,
+      handleExecute,
+    ],
   );
 
-  const handleFilterChange = useCallback(
-    async (paperType: PaperType | null) => {
-      setFilterPaperType(paperType);
+  const handleFilterYearChange = useCallback(
+    async (year: number | null) => {
+      setFilterYear(year);
       if (finalSearchParams && sessionId) {
-        await handleExecute(sessionId, finalSearchParams, sortOrder, paperType);
+        await handleExecute(
+          sessionId,
+          finalSearchParams,
+          filterPaperType,
+          year,
+          filterKci,
+          filterSci,
+        );
       }
     },
-    [finalSearchParams, sessionId, sortOrder, handleExecute],
+    [
+      finalSearchParams,
+      sessionId,
+      filterPaperType,
+      filterKci,
+      filterSci,
+      handleExecute,
+    ],
+  );
+
+  const handleFilterKciChange = useCallback(
+    async (kci: boolean | null) => {
+      setFilterKci(kci);
+      if (finalSearchParams && sessionId) {
+        await handleExecute(
+          sessionId,
+          finalSearchParams,
+          filterPaperType,
+          filterYear,
+          kci,
+          filterSci,
+        );
+      }
+    },
+    [
+      finalSearchParams,
+      sessionId,
+      filterPaperType,
+      filterYear,
+      filterSci,
+      handleExecute,
+    ],
+  );
+
+  const handleFilterSciChange = useCallback(
+    async (sci: boolean | null) => {
+      setFilterSci(sci);
+      if (finalSearchParams && sessionId) {
+        await handleExecute(
+          sessionId,
+          finalSearchParams,
+          filterPaperType,
+          filterYear,
+          filterKci,
+          sci,
+        );
+      }
+    },
+    [
+      finalSearchParams,
+      sessionId,
+      filterPaperType,
+      filterYear,
+      filterKci,
+      handleExecute,
+    ],
   );
 
   // ─── directSearch 진입 처리 ────────────────────────────
 
   useEffect(() => {
     if (!directSearch || !query) return;
-
     const fetchDirectSearch = async () => {
       try {
         const papers = await searchPapers({
@@ -310,7 +389,6 @@ const SearchPage = () => {
         // 에러 처리
       }
     };
-
     fetchDirectSearch();
   }, []);
 
@@ -319,7 +397,6 @@ const SearchPage = () => {
   useEffect(() => {
     if (directSearch || !query || initSentRef.current) return;
     initSentRef.current = true;
-
     handleSend(query, []);
   }, []);
 
@@ -349,7 +426,6 @@ const SearchPage = () => {
   // ─── 북마크 ────────────────────────────────────────────
 
   const handleBookmark = useCallback((paperId: string) => {
-    // TODO: 북마크 API 연동
     setBookmarks((prev) => ({ ...prev, [paperId]: !prev[paperId] }));
   }, []);
 
@@ -372,8 +448,10 @@ const SearchPage = () => {
       await handleExecute(
         sessionId,
         finalSearchParams,
-        sortOrder,
         filterPaperType,
+        filterYear,
+        filterKci,
+        filterSci,
       );
     }
   };
@@ -413,11 +491,15 @@ const SearchPage = () => {
             <PaperListPanel
               papers={executeResult?.papers ?? []}
               totalCount={executeResult?.total ?? 0}
-              sortOrder={sortOrder}
               filterPaperType={filterPaperType}
+              filterYear={filterYear}
+              filterKci={filterKci}
+              filterSci={filterSci}
               bookmarks={bookmarks}
-              onSortChange={handleSortChange}
-              onFilterChange={handleFilterChange}
+              onFilterPaperTypeChange={handleFilterPaperTypeChange}
+              onFilterYearChange={handleFilterYearChange}
+              onFilterKciChange={handleFilterKciChange}
+              onFilterSciChange={handleFilterSciChange}
               onResetCondition={handleResetCondition}
               onBookmark={handleBookmark}
               onPaperClick={(paperId) => {
