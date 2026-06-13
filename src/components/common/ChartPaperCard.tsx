@@ -74,11 +74,12 @@ const ChartPaperCard = ({ paper, onClick }: ChartPaperCardProps) => {
   const {
     paper_id,
     journal_name,
-    published_year,
+    published_at,
     title,
     authors,
     keywords,
     doi,
+    trust_badge,
   } = paper;
 
   return (
@@ -86,7 +87,7 @@ const ChartPaperCard = ({ paper, onClick }: ChartPaperCardProps) => {
       {/* 출처/날짜 */}
       <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
         {journal_name && <Typography sx={metaSx}>{journal_name}</Typography>}
-        <Typography sx={metaSx}>{published_year}</Typography>
+        {published_at && <Typography sx={metaSx}>{published_at}</Typography>}
       </Box>
 
       {/* 제목 */}
@@ -156,14 +157,20 @@ const ChartPaperCard = ({ paper, onClick }: ChartPaperCardProps) => {
             </Typography>
           </Box>
         )}
-        {/* TODO: [중간 수정] KCI/SCI 배지 — trust_badge 필드 추가 후 처리
-        <Box sx={badgeSx}>
-          <Typography sx={{ fontSize: '12px', color: 'static.white' }}>KCI</Typography>
-        </Box>
-        <Box sx={badgeSx}>
-          <Typography sx={{ fontSize: '12px', color: 'static.white' }}>SCI</Typography>
-        </Box>
-        */}
+        {trust_badge.kci && (
+          <Box sx={badgeSx}>
+            <Typography sx={{ fontSize: "12px", color: "static.white" }}>
+              KCI
+            </Typography>
+          </Box>
+        )}
+        {trust_badge.sci && (
+          <Box sx={badgeSx}>
+            <Typography sx={{ fontSize: "12px", color: "static.white" }}>
+              SCI
+            </Typography>
+          </Box>
+        )}
       </Box>
     </Box>
   );

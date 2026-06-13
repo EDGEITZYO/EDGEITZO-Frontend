@@ -105,6 +105,9 @@ export interface SearchExecuteRequest {
   session_id: string;
   search_params: FinalSearchParams;
   filter_paper_type: PaperType | null;
+  filter_year: number | null;
+  filter_kci: boolean | null;
+  filter_sci: boolean | null;
   sort_order: "relevance" | "year_asc" | "year_desc";
   user_id: string | null;
 }

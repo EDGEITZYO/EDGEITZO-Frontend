@@ -1,6 +1,6 @@
 import { Box, Typography, IconButton } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import {
+import useKeywordMapStore, {
   useKeywordMapActions,
   useSelectedPaperId,
   usePaperPanel,
@@ -15,6 +15,7 @@ const PaperDetailPanel = ({ onClose }: PaperDetailPanelProps) => {
   const selectedPaperId = useSelectedPaperId();
   const { panelKeyword } = usePaperPanel();
   const { selectPaper } = useKeywordMapActions();
+  const searchId = useKeywordMapStore((state) => state.searchId) ?? undefined;
 
   if (!selectedPaperId) return null;
 
@@ -79,6 +80,7 @@ const PaperDetailPanel = ({ onClose }: PaperDetailPanelProps) => {
       <Box sx={{ padding: "0 31px 40px 31px" }}>
         <PaperDetailContent
           paperId={selectedPaperId}
+          searchId={searchId}
           onRelatedPaperClick={handleRelatedPaperClick}
         />
       </Box>

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../stores/authStore";
 import { authApi } from "../api/auth";
+import { mypageApi } from "../api/mypage";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -9,7 +10,8 @@ interface AuthGuardProps {
 
 export default function AuthGuard({ children }: AuthGuardProps) {
   const [isChecking, setIsChecking] = useState(true);
-  const { accessToken, setTokens, clearAuth } = useAuthStore();
+  const { accessToken, setTokens, setUserName, setUserId, clearAuth } =
+    useAuthStore();
   const navigate = useNavigate();
   const hasChecked = useRef(false);
 
@@ -19,6 +21,15 @@ export default function AuthGuard({ children }: AuthGuardProps) {
       hasChecked.current = true;
 
       if (accessToken) {
+        if (!useAuthStore.getState().userName) {
+          try {
+            const { data } = await mypageApi.getMypage();
+            setUserName(data.data.profile.name);
+            setUserId(data.data.profile.id);
+          } catch {
+            // userName 복원 실패는 치명적이지 않으므로 무시
+          }
+        }
         setIsChecking(false);
         return;
       }
@@ -33,6 +44,10 @@ export default function AuthGuard({ children }: AuthGuardProps) {
       try {
         const { data } = await authApi.refresh({ refresh_token: refreshToken });
         setTokens(data);
+
+        const { data: mypageData } = await mypageApi.getMypage();
+        setUserName(mypageData.data.profile.name);
+        setUserId(mypageData.data.profile.id);
       } catch {
         clearAuth();
         navigate("/login", { replace: true });

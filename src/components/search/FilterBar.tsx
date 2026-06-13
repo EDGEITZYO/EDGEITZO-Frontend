@@ -1,14 +1,19 @@
-import { Box, Button, Menu, MenuItem } from "@mui/material";
+import { Box, Button } from "@mui/material";
 import { useState } from "react";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import { type PaperType } from "../../types/paper";
-import { type SortOrder } from "../../types/search";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import { Paper, Typography } from "@mui/material";
 
 interface FilterBarProps {
-  sortOrder: SortOrder;
   filterPaperType: PaperType | null;
-  onSortChange: (sort: SortOrder) => void;
-  onFilterChange: (paperType: PaperType | null) => void;
+  filterYear: number | null;
+  filterKci: boolean | null;
+  filterSci: boolean | null;
+  onFilterPaperTypeChange: (paperType: PaperType | null) => void;
+  onFilterYearChange: (year: number | null) => void;
+  onFilterKciChange: (kci: boolean | null) => void;
+  onFilterSciChange: (sci: boolean | null) => void;
   onResetCondition: () => void;
 }
 
@@ -20,135 +25,188 @@ const containerSx: SxProps<Theme> = {
   justifyContent: "flex-end",
 };
 
-const filterButtonSx: SxProps<Theme> = {
+const filterButtonSx = (isActive: boolean): SxProps<Theme> => ({
   padding: "5px 13px",
   borderRadius: "7px",
   border: "1px solid",
-  borderColor: "line.normal",
-  backgroundColor: "background.default",
-  color: "label.normal",
+  borderColor: isActive ? "static.black" : "line.normal",
+  backgroundColor: isActive ? "static.black" : "background.default",
+  color: isActive ? "static.white" : "label.normal",
   fontSize: "17px",
   fontWeight: 600,
   lineHeight: "170%",
   letterSpacing: "-0.34px",
   textTransform: "none",
-  "&:hover": { backgroundColor: "fill.normal" },
-};
-
-const activeFilterButtonSx: SxProps<Theme> = {
-  ...filterButtonSx,
-  backgroundColor: "#31333F",
-  color: "#FFF",
-  borderColor: "#31333F",
-  "&:hover": { backgroundColor: "#474A55" },
-};
+  display: "flex",
+  alignItems: "center",
+  gap: "4px",
+  "&:hover": { backgroundColor: isActive ? "label.neutral" : "fill.normal" },
+});
 
 const resetButtonSx: SxProps<Theme> = {
-  padding: "5px 13px 5px 16px",
+  padding: "5px 13px",
   borderRadius: "7px",
-  backgroundColor: "#31333F",
-  color: "#FFF",
+  backgroundColor: "static.black",
+  color: "static.white",
   fontSize: "17px",
   fontWeight: 600,
   lineHeight: "170%",
   letterSpacing: "-0.34px",
   textTransform: "none",
-  "&:hover": { backgroundColor: "#474A55" },
+  "&:hover": { backgroundColor: "label.neutral" },
 };
 
-const SORT_OPTIONS: { label: string; value: SortOrder }[] = [
-  { label: "관련도순", value: "relevance" },
-  { label: "최신순", value: "year_desc" },
-  { label: "오래된순", value: "year_asc" },
-];
+const dropdownSx: SxProps<Theme> = {
+  position: "absolute",
+  top: "calc(100% + 4px)",
+  right: 0,
+  zIndex: 100,
+  borderRadius: "8px",
+  border: "1px solid",
+  borderColor: "line.normal",
+  backgroundColor: "background.default",
+  minWidth: "140px",
+  overflow: "hidden",
+  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+};
 
-const PAPER_TYPE_OPTIONS: { label: string; value: PaperType | null }[] = [
+const CURRENT_YEAR = new Date().getFullYear();
+const YEARS = Array.from(
+  { length: CURRENT_YEAR - 2016 + 1 },
+  (_, i) => CURRENT_YEAR - i,
+);
+
+const PAPER_TYPES: { label: string; value: PaperType | null }[] = [
   { label: "전체", value: null },
   { label: "학술 저널", value: "학술 저널" },
-  { label: "박사 학위 논문", value: "박사 학위 논문" },
-  { label: "석사 학위 논문", value: "석사 학위 논문" },
+  { label: "박사학위 논문", value: "박사학위 논문" },
+  { label: "석사학위 논문", value: "석사학위 논문" },
 ];
 
 const FilterBar = ({
-  sortOrder,
   filterPaperType,
-  onSortChange,
-  onFilterChange,
+  filterYear,
+  filterKci,
+  filterSci,
+  onFilterPaperTypeChange,
+  onFilterYearChange,
+  onFilterKciChange,
+  onFilterSciChange,
   onResetCondition,
 }: FilterBarProps) => {
-  const [sortAnchorEl, setSortAnchorEl] = useState<null | HTMLElement>(null);
-  const [typeAnchorEl, setTypeAnchorEl] = useState<null | HTMLElement>(null);
-
-  const currentSortLabel =
-    SORT_OPTIONS.find((o) => o.value === sortOrder)?.label ?? "발행 연도";
-  const currentTypeLabel =
-    PAPER_TYPE_OPTIONS.find((o) => o.value === filterPaperType)?.label ??
-    "논문 유형";
+  const [openDropdown, setOpenDropdown] = useState<"year" | "type" | null>(
+    null,
+  );
 
   return (
     <Box sx={containerSx}>
-      {/* 정렬 */}
-      <Button
-        sx={sortOrder !== "relevance" ? activeFilterButtonSx : filterButtonSx}
-        onClick={(e: React.MouseEvent<HTMLButtonElement>) =>
-          setSortAnchorEl(e.currentTarget)
-        }
-      >
-        {currentSortLabel}
-      </Button>
-      <Menu
-        anchorEl={sortAnchorEl}
-        open={Boolean(sortAnchorEl)}
-        onClose={() => setSortAnchorEl(null)}
-      >
-        {SORT_OPTIONS.map((option) => (
-          <MenuItem
-            key={option.value}
-            selected={sortOrder === option.value}
-            onClick={() => {
-              onSortChange(option.value);
-              setSortAnchorEl(null);
-            }}
-          >
-            {option.label}
-          </MenuItem>
-        ))}
-      </Menu>
+      {/* 발행 연도 */}
+      <Box sx={{ position: "relative" }}>
+        <Button
+          sx={filterButtonSx(filterYear !== null)}
+          onClick={() =>
+            setOpenDropdown((prev) => (prev === "year" ? null : "year"))
+          }
+        >
+          {filterYear !== null ? `${filterYear}년` : "발행 연도"}
+          <KeyboardArrowDownIcon sx={{ fontSize: 18 }} />
+        </Button>
+        {openDropdown === "year" && (
+          <Paper sx={dropdownSx}>
+            {YEARS.map((year) => (
+              <Box
+                key={year}
+                sx={{
+                  px: "16px",
+                  py: "10px",
+                  cursor: "pointer",
+                  backgroundColor:
+                    filterYear === year ? "fill.normal" : "transparent",
+                  "&:hover": { backgroundColor: "fill.normal" },
+                }}
+                onClick={() => {
+                  onFilterYearChange(filterYear === year ? null : year);
+                  setOpenDropdown(null);
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: "16px",
+                    fontWeight: filterYear === year ? 600 : 400,
+                    color: "label.strong",
+                  }}
+                >
+                  {year}
+                </Typography>
+              </Box>
+            ))}
+          </Paper>
+        )}
+      </Box>
 
       {/* 논문 유형 */}
+      <Box sx={{ position: "relative" }}>
+        <Button
+          sx={filterButtonSx(filterPaperType !== null)}
+          onClick={() =>
+            setOpenDropdown((prev) => (prev === "type" ? null : "type"))
+          }
+        >
+          {filterPaperType ?? "논문 유형"}
+          <KeyboardArrowDownIcon sx={{ fontSize: 18 }} />
+        </Button>
+        {openDropdown === "type" && (
+          <Paper sx={dropdownSx}>
+            {PAPER_TYPES.map((option) => (
+              <Box
+                key={option.value ?? "all"}
+                sx={{
+                  px: "16px",
+                  py: "10px",
+                  cursor: "pointer",
+                  backgroundColor:
+                    filterPaperType === option.value
+                      ? "fill.normal"
+                      : "transparent",
+                  "&:hover": { backgroundColor: "fill.normal" },
+                }}
+                onClick={() => {
+                  onFilterPaperTypeChange(option.value);
+                  setOpenDropdown(null);
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: "16px",
+                    fontWeight: filterPaperType === option.value ? 600 : 400,
+                    color: "label.strong",
+                  }}
+                >
+                  {option.label}
+                </Typography>
+              </Box>
+            ))}
+          </Paper>
+        )}
+      </Box>
+
+      {/* KCI 등재 */}
       <Button
-        sx={filterPaperType !== null ? activeFilterButtonSx : filterButtonSx}
-        onClick={(e: React.MouseEvent<HTMLButtonElement>) =>
-          setTypeAnchorEl(e.currentTarget)
-        }
+        sx={filterButtonSx(filterKci === true)}
+        onClick={() => onFilterKciChange(filterKci === true ? null : true)}
       >
-        {currentTypeLabel}
+        KCI 등재
       </Button>
-      <Menu
-        anchorEl={typeAnchorEl}
-        open={Boolean(typeAnchorEl)}
-        onClose={() => setTypeAnchorEl(null)}
+
+      {/* SCI 등재 */}
+      <Button
+        sx={filterButtonSx(filterSci === true)}
+        onClick={() => onFilterSciChange(filterSci === true ? null : true)}
       >
-        {PAPER_TYPE_OPTIONS.map((option) => (
-          <MenuItem
-            key={option.value ?? "all"}
-            selected={filterPaperType === option.value}
-            onClick={() => {
-              onFilterChange(option.value);
-              setTypeAnchorEl(null);
-            }}
-          >
-            {option.label}
-          </MenuItem>
-        ))}
-      </Menu>
+        SCI 등재
+      </Button>
 
-      {/* TODO: SCI 등재 필터 — 백엔드 지원 확인 후 구현 */}
-      <Button sx={filterButtonSx}>SCI 등재</Button>
-
-      {/* TODO: 검색 필터 추가 — 추후 구현 */}
-      <Button sx={filterButtonSx}>검색 필터 추가하기</Button>
-
+      {/* 탐색 조건 재설정하기 */}
       <Button sx={resetButtonSx} onClick={onResetCondition}>
         탐색 조건 재설정하기
       </Button>
