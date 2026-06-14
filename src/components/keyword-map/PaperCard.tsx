@@ -1,6 +1,8 @@
-import { Box, Typography, Chip } from "@mui/material";
+import { Box, Typography, IconButton } from "@mui/material";
+import { useState } from "react";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import { type KMNodePaper } from "../../types/keywordMap";
 import PaperTypeBadge from "../common/PaperTypeBadge";
@@ -12,13 +14,14 @@ interface PaperCardProps {
 
 const cardSx: SxProps<Theme> = {
   padding: "18px 16px",
-  borderBottom: "1px solid",
-  borderColor: "line.normal",
+  borderRadius: "12px",
+  border: "1px solid",
+  borderColor: "#E8E9ED",
   backgroundColor: "background.default",
   cursor: "pointer",
   display: "flex",
   flexDirection: "column",
-  gap: "10px",
+  gap: "2px",
   flexShrink: 0,
   alignSelf: "stretch",
   "&:hover": {
@@ -27,6 +30,8 @@ const cardSx: SxProps<Theme> = {
 };
 
 const PaperCard = ({ paper, onClick }: PaperCardProps) => {
+  const [authorExpanded, setAuthorExpanded] = useState(false);
+
   return (
     <Box sx={cardSx} onClick={() => onClick(paper.paper_id)}>
       {/* 배지 + 북마크 */}
@@ -39,17 +44,30 @@ const PaperCard = ({ paper, onClick }: PaperCardProps) => {
       >
         <PaperTypeBadge paperType={paper.paper_type} />
         {/* TODO: 백엔드 isBookmarked 필드 추가 후 북마크 기능 연동 */}
-        <BookmarkBorderIcon
-          sx={{ fontSize: "24px", color: "label.assistive", cursor: "pointer" }}
-        />
+        <IconButton
+          sx={{
+            p: 0,
+            width: 36,
+            height: 36,
+            borderRadius: "12px",
+            backgroundColor: "#F6F7F8",
+            flexShrink: 0,
+            "&:hover": { backgroundColor: "fill.strong" },
+          }}
+          onClick={(e: React.MouseEvent<HTMLButtonElement>) =>
+            e.stopPropagation()
+          }
+        >
+          <BookmarkBorderIcon sx={{ fontSize: 24, color: "primary.main" }} />
+        </IconButton>
       </Box>
 
       {/* 출처 + 연도 */}
       <Typography
         sx={{
-          fontSize: "13px",
-          fontWeight: 400,
-          color: "label.alternative",
+          fontSize: "14px",
+          fontWeight: 500,
+          color: "label.assistive",
           letterSpacing: "-0.26px",
         }}
       >
@@ -59,100 +77,85 @@ const PaperCard = ({ paper, onClick }: PaperCardProps) => {
       {/* 제목 */}
       <Typography
         sx={{
-          fontSize: "17px",
+          fontSize: "18px",
           fontWeight: 600,
           color: "label.strong",
           letterSpacing: "-0.34px",
-          lineHeight: "29px",
         }}
       >
         {paper.title}
       </Typography>
 
       {/* 저자 */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
-        <Typography
+      <Box>
+        <Box
           sx={{
-            fontSize: "13px",
-            fontWeight: 400,
-            color: "label.alternative",
-            letterSpacing: "-0.26px",
+            display: "flex",
+            alignItems: "center",
+            gap: "4px",
+            cursor: paper.authors.length > 1 ? "pointer" : "default",
+          }}
+          onClick={(e: React.MouseEvent<HTMLDivElement>) => {
+            e.stopPropagation();
+            if (paper.authors.length > 1) setAuthorExpanded((prev) => !prev);
           }}
         >
-          {paper.authors[0]}
-          {paper.authors.length > 1 ? ` 외 ${paper.authors.length - 1}인` : ""}
-        </Typography>
-        <ExpandMoreIcon sx={{ fontSize: "16px", color: "label.assistive" }} />
+          <Typography
+            sx={{
+              fontSize: "14px",
+              fontWeight: 500,
+              color: "label.normal",
+              letterSpacing: "-0.26px",
+            }}
+          >
+            {paper.authors[0]}
+            {paper.authors.length > 1
+              ? ` 외 ${paper.authors.length - 1}인`
+              : ""}
+          </Typography>
+          {paper.authors.length > 1 &&
+            (authorExpanded ? (
+              <KeyboardArrowUpIcon
+                sx={{ fontSize: 12, color: "label.normal" }}
+              />
+            ) : (
+              <KeyboardArrowDownIcon
+                sx={{ fontSize: 12, color: "label.normal" }}
+              />
+            ))}
+        </Box>
+        {authorExpanded && (
+          <Typography
+            sx={{
+              fontSize: "14px",
+              fontWeight: 500,
+              color: "label.assistive",
+              letterSpacing: "-0.26px",
+            }}
+          >
+            {paper.authors.join(", ")}
+          </Typography>
+        )}
       </Box>
 
       {/* 키워드 */}
-      <Box sx={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+      <Box sx={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
         {paper.keywords.map((keyword, index) => (
-          <Box
+          <Typography
             key={index}
             sx={{
-              px: "8px",
-              py: "4px",
-              borderRadius: "4px",
-              border: "1px solid",
-              borderColor: "line.normal",
+              display: "inline-flex",
+              padding: "0 6px",
+              borderRadius: "7px",
+              backgroundColor: "fill.normal",
+              fontSize: "14px",
+              fontWeight: 400,
+              color: "label.alternative",
             }}
           >
-            <Typography
-              sx={{
-                fontSize: "12px",
-                fontWeight: 400,
-                color: "label.alternative",
-              }}
-            >
-              {keyword}
-            </Typography>
-          </Box>
+            {keyword}
+          </Typography>
         ))}
-      </Box>
-
-      {/* KCI + 인용수 */}
-      <Box sx={{ display: "flex", gap: "6px" }}>
-        {paper.trust_badge.kci && (
-          <Chip
-            label="KCI"
-            size="small"
-            sx={{
-              backgroundColor: "static.black",
-              color: "static.white",
-              fontSize: "12px",
-              fontWeight: 600,
-              height: "24px",
-              borderRadius: "12px",
-            }}
-          />
-        )}
-        {paper.trust_badge.sci && (
-          <Chip
-            label="SCI"
-            size="small"
-            sx={{
-              backgroundColor: "static.black",
-              color: "static.white",
-              fontSize: "12px",
-              fontWeight: 600,
-              height: "24px",
-              borderRadius: "12px",
-            }}
-          />
-        )}
-        <Chip
-          label={`인용수 ${paper.citation_count}`}
-          size="small"
-          sx={{
-            backgroundColor: "static.black",
-            color: "static.white",
-            fontSize: "12px",
-            fontWeight: 600,
-            height: "24px",
-            borderRadius: "12px",
-          }}
-        />
       </Box>
     </Box>
   );
