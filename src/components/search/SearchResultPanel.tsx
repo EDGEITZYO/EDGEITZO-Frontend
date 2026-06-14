@@ -89,18 +89,18 @@ const searchStartButtonSx = (canStart: boolean): SxProps<Theme> => ({
   display: "inline-flex",
   padding: "10px 32px 10px 33px",
   borderRadius: "50px",
-  backgroundColor: canStart ? "#03C26C" : "#CBCDD7",
-  color: "#FFF",
+  backgroundColor: canStart ? "primary.main" : "interaction.disable",
+  color: "static.white",
   fontSize: "20px",
   fontWeight: 600,
   lineHeight: "150%",
   alignSelf: "flex-end",
-  mx: '20px',   // 오른쪽 여백
-  mt: '18px',   // 위 여백
-  mb: '10px',   // 아래 여백
+  mx: "20px",
+  mt: "18px",
+  mb: "10px",
   pointerEvents: canStart ? "auto" : "none",
   "&:hover": {
-    backgroundColor: canStart ? "#474A55" : "#CBCDD7",
+    backgroundColor: canStart ? "primary.dark" : "interaction.disable",
   },
 });
 
@@ -163,8 +163,6 @@ const SearchResultPanel = ({
           </>
         )}
       </Box>
-
-      
     </Box>
   );
 };

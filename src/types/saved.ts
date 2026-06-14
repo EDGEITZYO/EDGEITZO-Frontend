@@ -64,6 +64,7 @@ export type ViewMode = "list" | "chart";
 export interface RecentPaper extends SavedPaper {
   viewed_at: string;
   view_count: number;
+  bookmarked_at: string | null;
 }
 
 export interface RecentPaperGroup {

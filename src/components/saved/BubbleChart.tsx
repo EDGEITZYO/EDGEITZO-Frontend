@@ -31,8 +31,9 @@ interface ChartDot {
 // ─── 상수 ─────────────────────────────────────────────────
 
 const DOT_RADIUS = 16;
-const DOT_COLOR = "#6B7280";
-const DOT_SELECTED_COLOR = "#31333F";
+const DOT_COLOR = "#35CE89";
+const DOT_CLUSTER_COLOR = "#03C26C";
+const DOT_SELECTED_COLOR = "#029B56";
 const DOT_DIMMED_COLOR = "#D1D5DB";
 
 // ─── 클러스터링 로직 ──────────────────────────────────────
@@ -83,13 +84,15 @@ const CustomDot = (props: {
     : false;
   const isDimmed = selectedPaperIds !== null && !isSelected;
   const radius = payload.isCluster
-    ? Math.min(DOT_RADIUS + payload.clusterCount * 5, 50)
+    ? Math.min(DOT_RADIUS * 2 + payload.clusterCount * 3, 60)
     : DOT_RADIUS;
   const color = isDimmed
     ? DOT_DIMMED_COLOR
     : isSelected
       ? DOT_SELECTED_COLOR
-      : DOT_COLOR;
+      : payload.isCluster
+        ? DOT_CLUSTER_COLOR
+        : DOT_COLOR;
 
   return (
     <g
@@ -114,7 +117,7 @@ const CustomDot = (props: {
           textAnchor="middle"
           dominantBaseline="central"
           fill="#fff"
-          fontSize={18}
+          fontSize={24}
           fontWeight={600}
         >
           +{payload.clusterCount}
@@ -273,7 +276,7 @@ const BubbleChart = ({
         height="100%"
         onResize={(w, h) => setChartSize({ width: w, height: h })}
       >
-        <ScatterChart margin={{ top: 60, right: 60, bottom: 60, left: 60 }}>
+        <ScatterChart margin={{ top: 85, right: 85, bottom: 85, left: 85 }}>
           <XAxis
             dataKey="x"
             hide

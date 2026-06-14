@@ -93,7 +93,7 @@ const bookmarkButtonSx: SxProps<Theme> = {
   width: 37,
   height: 36,
   borderRadius: "12px",
-  backgroundColor: "fill.normal",
+  backgroundColor: "#F6F7F8",
   flexShrink: 0,
   "&:hover": { backgroundColor: "fill.strong" },
 };
@@ -147,7 +147,7 @@ const BookmarkPaperCard = ({
             onBookmarkRemove(paper_id);
           }}
         >
-          <BookmarkIcon sx={{ fontSize: 24, color: "label.normal" }} />
+          <BookmarkIcon sx={{ fontSize: 24, color: "primary.main" }} />
         </IconButton>
       </Box>
 

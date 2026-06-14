@@ -75,15 +75,17 @@ const axisLabelSx: SxProps<Theme> = {
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  backgroundColor: "#5D6279",
+  backgroundColor: "fill.normal",
   borderRadius: "16px",
-  padding: "6px 16px 6px 16px",
+  padding: "6px 16px",
+  border: "1px solid",
+  borderColor: "line.normal",
 };
 
 const axisLabelTextSx: SxProps<Theme> = {
   fontSize: "18px",
   fontWeight: 600,
-  color: "#FFFFFF",
+  color: "label.neutral",
   whiteSpace: "nowrap",
 };
 
