@@ -429,7 +429,9 @@ const PaperDetailContent = ({
                   px: "6px",
                   py: 0,
                   borderRadius: "7px",
-                  backgroundColor: "fill.strong",
+                  backgroundColor: "background.default",
+                  border: "1px solid",
+                  borderColor: "line.normal",
                   display: "flex",
                   alignItems: "center",
                 }}
