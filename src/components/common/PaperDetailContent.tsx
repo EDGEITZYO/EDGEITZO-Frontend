@@ -69,53 +69,121 @@ const SimilarPaperCard = ({
   paper: SimilarPaper;
   onClick?: (paperId: string) => void;
 }) => {
+  const [authorExpanded, setAuthorExpanded] = useState(false);
   const isClickable = paper.in_service && paper.paper_id !== null;
+  const authors = paper.author
+    ? paper.author.split(",").map((a) => a.trim())
+    : [];
 
   return (
     <Box
       onClick={() => isClickable && paper.paper_id && onClick?.(paper.paper_id)}
       sx={{
         width: "276px",
-        padding: "14px",
+        padding: "13.72px",
         borderRadius: "10px",
-        border: "1px solid",
-        borderColor: "line.neutral",
-        backgroundColor: isClickable ? "static.white" : "fill.normal",
+        border: "0.86px solid",
+        borderColor: "line.normal",
+        backgroundColor: isClickable ? "background.default" : "fill.normal",
         display: "flex",
         flexDirection: "column",
-        gap: "10px",
+        gap: "8px",
         cursor: isClickable ? "pointer" : "default",
         flexShrink: 0,
-        opacity: isClickable ? 1 : 0.5,
         "&:hover": isClickable ? { backgroundColor: "background.paper" } : {},
       }}
     >
+      {/* 연도 */}
       <Typography
-        sx={{ fontSize: "13px", fontWeight: 400, color: "label.alternative" }}
+        sx={{
+          fontSize: "12px",
+          fontWeight: 400,
+          color: "label.assistive",
+          lineHeight: "normal",
+        }}
       >
         {paper.pubyear}
       </Typography>
+
+      {/* 제목 */}
       <Typography
         sx={{
-          fontSize: "16px",
+          fontSize: "14px",
           fontWeight: 600,
-          color: "label.strong",
-          lineHeight: "normal",
-          letterSpacing: "-0.34px",
+          color: "static.black",
+          lineHeight: "150%",
         }}
       >
         {paper.title}
       </Typography>
-      <Typography
-        sx={{ fontSize: "13px", fontWeight: 400, color: "label.alternative" }}
-      >
-        {paper.author}
-      </Typography>
-      <Typography
-        sx={{ fontSize: "12px", fontWeight: 400, color: "label.assistive" }}
-      >
-        {paper.material_type}
-      </Typography>
+
+      {/* 저자 */}
+      {authors.length > 0 && (
+        <Box>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
+              cursor: authors.length > 1 ? "pointer" : "default",
+            }}
+            onClick={(e: React.MouseEvent<HTMLDivElement>) => {
+              e.stopPropagation();
+              if (authors.length > 1) setAuthorExpanded((prev) => !prev);
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: "12px",
+                fontWeight: 400,
+                color: "label.normal",
+                lineHeight: "normal",
+              }}
+            >
+              {authors.length > 1
+                ? `${authors[0]} 외 ${authors.length - 1}인`
+                : authors[0]}
+            </Typography>
+            {authors.length > 1 &&
+              (authorExpanded ? (
+                <KeyboardArrowUpIcon
+                  sx={{ fontSize: 12, color: "label.normal" }}
+                />
+              ) : (
+                <KeyboardArrowDownIcon
+                  sx={{ fontSize: 12, color: "label.normal" }}
+                />
+              ))}
+          </Box>
+          {authorExpanded && (
+            <Typography
+              sx={{
+                fontSize: "12px",
+                fontWeight: 400,
+                color: "label.assistive",
+                lineHeight: "normal",
+                mt: "4px",
+              }}
+            >
+              {authors.join(", ")}
+            </Typography>
+          )}
+        </Box>
+      )}
+
+      {/* 논문 유형 */}
+      {paper.material_type && (
+        <Typography
+          sx={{
+            fontSize: "12px",
+            fontWeight: 400,
+            color: "label.assistive",
+            lineHeight: "normal",
+          }}
+        >
+          {paper.material_type}
+        </Typography>
+      )}
     </Box>
   );
 };
