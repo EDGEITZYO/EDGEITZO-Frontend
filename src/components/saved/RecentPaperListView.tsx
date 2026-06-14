@@ -1,11 +1,13 @@
 import { useRef, useState, useEffect } from "react";
 import { Box, Typography, Snackbar, CircularProgress } from "@mui/material";
 import { type SxProps, type Theme } from "@mui/material/styles";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import RecentPaperCard from "../common/RecentPaperCard";
 import { type RecentPaper, type PeriodMode } from "../../types/saved";
 import { savedApi } from "../../api/saved";
 import { formatDateParam } from "../../utils/savedUtils";
+import { bookmarkApi } from "../../api/bookmark";
+import BookmarkFolderSelectDialog from "../common/BookmarkFolderSelectDialog";
 
 // ─── 스타일 ───────────────────────────────────────────────
 
@@ -68,6 +70,16 @@ const RecentPaperListView = ({
 
   const dateParam = formatDateParam(currentDate);
 
+  const [bookmarkPaperId, setBookmarkPaperId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
+  const { mutate: removeBookmark } = useMutation({
+    mutationFn: (paperId: string) => bookmarkApi.removeBookmark(paperId),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["recent-papers"] });
+    },
+  });
+
   const { data, isPending, isError } = useQuery({
     queryKey: ["recent-papers", periodMode, dateParam],
     queryFn: async () => {
@@ -107,8 +119,12 @@ const RecentPaperListView = ({
   }, [displayCount, allPapers.length]);
 
   const handleBookmark = (paperId: string) => {
-    // TODO: [이슈 B] 북마크 API 연동
-    console.log("bookmark", paperId);
+    const paper = allPapers.find((p) => p.paper_id === paperId);
+    if (paper?.bookmarked_at !== null) {
+      removeBookmark(paperId);
+    } else {
+      setBookmarkPaperId(paperId);
+    }
   };
 
   const handleDelete = (paperId: string) => {
@@ -213,6 +229,16 @@ const RecentPaperListView = ({
         onClose={() => setSnackbarOpen(false)}
         message="삭제 기능은 준비 중이에요"
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      />
+
+      <BookmarkFolderSelectDialog
+        open={bookmarkPaperId !== null}
+        onClose={() => setBookmarkPaperId(null)}
+        paperId={bookmarkPaperId ?? ""}
+        onBookmarkAdded={() => {
+          queryClient.invalidateQueries({ queryKey: ["recent-papers"] });
+          setBookmarkPaperId(null);
+        }}
       />
     </>
   );

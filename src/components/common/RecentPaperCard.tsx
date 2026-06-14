@@ -3,6 +3,7 @@ import { Box, Typography, IconButton } from "@mui/material";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import BookmarkIcon from "@mui/icons-material/Bookmark";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import { type RecentPaper } from "../../types/saved";
@@ -113,6 +114,7 @@ const RecentPaperCard = ({
     keywords,
     trust_badge,
     viewed_at,
+    bookmarked_at,
   } = paper;
 
   return (
@@ -134,10 +136,13 @@ const RecentPaperCard = ({
               onBookmark(paper_id);
             }}
           >
-            {/* TODO: [이슈 B] 북마크 상태 API 연동 후 BookmarkIcon 조건부 렌더링 */}
-            <BookmarkBorderIcon
-              sx={{ fontSize: 24, color: "label.assistive" }}
-            />
+            {bookmarked_at !== null ? (
+              <BookmarkIcon sx={{ fontSize: 24, color: "primary.main" }} />
+            ) : (
+              <BookmarkBorderIcon
+                sx={{ fontSize: 24, color: "label.assistive" }}
+              />
+            )}
           </IconButton>
           <IconButton
             sx={iconButtonSx}
