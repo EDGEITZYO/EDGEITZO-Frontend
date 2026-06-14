@@ -123,14 +123,14 @@ const PaperListPanel = ({ onFullscreen }: PaperListPanelProps) => {
               px: "9px",
               py: "6px",
               borderRadius: "7px",
-              backgroundColor: "fill.strong",
+              backgroundColor: "#CBCDD7",
             }}
           >
             <Typography
               sx={{
                 fontSize: "17px",
                 fontWeight: 600,
-                color: "static.white",
+                color: "#31333F",
                 letterSpacing: "-0.34px",
               }}
             >
@@ -400,7 +400,7 @@ const PaperListPanel = ({ onFullscreen }: PaperListPanelProps) => {
       </Box>
 
       {/* 논문 목록 */}
-      <Box sx={{ flex: 1, overflowY: "auto" }}>
+      <Box sx={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "8px", padding: "12px" }}>
         {isPending ? (
           <Box
             sx={{
