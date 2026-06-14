@@ -58,7 +58,7 @@ const PaperCard = ({ paper, onClick }: PaperCardProps) => {
             e.stopPropagation()
           }
         >
-          <BookmarkBorderIcon sx={{ fontSize: 24, color: "primary.main" }} />
+          <BookmarkBorderIcon sx={{ fontSize: 24, color: "label.assistive" }} />
         </IconButton>
       </Box>
 
