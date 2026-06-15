@@ -9,8 +9,7 @@ interface GuestGuardProps {
 export default function GuestGuard({ children }: GuestGuardProps) {
   const { accessToken } = useAuthStore();
   const navigate = useNavigate();
-  const refreshToken = localStorage.getItem("refreshToken");
-  const isLoggedIn = !!accessToken || !!refreshToken;
+  const isLoggedIn = !!accessToken;
 
   useEffect(() => {
     if (isLoggedIn) {

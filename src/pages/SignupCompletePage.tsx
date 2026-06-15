@@ -25,7 +25,7 @@ const SignupCompletePage = () => {
     | { type: "email"; email: string; password: string }
     | { type: "social"; name: string }
     | null;
-  const { setTokens } = useAuthStore();
+  const { setAccessToken } = useAuthStore();
 
   const isEmail = !state || state.type === "email";
   const name = !isEmail && state?.type === "social" ? state.name : "";
@@ -48,7 +48,7 @@ const SignupCompletePage = () => {
         confirm_password: state.password,
       })
       .then(({ data }) => {
-        setTokens(data.data);
+        setAccessToken(data.data.access_token);
       })
       .catch(() => {
         navigate("/signup", { replace: true });
