@@ -1,12 +1,10 @@
 import { create } from "zustand";
-import type { TokenResponse } from "../types/auth";
 
 interface AuthState {
   accessToken: string | null;
   isAuthenticated: boolean;
   userName: string | null;
   userId: string | null;
-  setTokens: (tokens: TokenResponse) => void;
   setAccessToken: (accessToken: string) => void;
   setUserName: (name: string) => void;
   setUserId: (id: string) => void;
@@ -18,14 +16,6 @@ export const useAuthStore = create<AuthState>()((set) => ({
   isAuthenticated: false,
   userName: null,
   userId: null,
-
-  setTokens: (tokens: TokenResponse) => {
-    localStorage.setItem("refreshToken", tokens.refresh_token);
-    set({
-      accessToken: tokens.access_token,
-      isAuthenticated: true,
-    });
-  },
 
   setAccessToken: (accessToken: string) => {
     set({
@@ -43,7 +33,6 @@ export const useAuthStore = create<AuthState>()((set) => ({
   },
 
   clearAuth: () => {
-    localStorage.removeItem("refreshToken");
     set({
       accessToken: null,
       isAuthenticated: false,

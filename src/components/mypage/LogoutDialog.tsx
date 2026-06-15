@@ -21,10 +21,7 @@ const LogoutDialog = ({ open, onClose }: LogoutDialogProps) => {
   const clearAuth = useAuthStore((state) => state.clearAuth);
 
   const { mutate: logout } = useMutation({
-    mutationFn: () => {
-      const refreshToken = localStorage.getItem("refreshToken") ?? "";
-      return authApi.logout({ refresh_token: refreshToken });
-    },
+    mutationFn: () => authApi.logout(),
     onSettled: () => {
       clearAuth();
       onClose();

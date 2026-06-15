@@ -7,8 +7,6 @@ import type {
   RegisterRequest,
   LoginRequest,
   ProfileRequest,
-  RefreshRequest,
-  LogoutRequest,
   TokenResponse,
   AuthStartResponse,
 } from "../types/auth";
@@ -32,10 +30,9 @@ export const authApi = {
   createProfile: (data: ProfileRequest) =>
     apiClient.post<string>("/auth/profile", data),
 
-  refresh: (data: RefreshRequest) =>
-    apiClient.post<TokenResponse>("/auth/refresh", data),
+  refresh: () => apiClient.post<TokenResponse>("/auth/refresh"),
 
-  logout: (data: LogoutRequest) => apiClient.post<string>("/auth/logout", data),
+  logout: () => apiClient.post<string>("/auth/logout"),
 
   start: () => apiClient.get<AuthStartResponse>("/auth/start"),
 };

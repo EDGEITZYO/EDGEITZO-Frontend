@@ -124,13 +124,13 @@ const LoginForm = () => {
     mode: "onSubmit",
   });
 
-  const { setTokens } = useAuthStore();
+  const { setAccessToken } = useAuthStore();
 
   const onSubmit: SubmitHandler<LoginFormValues> = async (data) => {
     setLoginError(null);
     try {
       const { data: tokenData } = await authApi.login(data);
-      setTokens(tokenData.data);
+      setAccessToken(tokenData.data.access_token);
       navigate("/home");
     } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response?.status === 400) {
@@ -168,7 +168,7 @@ const LoginForm = () => {
         disableElevation
         onClick={() => {
           window.location.href =
-            "https://accounts.google.com/o/oauth2/v2/auth?client_id=317993078634-ns5vkm8seavjpvnie4tittbmr713ahh0.apps.googleusercontent.com&redirect_uri=http://api/biomepaper/shop:8000/api/v1/auth/google/callback&response_type=code&scope=openidemailprofile";
+            "https://accounts.google.com/o/oauth2/v2/auth?client_id=317993078634-ns5vkm8seavjpvnie4tittbmr713ahh0.apps.googleusercontent.com&redirect_uri=https://api.biomepaper.shop/api/v1/auth/google/callback&response_type=code&scope=openid%20email%20profile";
         }}
       >
         구글로 계속하기
@@ -179,7 +179,7 @@ const LoginForm = () => {
         disableElevation
         onClick={() => {
           window.location.href =
-            "https://kauth.kakao.com/oauth/authorize?client_id=efcaf6bea68a9c17d9069e7f168f5a25&redirect_uri=http://api/biomepaper/shop:8000/api/v1/auth/kakao/callback&response_type=code";
+            "https://kauth.kakao.com/oauth/authorize?client_id=efcaf6bea68a9c17d9069e7f168f5a25&redirect_uri=https://api.biomepaper.shop/api/v1/auth/kakao/callback&response_type=code";
         }}
       >
         카카오톡으로 계속하기
