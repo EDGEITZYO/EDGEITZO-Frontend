@@ -10,7 +10,7 @@ interface AuthGuardProps {
 
 export default function AuthGuard({ children }: AuthGuardProps) {
   const [isChecking, setIsChecking] = useState(true);
-  const { accessToken, setTokens, setUserName, setUserId, clearAuth } =
+  const { accessToken, setAccessToken, setUserName, setUserId, clearAuth } =
     useAuthStore();
   const navigate = useNavigate();
   const hasChecked = useRef(false);
@@ -34,16 +34,9 @@ export default function AuthGuard({ children }: AuthGuardProps) {
         return;
       }
 
-      const refreshToken = localStorage.getItem("refreshToken");
-      if (!refreshToken) {
-        clearAuth();
-        navigate("/login", { replace: true });
-        return;
-      }
-
       try {
-        const { data } = await authApi.refresh({ refresh_token: refreshToken });
-        setTokens(data);
+        const { data } = await authApi.refresh();
+        setAccessToken(data.access_token);
 
         const { data: mypageData } = await mypageApi.getMypage();
         setUserName(mypageData.data.profile.name);

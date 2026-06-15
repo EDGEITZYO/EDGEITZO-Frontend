@@ -1,7 +1,6 @@
 export interface TokenResponse {
   access_token: string;
-  refresh_token: string;
-  token_type: 'bearer';
+  token_type: "bearer";
 }
 
 export interface ApiResponse<T> {
@@ -54,14 +53,4 @@ export interface ProfileRequest {
   research_field: string;
   purposes: string[];
   purpose_custom?: string;
-}
-
-// POST /auth/refresh
-export interface RefreshRequest {
-  refresh_token: string;
-}
-
-// POST /auth/logout
-export interface LogoutRequest {
-  refresh_token: string;
 }

@@ -6,6 +6,7 @@ const apiClient = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true,
 });
 
 // 요청 interceptor: accessToken 자동 첨부
@@ -44,13 +45,6 @@ apiClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    const refreshToken = localStorage.getItem("refreshToken");
-    if (!refreshToken) {
-      useAuthStore.getState().clearAuth();
-      window.location.href = "/login";
-      return Promise.reject(error);
-    }
-
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         failedQueue.push({ resolve, reject });
@@ -66,9 +60,10 @@ apiClient.interceptors.response.use(
     try {
       const { data } = await axios.post(
         `${import.meta.env.VITE_API_BASE_URL}/auth/refresh`,
-        { refresh_token: refreshToken },
+        {},
+        { withCredentials: true },
       );
-      useAuthStore.getState().setTokens(data);
+      useAuthStore.getState().setAccessToken(data.access_token);
       processQueue(null, data.access_token);
       originalRequest.headers.Authorization = `Bearer ${data.access_token}`;
       return apiClient(originalRequest);
