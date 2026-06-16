@@ -50,7 +50,8 @@ const getChildPosition = (
   index: number,
   total: number,
 ): { x: number; y: number } => {
-  const dynamicGap = total > 3 ? SIBLING_GAP * (1 + (total - 3) * 0.1) : SIBLING_GAP;
+  const dynamicGap =
+    total > 3 ? SIBLING_GAP * (1 + (total - 3) * 0.1) : SIBLING_GAP;
   const offset = (index - (total - 1) / 2) * dynamicGap;
   switch (direction) {
     case "top":
@@ -345,7 +346,9 @@ const KeywordMapGraph = () => {
 
         new_children.forEach((child: KMExpandedChild) => {
           const childDirection =
-            AXIS_TO_DIRECTION[child.edge_type] ?? nodeData.direction;
+            nodeData.depth === 1
+              ? (AXIS_TO_DIRECTION[child.edge_type] ?? nodeData.direction)
+              : nodeData.direction;
           childrenByDir[childDirection].push(child);
         });
 

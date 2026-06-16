@@ -154,22 +154,17 @@ const SignupVerifyPage = () => {
 
         {/* 카드 */}
         <Box sx={cardSx}>
-          {/* 일러스트 영역 - 추후 이미지 교체 */}
           <Box
+            component="img"
+            src="/illust-email.png"
+            alt="이메일 인증 일러스트"
             sx={{
               width: "100%",
               height: 209,
-              backgroundColor: "fill.normal",
               borderRadius: "12px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              objectFit: "cover",
             }}
-          >
-            <Typography sx={{ color: "label.assistive", fontSize: "14px" }}>
-              일러스트 이미지
-            </Typography>
-          </Box>
+          />
 
           {/* 이메일 */}
           <Typography

@@ -184,6 +184,90 @@ const SimilarPaperCard = ({
           {paper.material_type}
         </Typography>
       )}
+
+      {/* 키워드 태그 */}
+      {paper.keywords && paper.keywords.length > 0 && (
+        <Box sx={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+          {paper.keywords.map((kw, index) => (
+            <Typography
+              key={`${kw}-${index}`}
+              sx={{
+                display: "inline-flex",
+                padding: "0 6px",
+                borderRadius: "7px",
+                backgroundColor: "fill.normal",
+                fontSize: "12px",
+                fontWeight: 400,
+                color: "label.alternative",
+              }}
+            >
+              {kw}
+            </Typography>
+          ))}
+        </Box>
+      )}
+
+      {/* 신뢰도 배지 + DOI */}
+      <Box sx={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+        {paper.doi && (
+          <Box
+            sx={{
+              display: "inline-flex",
+              padding: "4px 12px",
+              borderRadius: "6px",
+              backgroundColor: "static.black",
+              fontSize: "12px",
+              fontWeight: 400,
+              color: "static.white",
+              lineHeight: "normal",
+              cursor: "pointer",
+              gap: "2px",
+              alignItems: "center",
+            }}
+            onClick={(e: React.MouseEvent<HTMLDivElement>) => {
+              e.stopPropagation();
+              window.open(paper.doi!, "_blank");
+            }}
+          >
+            <Typography sx={{ fontSize: "12px", color: "static.white" }}>
+              DOI
+            </Typography>
+            <Typography sx={{ fontSize: "10px", color: "static.white" }}>
+              ↗
+            </Typography>
+          </Box>
+        )}
+        {paper.trust_badge?.kci && (
+          <Box
+            sx={{
+              display: "inline-flex",
+              padding: "4px 12px",
+              borderRadius: "6px",
+              backgroundColor: "static.black",
+              alignItems: "center",
+            }}
+          >
+            <Typography sx={{ fontSize: "12px", color: "static.white" }}>
+              KCI
+            </Typography>
+          </Box>
+        )}
+        {paper.trust_badge?.sci && (
+          <Box
+            sx={{
+              display: "inline-flex",
+              padding: "4px 12px",
+              borderRadius: "6px",
+              backgroundColor: "static.black",
+              alignItems: "center",
+            }}
+          >
+            <Typography sx={{ fontSize: "12px", color: "static.white" }}>
+              SCI
+            </Typography>
+          </Box>
+        )}
+      </Box>
     </Box>
   );
 };

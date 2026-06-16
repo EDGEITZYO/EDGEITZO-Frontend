@@ -60,4 +60,8 @@ export interface SimilarPaper {
   material_type: string;
   in_service: boolean;
   paper_id: string | null;
+  journal_name: string | null;
+  keywords: string[] | null;
+  doi: string | null;
+  trust_badge: PaperTrustBadge | null;
 }
