@@ -43,15 +43,15 @@ const Header = ({ isLoggedIn = false }: HeaderProps) => {
           {/* 로고 + 네비 */}
           <Box sx={{ display: "flex", alignItems: "center", gap: "16px" }}>
             <Box
+              component="img"
+              src="/logo.svg"
+              alt="Biome 로고"
+              onClick={() => navigate("/home")}
               sx={{
-                width: 120,
-                height: 32,
-                backgroundColor: "fill.strong",
-                borderRadius: 1,
+                height: 25,
                 cursor: "pointer",
                 flexShrink: 0,
               }}
-              onClick={() => navigate("/home")}
             />
             {isLoggedIn && (
               <Box sx={{ display: "flex", alignItems: "center", gap: "32px" }}>
