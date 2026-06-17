@@ -50,14 +50,19 @@ const authorSx: SxProps<Theme> = {
   lineHeight: "normal",
 };
 
-const abstractSx: SxProps<Theme> = {
+// 1. 배경, 패딩, 테두리 둥글기를 담당하는 Wrapper 스타일
+const abstractWrapperSx: SxProps<Theme> = {
+  padding: "15px 12px",
+  borderRadius: "12px",
+  backgroundColor: "fill.normal",
+};
+
+// 2. 실제 텍스트 말줄임 및 폰트 스타일을 담당하는 스타일 (패딩 없음)
+const abstractTextSx: SxProps<Theme> = {
   fontSize: "14px",
   fontWeight: 500,
   color: "label.alternative",
   lineHeight: "150%",
-  padding: "15px 12px",
-  borderRadius: "12px",
-  backgroundColor: "fill.normal",
   overflow: "hidden",
   display: "-webkit-box",
   WebkitLineClamp: 2,
@@ -75,6 +80,8 @@ const keywordTagSx: SxProps<Theme> = {
   color: "label.normal",
   lineHeight: "150%",
   letterSpacing: "-0.24px",
+  height: "28px",
+  alignItems: "center",
 };
 
 const badgeSx: SxProps<Theme> = {
@@ -86,6 +93,8 @@ const badgeSx: SxProps<Theme> = {
   fontWeight: 400,
   color: "static.white",
   lineHeight: "normal",
+  height: "26px",
+  alignItems: "center",
 };
 
 const bookmarkButtonSx: SxProps<Theme> = {
@@ -200,7 +209,11 @@ const BookmarkPaperCard = ({
       </Box>
 
       {/* 초록 */}
-      {abstract && <Typography sx={abstractSx}>{abstract}</Typography>}
+      {abstract && (
+        <Box sx={abstractWrapperSx}>
+          <Typography sx={abstractTextSx}>{abstract}</Typography>
+        </Box>
+      )}
 
       {/* 키워드 태그 */}
       <Box sx={{ display: "flex", gap: "9px", flexWrap: "wrap" }}>

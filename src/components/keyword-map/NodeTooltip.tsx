@@ -1,4 +1,5 @@
-import { Box, Typography, Button } from "@mui/material";
+import { useState } from "react";
+import { Box, Typography, Button, CircularProgress } from "@mui/material";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { type KeywordNodeData } from "../../types/keywordMap";
@@ -7,7 +8,7 @@ interface NodeTooltipProps {
   nodeId: string;
   data: KeywordNodeData;
   onSearchKeyword: (keyword: string) => void;
-  onExpandNode: (nodeId: string) => void;
+  onExpandNode: (nodeId: string) => Promise<void>;
 }
 
 const tooltipSx: SxProps<Theme> = {
@@ -45,10 +46,22 @@ const NodeTooltip = ({
   onSearchKeyword,
   onExpandNode,
 }: NodeTooltipProps) => {
+  const [isExpanding, setIsExpanding] = useState(false);
   const canExpand = !data.isExpanded && data.depth < 4;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(data.label);
+  };
+
+  const handleExpand = async () => {
+    setIsExpanding(true);
+    try {
+      await onExpandNode(nodeId);
+    } catch {
+      // TODO: 에러 토스트 추가
+    } finally {
+      setIsExpanding(false);
+    }
   };
 
   return (
@@ -126,10 +139,15 @@ const NodeTooltip = ({
         {canExpand && (
           <Button
             variant="contained"
-            onClick={() => onExpandNode(nodeId)}
+            onClick={handleExpand}
+            disabled={isExpanding}
             sx={actionButtonSx}
           >
-            하위 키워드 생성
+            {isExpanding ? (
+              <CircularProgress size={20} sx={{ color: "label.neutral" }} />
+            ) : (
+              "하위 키워드 생성"
+            )}
           </Button>
         )}
       </Box>

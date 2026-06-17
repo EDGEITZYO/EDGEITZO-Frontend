@@ -26,6 +26,17 @@ const OnboardingComplete = ({ onStart }: OnboardingCompleteProps) => {
           textAlign: "center",
         }}
       >
+        <Box
+          component="img"
+          src="/illust-onboarding.png"
+          alt="온보딩 완료 일러스트"
+          sx={{
+            width: "100%",
+            flex: 1,
+            borderRadius: "12px",
+            objectFit: "cover",
+          }}
+        />
         <Typography
           variant="h4"
           sx={{ color: "primary.main", fontWeight: 700 }}
@@ -41,18 +52,6 @@ const OnboardingComplete = ({ onStart }: OnboardingCompleteProps) => {
         <Typography variant="body1" sx={{ color: "label.alternative" }}>
           입력하신 정보는 마이페이지에서 언제든 수정할 수 있어요
         </Typography>
-
-        <Box
-          component="img"
-          src="/illust-onboarding.png"
-          alt="온보딩 완료 일러스트"
-          sx={{
-            width: "100%",
-            flex: 1,
-            borderRadius: "12px",
-            objectFit: "cover",
-          }}
-        />
       </Box>
       <OnboardingNextButton label="시작하기" onClick={onStart} />
     </Box>
