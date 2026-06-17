@@ -509,7 +509,15 @@ const SearchPage = () => {
             />
           </Box>
         ) : view === "detail" && selectedPaperId ? (
-          <Box sx={{ flex: 1, overflow: "auto", px: "63px", py: "29px" }}>
+          <Box
+            sx={{
+              flex: 1,
+              overflow: "auto",
+              px: "63px",
+              py: "29px",
+              backgroundColor: "background.paper",
+            }}
+          >
             <PaperDetailContent
               paperId={selectedPaperId}
               searchId={executeResult?.search_id || undefined}
