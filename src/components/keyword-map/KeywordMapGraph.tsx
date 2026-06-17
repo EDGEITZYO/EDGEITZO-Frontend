@@ -312,7 +312,7 @@ const KeywordMapGraph = () => {
   // ─── 하위 키워드 확장 ────────────────────────────────────
 
   const handleExpandNode = useCallback(
-    async (nodeId: string) => {
+    async (nodeId: string): Promise<void> => {
       const targetNode = nodes.find((n) => n.id === nodeId);
       if (!targetNode) return;
 
@@ -421,7 +421,7 @@ const KeywordMapGraph = () => {
           });
         }
       } catch {
-        // TODO: 에러 토스트 추가
+        throw new Error("하위 키워드 생성에 실패했어요.");
       }
     },
     [
