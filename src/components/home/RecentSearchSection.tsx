@@ -7,8 +7,8 @@ type TabType = "all" | SearchType;
 
 const TABS: { label: string; value: TabType }[] = [
   { label: "전체", value: "all" },
-  { label: "키워드 검색", value: "keyword" },
   { label: "AI 검색", value: "ai" },
+  { label: "키워드", value: "keyword" },
 ];
 
 interface RecentSearchSectionProps {
@@ -23,64 +23,76 @@ const RecentSearchSection = ({ searches }: RecentSearchSectionProps) => {
     .slice(0, 2);
 
   return (
-    <Box
-      sx={{ display: "flex", flexDirection: "column", gap: "11px", flex: 1 }}
-    >
-      {/* 타이틀 */}
-      <Typography
+    <Box sx={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+      {/* 헤더: 타이틀 + 탭 */}
+      <Box
         sx={{
-          fontSize: "18px",
-          fontWeight: 600,
-          lineHeight: "30px",
-          letterSpacing: "-0.36px",
-          color: "label.strong",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          paddingLeft: "16px",
         }}
       >
-        최근 탐색 이어하기
-      </Typography>
+        <Typography
+          sx={{
+            fontSize: "24px",
+            fontWeight: 500,
+            lineHeight: "36px",
+            letterSpacing: "-0.576px",
+            color: "label.normal",
+          }}
+        >
+          최근 탐색 이어하기
+        </Typography>
 
-      {/* 탭 */}
-      <Box sx={{ display: "flex", gap: "6px" }}>
-        {TABS.map((tab) => (
-          <Box
-            key={tab.value}
-            onClick={() => setActiveTab(tab.value)}
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              px: activeTab === tab.value ? "13px" : "16px",
-              py: "5px",
-              borderRadius: "7px",
-              backgroundColor:
-                activeTab === tab.value ? "label.neutral" : "transparent",
-              cursor: "pointer",
-            }}
-          >
-            <Typography
+        {/* 탭 */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
+          {TABS.map((tab) => (
+            <Box
+              key={tab.value}
+              onClick={() => setActiveTab(tab.value)}
               sx={{
-                fontSize: "17px",
-                fontWeight: 600,
-                lineHeight: "29px",
-                letterSpacing: "-0.34px",
-                color:
-                  activeTab === tab.value ? "static.white" : "label.strong",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "8px 13px",
+                borderRadius: "24px",
+                backgroundColor:
+                  activeTab === tab.value ? "label.normal" : "fill.normal",
+                cursor: "pointer",
+                "&:hover": {
+                  backgroundColor:
+                    activeTab === tab.value ? "label.neutral" : "fill.strong",
+                },
               }}
             >
-              {tab.label}
-            </Typography>
-          </Box>
-        ))}
+              <Typography
+                sx={{
+                  fontSize: "16px",
+                  fontWeight: 600,
+                  lineHeight: "24px",
+                  letterSpacing: "-0.336px",
+                  color:
+                    activeTab === tab.value
+                      ? "static.white"
+                      : "label.alternative",
+                }}
+              >
+                {tab.label}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
       </Box>
 
       {/* 카드 리스트 or 빈 상태 */}
       {filtered.length === 0 ? (
         <Box
           sx={{
-            flex: 1,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            py: "48px",
           }}
         >
           <Typography
@@ -94,7 +106,18 @@ const RecentSearchSection = ({ searches }: RecentSearchSectionProps) => {
           </Typography>
         </Box>
       ) : (
-        <Box sx={{ display: "flex", flexDirection: "column", gap: "11px" }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            gap: "16px",
+            padding: "16px",
+            borderRadius: "8px",
+            backgroundColor: "background.default",
+            alignSelf: "stretch",
+          }}
+        >
           {filtered.map((search) => (
             <RecentSearchCard key={search.id} data={search} />
           ))}

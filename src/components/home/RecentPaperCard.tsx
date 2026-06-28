@@ -1,7 +1,7 @@
 import { Box, Typography } from "@mui/material";
-import { type RecentPaper } from "../../types/home";
 import { useNavigate } from "react-router-dom";
 import PaperTypeBadge from "../common/PaperTypeBadge";
+import { type RecentPaper } from "../../types/home";
 
 interface RecentPaperCardProps {
   data: RecentPaper;
@@ -15,7 +15,7 @@ const formatViewedAt = (viewedAt: string): string => {
     const day = String(date.getDate()).padStart(2, "0");
     const hours = String(date.getHours()).padStart(2, "0");
     const minutes = String(date.getMinutes()).padStart(2, "0");
-    return `${year}.${month}.${day}.${hours}:${minutes}`;
+    return `${year}.${month}.${day} ${hours}:${minutes} 읽음`;
   } catch {
     return "";
   }
@@ -30,7 +30,6 @@ const RecentPaperCard = ({ data }: RecentPaperCardProps) => {
     published_at,
     title,
     keywords,
-    badges,
     viewed_at,
   } = data;
 
@@ -40,134 +39,131 @@ const RecentPaperCard = ({ data }: RecentPaperCardProps) => {
         navigate(`/papers/${paper_id}?returnTo=${encodeURIComponent("/home")}`)
       }
       sx={{
-        padding: "18px 16px",
-        borderRadius: "12px",
+        width: "100%",
+        minWidth: 0,
+        padding: "16px",
+        borderRadius: "8px",
         border: "1px solid",
-        borderColor: "line.normal",
+        borderColor: "line.neutral",
         backgroundColor: "background.default",
         display: "flex",
         flexDirection: "column",
         gap: "10px",
         cursor: "pointer",
+        "&:hover": { backgroundColor: "fill.normal" },
       }}
     >
-      {/* 배지 행 */}
-      {paper_type && <PaperTypeBadge paperType={paper_type} />}
-
-      {/* 출처 + 날짜 */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: "7px" }}>
-        {journal_name && (
-          <Typography
-            variant="caption"
-            sx={{ color: "#757A94", fontWeight: 500 }}
-          >
-            {journal_name}
-          </Typography>
-        )}
-        {published_at && (
-          <Typography
-            variant="caption"
-            sx={{ color: "#757A94", fontWeight: 500 }}
-          >
-            {published_at}
-          </Typography>
-        )}
-      </Box>
-
-      {/* 논문 제목 */}
-      <Typography
-        variant="h5"
-        sx={{ color: "label.strong", alignSelf: "stretch" }}
-      >
-        {title}
-      </Typography>
-
-      {/* 논문 키워드 태그 */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: "9px" }}>
-        {keywords.map((keyword, index) => (
-          <Box
-            key={index}
-            sx={{
-              display: "inline-flex",
-              alignItems: "center",
-              px: "6.34px",
-              borderRadius: "7.39px",
-              backgroundColor: "fill.normal",
-            }}
-          >
-            <Typography
-              variant="caption"
-              sx={{ color: "label.strong", fontWeight: 400 }}
-            >
-              {keyword}
-            </Typography>
-          </Box>
-        ))}
-      </Box>
-
-      {/* 배지 + 읽은 날짜 */}
+      {/* 논문 유형 배지 + 제목 */}
       <Box
         sx={{
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between",
+          gap: "12px",
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          {badges.kci && (
-            <Box
-              sx={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                px: "8px",
-                py: "3px",
-                borderRadius: "68px",
-                backgroundColor: "#31333F",
-              }}
-            >
-              <Typography
-                variant="caption"
-                sx={{
-                  color: "static.white",
-                  fontWeight: 400,
-                  letterSpacing: "-0.28px",
-                }}
-              >
-                KCI {badges.kci}
-              </Typography>
-            </Box>
-          )}
-          {badges.citation_count !== null && (
-            <Box
-              sx={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                px: "8px",
-                py: "3px",
-                borderRadius: "68px",
-                backgroundColor: "#31333F",
-              }}
-            >
-              <Typography
-                variant="caption"
-                sx={{
-                  color: "static.white",
-                  fontWeight: 400,
-                  letterSpacing: "-0.28px",
-                }}
-              >
-                인용수 {badges.citation_count}
-              </Typography>
-            </Box>
-          )}
-        </Box>
+        {paper_type && (
+          <Box sx={{ flexShrink: 0 }}>
+            <PaperTypeBadge paperType={paper_type} />
+          </Box>
+        )}
         <Typography
-          variant="caption"
-          sx={{ color: "#757A94", fontWeight: 500 }}
+          sx={{
+            fontSize: "20px",
+            fontWeight: 600,
+            lineHeight: "30px",
+            letterSpacing: "-0.42px",
+            color: "label.normal",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            flex: 1,
+          }}
         >
-          {formatViewedAt(viewed_at)} 읽음
+          {title}
+        </Typography>
+      </Box>
+
+      {/* 출처 + 날짜 */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "2px",
+          padding: "10px 12px",
+          borderRadius: "6px",
+          backgroundColor: "background.paper",
+        }}
+      >
+        <Typography
+          sx={{
+            fontSize: "16px",
+            fontWeight: 400,
+            lineHeight: "24px",
+            letterSpacing: "-0.336px",
+            color: "label.alternative",
+          }}
+        >
+          {[published_at, journal_name].filter(Boolean).join(" ")}
+        </Typography>
+      </Box>
+
+      {/* 키워드 태그 + 읽은 시각 */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
+          alignItems: { xs: "flex-start", sm: "center" },
+          justifyContent: { sm: "space-between" },
+          gap: { xs: "8px", sm: 0 },
+        }}
+      >
+        {/* 키워드 태그 */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: "8px",
+          }}
+        >
+          {keywords.map((keyword, index) => (
+            <Box
+              key={index}
+              sx={{
+                display: "inline-flex",
+                alignItems: "center",
+                padding: "3px 8px 4px 8px",
+                borderRadius: "6px",
+                backgroundColor: "background.paper",
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: "16px",
+                  fontWeight: 400,
+                  lineHeight: "24px",
+                  letterSpacing: "-0.336px",
+                  color: "label.normal",
+                }}
+              >
+                {keyword}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+
+        {/* 읽은 시각 */}
+        <Typography
+          sx={{
+            fontSize: "13px",
+            fontWeight: 400,
+            lineHeight: "22px",
+            letterSpacing: "-0.26px",
+            color: "label.alternative",
+            flexShrink: 0,
+          }}
+        >
+          {formatViewedAt(viewed_at)}
         </Typography>
       </Box>
     </Box>

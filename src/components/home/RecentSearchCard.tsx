@@ -6,26 +6,29 @@ interface RecentSearchCardProps {
   data: RecentSearch;
 }
 
-const SearchTypeTag = ({ type }: { type: RecentSearch["type"] }) => (
+const SearchTypeBadge = ({ type }: { type: RecentSearch["type"] }) => (
   <Box
     sx={{
       display: "inline-flex",
       alignItems: "center",
-      px: "6.34px",
-      borderRadius: "7.39px",
-      backgroundColor: "fill.normal",
+      justifyContent: "center",
+      padding: "3px 8px 4px 8px",
+      borderRadius: "6px",
+      backgroundColor: type === "ai" ? "#E6F9F0" : "#EDFAE6",
+      flexShrink: 0,
     }}
   >
     <Typography
       sx={{
-        fontSize: "14px",
-        fontWeight: 700,
-        lineHeight: "27.46px",
-        letterSpacing: "-0.28px",
-        color: "label.strong",
+        fontSize: "16px",
+        fontWeight: 600,
+        lineHeight: "24px",
+        letterSpacing: "-0.336px",
+        color: type === "ai" ? "primary.dark" : "secondary.dark",
+        whiteSpace: "nowrap",
       }}
     >
-      {type === "keyword" ? "키워드" : "AI 검색"}
+      {type === "ai" ? "AI 검색" : "키워드"}
     </Typography>
   </Box>
 );
@@ -39,30 +42,48 @@ const RecentSearchCard = ({ data }: RecentSearchCardProps) => {
     recommended_keywords,
   } = data;
 
+  const handleClick = () => {
+    // TODO: AI 검색은 이전 대화 흐름 복원, 키워드는 이전 탐색 경로 복원
+  };
+
   return (
     <Box
+      onClick={handleClick}
       sx={{
-        padding: "18px 16px",
-        borderRadius: "12px",
+        width: "100%",
+        minWidth: 0,
+        padding: "16px",
+        borderRadius: "8px",
         border: "1px solid",
-        borderColor: "line.normal",
+        borderColor: "line.neutral",
         backgroundColor: "background.default",
         display: "flex",
         flexDirection: "column",
         gap: "10px",
         cursor: "pointer",
+        "&:hover": { backgroundColor: "fill.normal" },
       }}
     >
-      {/* 헤더: 태그 + 제목 */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
-        <SearchTypeTag type={type} />
+      {/* 헤더: 배지 + 제목 */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+        }}
+      >
+        <SearchTypeBadge type={type} />
         <Typography
           sx={{
-            flex: 1,
-            fontSize: "18px",
+            fontSize: "20px",
             fontWeight: 600,
-            lineHeight: "normal",
-            color: "label.strong",
+            lineHeight: "30px",
+            letterSpacing: "-0.42px",
+            color: "label.normal",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            flex: 1,
           }}
         >
           {title}
@@ -71,51 +92,100 @@ const RecentSearchCard = ({ data }: RecentSearchCardProps) => {
 
       {/* 마지막 논문 */}
       {last_viewed_paper_title && (
-        <Typography
+        <Box
           sx={{
-            fontSize: "16px",
-            fontWeight: 400,
-            lineHeight: "26px",
-            letterSpacing: "-0.32px",
-            color: "label.strong",
+            display: "flex",
+            flexDirection: "column",
+            gap: "2px",
+            padding: "10px 12px",
+            borderRadius: "6px",
+            backgroundColor: "background.paper",
           }}
         >
-          마지막 논문 : {last_viewed_paper_title}
-        </Typography>
+          <Typography
+            sx={{
+              fontSize: "16px",
+              fontWeight: 400,
+              lineHeight: "24px",
+              letterSpacing: "-0.336px",
+              color: "label.alternative",
+              display: "-webkit-box",
+              WebkitBoxOrient: "vertical",
+              WebkitLineClamp: { xs: 2, sm: 1 },
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            마지막 논문
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: "18px",
+              fontWeight: 500,
+              lineHeight: "30px",
+              letterSpacing: "-0.378px",
+              color: "label.normal",
+              display: "-webkit-box",
+              WebkitBoxOrient: "vertical",
+              WebkitLineClamp: { xs: 2, sm: 1 },
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {last_viewed_paper_title}
+          </Typography>
+        </Box>
       )}
 
-      {/* 탐색 경로 (키워드 검색) */}
+      {/* 탐색 경로 (키워드) */}
       {type === "keyword" && keyword_path.length > 0 && (
-        <Box sx={{ display: "flex", alignItems: "center", gap: "5px" }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: "4px",
+          }}
+        >
           {keyword_path.map((item, index) => (
             <Box
               key={index}
-              sx={{ display: "flex", alignItems: "center", gap: "5px" }}
+              sx={{ display: "flex", alignItems: "center", gap: "4px" }}
             >
-              <Typography
+              <Box
                 sx={{
-                  fontSize: "16px",
-                  fontWeight: 400,
-                  lineHeight: "26px",
-                  letterSpacing: "-0.32px",
-                  color: "label.strong",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "3px 8px 4px 8px",
+                  borderRadius: "6px",
+                  backgroundColor: "#EDFAE6",
                 }}
               >
-                {item}
-              </Typography>
+                <Typography
+                  sx={{
+                    fontSize: "16px",
+                    fontWeight: 600,
+                    lineHeight: "24px",
+                    letterSpacing: "-0.336px",
+                    color: "secondary.dark",
+                  }}
+                >
+                  {item}
+                </Typography>
+              </Box>
               {index < keyword_path.length - 1 && (
                 <Box
                   sx={{
-                    width: "24px",
-                    height: "24px",
+                    width: "31px",
+                    height: "31px",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    borderRadius: "5px",
-                    backgroundColor: "line.normal",
+                    borderRadius: "6px",
                   }}
                 >
-                  <ChevronRight size={20} />
+                  <ChevronRight size={24} color="#73757F" />
                 </Box>
               )}
             </Box>
@@ -125,25 +195,32 @@ const RecentSearchCard = ({ data }: RecentSearchCardProps) => {
 
       {/* 키워드 태그 (AI 검색) */}
       {type === "ai" && recommended_keywords.length > 0 && (
-        <Box sx={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: "8px",
+          }}
+        >
           {recommended_keywords.map((keyword, index) => (
             <Box
               key={index}
               sx={{
                 display: "inline-flex",
                 alignItems: "center",
-                px: "6.34px",
-                borderRadius: "7.39px",
-                backgroundColor: "fill.normal",
+                padding: "3px 8px 4px 8px",
+                borderRadius: "6px",
+                backgroundColor: "background.paper",
               }}
             >
               <Typography
                 sx={{
-                  fontSize: "14px",
-                  fontWeight: 700,
-                  lineHeight: "27.46px",
-                  letterSpacing: "-0.28px",
-                  color: "label.strong",
+                  fontSize: "16px",
+                  fontWeight: 400,
+                  lineHeight: "24px",
+                  letterSpacing: "-0.336px",
+                  color: "label.normal",
                 }}
               >
                 {keyword}
