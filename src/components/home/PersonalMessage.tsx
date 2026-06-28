@@ -8,11 +8,12 @@ const PersonalMessage = ({ message }: PersonalMessageProps) => {
   return (
     <Typography
       sx={{
-        fontSize: "56px",
-        fontWeight: 700,
-        lineHeight: "72px",
-        letterSpacing: "-1.12px",
-        color: "label.strong",
+        color: "#000000",
+        fontFamily: "Pretendard Variable, sans-serif",
+        fontSize: { xs: "20px", sm: "28px" },
+        fontWeight: 600,
+        lineHeight: { xs: "30px", sm: "42px" },
+        letterSpacing: { xs: "-0.42px", sm: "-0.784px" },
         textAlign: "center",
       }}
     >
