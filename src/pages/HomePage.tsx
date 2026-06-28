@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
-import Header from "../components/layout/Header";
+import Sidebar from "../components/layout/Sidebar";
 import PersonalMessage from "../components/home/PersonalMessage";
 import SearchBar from "../components/home/SearchBar";
 import RecentSearchSection from "../components/home/RecentSearchSection";
@@ -24,7 +24,7 @@ const HomePage = () => {
       setUserId(res.data.data.user.id);
       return res.data.data;
     },
-    staleTime: 1000 * 60 * 5, // 5분
+    staleTime: 1000 * 60 * 5,
   });
 
   useQuery({
@@ -69,36 +69,64 @@ const HomePage = () => {
   }
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-      <Header isLoggedIn />
+    <Box
+      sx={{
+        minHeight: "100vh",
+        width: "100%",
+        minWidth: 0,
+        backgroundColor: "background.paper",
+      }}
+    >
+      <Sidebar />
+
       <Box
         component="main"
         sx={{
-          flex: 1,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          pt: "15.23vh",
-          gap: "48px",
-          backgroundColor: "background.paper",
+          pt: "256px",
+          pb: "64px",
+          minWidth: 0,
         }}
       >
-        <PersonalMessage message={data.user.personalized_message} />
-        <SearchBar onKeywordMapClick={() => setIsKeywordMapModalOpen(true)} />
+        {/* 상단: 개인화 메시지 + 검색바 */}
         <Box
           sx={{
             width: "100%",
-            px: "4.79%",
+            maxWidth: { lg: "912px" },
+            px: { xs: "16px", sm: "64px", lg: 0 },
             display: "flex",
-            flexDirection: { xs: "column", md: "row" },
-            gap: "34px",
-            pb: 10,
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "42px",
+            minWidth: 0,
+          }}
+        >
+          <PersonalMessage message={data.user.personalized_message} />
+          <SearchBar onKeywordMapClick={() => setIsKeywordMapModalOpen(true)} />
+        </Box>
+
+        {/* 간격: 검색바 영역 ↔ 최근 탐색 섹션 */}
+        <Box sx={{ height: { xs: "56px", sm: "180px" } }} />
+
+        {/* 하단: 최근 탐색 + 최근 확인한 논문 */}
+        <Box
+          sx={{
+            width: "100%",
+            maxWidth: { lg: "912px" },
+            px: { xs: "16px", sm: "64px", lg: 0 },
+            display: "flex",
+            flexDirection: "column",
+            gap: "64px",
+            minWidth: 0,
           }}
         >
           <RecentSearchSection searches={data.recent_searches} />
           <RecentPaperSection papers={data.recent_papers} />
         </Box>
       </Box>
+
       <KeywordMapModal
         open={isKeywordMapModalOpen}
         onClose={() => setIsKeywordMapModalOpen(false)}

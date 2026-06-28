@@ -41,7 +41,7 @@ const theme = createTheme({
       black: "#000000",
     },
     fill: {
-      normal: "#ECEFF5",
+      normal: "#EDEFF5",
       strong: "#D8DAE5",
     },
     error: {
@@ -59,62 +59,98 @@ const theme = createTheme({
   },
   typography: {
     fontFamily: "Pretendard Variable, sans-serif",
-    // Display
+    // Display B — 36px / 52px / -2.8% / 700
     h1: {
       fontSize: "36px",
       lineHeight: "52px",
       letterSpacing: "-0.028em",
       fontWeight: 700,
     },
-    // Title
+    // Display SB — 36px / 52px / -3% / 600
+    displaySb: {
+      fontSize: "36px",
+      lineHeight: "52px",
+      letterSpacing: "-0.03em",
+      fontWeight: 600,
+    },
+    // Title B — 28px / 42px / -2.6% / 700
     h2: {
       fontSize: "28px",
       lineHeight: "42px",
       letterSpacing: "-0.026em",
       fontWeight: 700,
     },
-    // Heading 1
+    // Title SB — 28px / 42px / -2.8% / 600
+    titleSb: {
+      fontSize: "28px",
+      lineHeight: "42px",
+      letterSpacing: "-0.028em",
+      fontWeight: 600,
+    },
+    // Heading 1 SB — 24px / 36px / -2.2% / 600
     h3: {
       fontSize: "24px",
       lineHeight: "36px",
       letterSpacing: "-0.022em",
       fontWeight: 600,
     },
-    // Heading 2
+    // Heading 1 M — 24px / 36px / -2.4% / 500
+    heading1M: {
+      fontSize: "24px",
+      lineHeight: "36px",
+      letterSpacing: "-0.024em",
+      fontWeight: 500,
+    },
+    // Heading 2 SB — 20px / 30px / -2.1% / 600
     h4: {
       fontSize: "20px",
       lineHeight: "30px",
       letterSpacing: "-0.021em",
       fontWeight: 600,
     },
-    // Headline
+    // Heading 2 M — 20px / 30px / -2.3% / 500
+    heading2M: {
+      fontSize: "20px",
+      lineHeight: "30px",
+      letterSpacing: "-0.023em",
+      fontWeight: 500,
+    },
+    // Headline SB — 18px / 29px / -2.1% / 600
     h5: {
       fontSize: "18px",
       lineHeight: "29px",
       letterSpacing: "-0.021em",
       fontWeight: 600,
     },
-    // Body
+    // Headline M — 18px / 29px / -2.1% / 500
+    headlineM: {
+      fontSize: "18px",
+      lineHeight: "29px",
+      letterSpacing: "-0.021em",
+      fontWeight: 500,
+    },
+    // Body / Normal — 16px / 24px / -2.1% / 400
     body1: {
       fontSize: "16px",
       lineHeight: "24px",
       letterSpacing: "-0.021em",
       fontWeight: 400,
     },
+    // Body / Reading — 16px / 27px / -2.1% / 400
     body2: {
       fontSize: "16px",
       lineHeight: "27px",
       letterSpacing: "-0.021em",
       fontWeight: 400,
     },
-    // Label
+    // Label — 13px / 22px / -2% / 400
     caption: {
       fontSize: "13px",
       lineHeight: "22px",
       letterSpacing: "-0.02em",
       fontWeight: 400,
     },
-    // Caption
+    // Caption — 11px / 20px / -2% / 400
     overline: {
       fontSize: "11px",
       lineHeight: "20px",
@@ -126,8 +162,8 @@ const theme = createTheme({
     values: {
       xs: 0,
       sm: 600,
-      md: 1200,
-      lg: 1440,
+      md: 900,
+      lg: 1200,
       xl: 1920,
     },
   },

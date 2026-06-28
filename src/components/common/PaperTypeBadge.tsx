@@ -10,16 +10,22 @@ const PaperTypeBadge = ({ paperType }: PaperTypeBadgeProps) => (
     sx={{
       display: "inline-flex",
       alignItems: "center",
-      px: "6px",
-      borderRadius: "7px",
-      height: "28px",
+      justifyContent: "center",
+      padding: "3px 8px 4px 8px",
+      borderRadius: "6px",
+      border: "1px solid",
+      borderColor: "label.normal",
       alignSelf: "flex-start",
-      backgroundColor:
-        paperType === "학술 저널" ? "status.negative" : "primary.dark",
     }}
   >
     <Typography
-      sx={{ fontSize: "14px", fontWeight: 700, color: "static.white" }}
+      sx={{
+        fontSize: "16px",
+        fontWeight: 600,
+        lineHeight: "24px",
+        letterSpacing: "-0.336px",
+        color: "label.normal",
+      }}
     >
       {paperType}
     </Typography>
