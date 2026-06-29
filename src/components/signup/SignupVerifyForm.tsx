@@ -70,7 +70,7 @@ const errorPillInputSx: SxProps<Theme> = {
 
 interface SignupVerifyFormProps {
   email: string;
-  state: { email: string; password: string };
+  state: { email: string; password: string; name: string };
 }
 
 const SignupVerifyForm = ({ email, state }: SignupVerifyFormProps) => {

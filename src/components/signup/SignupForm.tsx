@@ -157,7 +157,7 @@ const SignupForm = () => {
     try {
       await authApi.checkEmail({ email: data.email });
       navigate("/signup/verify", {
-        state: { type: "email", email: data.email, password: data.password },
+        state: { type: "email", email: data.email, password: data.password, name: data.name },
       });
     } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response?.status === 400) {

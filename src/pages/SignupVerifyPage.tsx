@@ -6,7 +6,7 @@ import SignupVerifyForm from "../components/signup/SignupVerifyForm";
 const SignupVerifyPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const state = location.state as { email?: string; password?: string } | null;
+  const state = location.state as { email?: string; password?: string; name?: string } | null;
 
   if (!state?.email) {
     navigate("/signup", { replace: true });
@@ -47,7 +47,7 @@ const SignupVerifyPage = () => {
             },
           }}
         >
-          <SignupVerifyForm email={state.email} state={{ email: state.email, password: state.password ?? "" }} />
+          <SignupVerifyForm email={state.email} state={{ email: state.email, password: state.password ?? "", name: state.name ?? "" }} />
         </Box>
       </Box>
     </AuthLayout>
