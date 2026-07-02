@@ -1,35 +1,29 @@
 import { useState } from "react";
-import {
-  useForm,
-  useWatch,
-  type SubmitHandler,
-  Controller,
-} from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
   Box,
-  TextField,
-  Button,
   Typography,
+  TextField,
   IconButton,
   InputAdornment,
 } from "@mui/material";
-import CheckIcon from "@mui/icons-material/Check";
-import CloseIcon from "@mui/icons-material/Close";
-import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
-import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import { type SxProps, type Theme } from "@mui/material/styles";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import CheckIcon from "@mui/icons-material/Check";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
 import { useNavigate, useLocation } from "react-router-dom";
 import { authApi } from "../../api/auth";
 import axios from "axios";
 
-// ---- Zod 스키마 ----
 const signupSchema = z.object({
   email: z
     .string()
     .min(1, "이메일을 입력해주세요")
-    .check(z.email({ error: "올바른 이메일 형식이 아니에요" })),
+    .check(z.email({ error: "올바른 이메일 형식을 작성해주세요." })),
   password: z
     .string()
     .min(8, "")
@@ -40,68 +34,64 @@ const signupSchema = z.object({
 
 type SignupFormValues = z.infer<typeof signupSchema>;
 
-// ---- Styles ----
-const formWrapSx: SxProps<Theme> = {
-  display: "flex",
-  flexDirection: "column",
-  width: "100%",
-  maxWidth: 463,
-  gap: "19px",
-};
-
-const getInputSx = (borderColor: string): SxProps<Theme> => ({
+const pillInputSx: SxProps<Theme> = {
   "& .MuiOutlinedInput-root": {
-    borderRadius: "12px",
+    borderRadius: "216px",
     backgroundColor: "background.default",
     fontSize: "16px",
     fontWeight: 400,
+    lineHeight: "24px",
+    letterSpacing: "-0.336px",
+    paddingRight: "8px",
     "& fieldset": {
-      borderColor,
+      borderColor: "line.normal",
       borderWidth: "1px",
     },
     "&:hover fieldset": {
-      borderColor,
+      borderColor: "line.normal",
     },
     "&.Mui-focused fieldset": {
-      borderColor,
+      borderColor: "line.normal",
       borderWidth: "1px",
     },
   },
-  "& .MuiInputLabel-root": {
-    color: "label.alternative",
+  "& input": {
+    padding: "16px 24px",
   },
-  "& .MuiInputLabel-root.Mui-focused": {
-    color: "label.alternative",
-  },
-});
+};
 
-const nextButtonSx = (enabled: boolean): SxProps<Theme> => ({
-  width: "100%",
-  height: 51,
-  borderRadius: "12px",
-  backgroundColor: enabled ? "static.black" : "fill.strong",
-  color: enabled ? "static.white" : "label.assistive",
-  fontSize: "16px",
-  fontWeight: 500,
-  letterSpacing: "-0.32px",
-  boxShadow: "none",
-  cursor: enabled ? "pointer" : "default",
-  "&:hover": {
-    backgroundColor: enabled ? "label.neutral" : "fill.strong",
-    boxShadow: "none",
+const errorPillInputSx: SxProps<Theme> = {
+  "& .MuiOutlinedInput-root": {
+    borderRadius: "216px",
+    backgroundColor: "background.default",
+    fontSize: "16px",
+    fontWeight: 400,
+    lineHeight: "24px",
+    letterSpacing: "-0.336px",
+    paddingRight: "8px",
+    "& fieldset": {
+      borderColor: "status.negative",
+      borderWidth: "1px",
+    },
+    "&:hover fieldset": {
+      borderColor: "status.negative",
+    },
+    "&.Mui-focused fieldset": {
+      borderColor: "status.negative",
+      borderWidth: "1px",
+    },
   },
-  "&.Mui-disabled": {
-    backgroundColor: "fill.strong",
-    color: "label.assistive",
+  "& input": {
+    padding: "16px 24px",
   },
-});
+};
 
-// ---- 비밀번호 조건 ----
 const checkLength = (v: string) => v.length >= 8 && v.length <= 20;
 const checkComplexity = (v: string) =>
   /[a-z]/.test(v) && /[A-Z]/.test(v) && /[!@#$%^&*]/.test(v);
 
-// ---- Component ----
+type EmailStatus = "idle" | "verified";
+
 const SignupForm = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -109,16 +99,14 @@ const SignupForm = () => {
     (location.state as { email?: string } | null)?.email ?? "";
 
   const [showPassword, setShowPassword] = useState(false);
-  const [passwordTouched, setPasswordTouched] = useState(false);
+  const [emailStatus, setEmailStatus] = useState<EmailStatus>("idle");
   const [emailApiError, setEmailApiError] = useState<string | null>(null);
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    setValue,
-    formState: { errors },
-  } = useForm<SignupFormValues>({
+  // 한 번 등장한 인풋은 계속 유지
+  const [hasShownPassword, setHasShownPassword] = useState(false);
+  const [hasShownName, setHasShownName] = useState(false);
+
+  const { register, control } = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: { email: prefillEmail, password: "", name: "" },
     mode: "onChange",
@@ -128,208 +116,453 @@ const SignupForm = () => {
   const passwordValue = useWatch({ control, name: "password" });
   const nameValue = useWatch({ control, name: "name" });
 
+  const isEmailFormatValid = z.email().safeParse(emailValue).success;
   const isLengthOk = checkLength(passwordValue);
   const isComplexityOk = checkComplexity(passwordValue);
   const isPasswordValid = isLengthOk && isComplexityOk;
-  const showChecklist = passwordValue.length > 0;
 
-  // 비밀번호 테두리 색상
-  const getPasswordBorderColor = () => {
-    if (!passwordTouched || passwordValue.length === 0) return "static.black";
-    if (isPasswordValid) return "status.positive";
-    return "status.negative";
+  // 이메일이 수정되면 검증 상태만 초기화 (하위 인풋은 유지)
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    register("email").onChange(e);
+    if (emailStatus === "verified") {
+      setEmailStatus("idle");
+    }
+    setEmailApiError(null);
   };
 
-  // 이메일 테두리 색상
-  const getEmailBorderColor = () => {
-    if (errors.email || emailApiError) return "status.negative";
-    return "static.black";
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    register("password").onChange(e);
+    const next = e.target.value;
+    if (checkLength(next) && checkComplexity(next)) {
+      setHasShownName(true);
+    }
   };
 
-  const isFormValid =
-    emailValue.length > 0 &&
-    !errors.email &&
-    isPasswordValid &&
-    nameValue.length > 0;
-
-  const onSubmit: SubmitHandler<SignupFormValues> = async (data) => {
+  const handleEmailCheck = async () => {
+    if (!isEmailFormatValid) return;
     setEmailApiError(null);
     try {
-      await authApi.checkEmail({ email: data.email });
-      navigate("/signup/verify", {
-        state: { type: "email", email: data.email, password: data.password },
-      });
+      await authApi.checkEmail({ email: emailValue });
+      setEmailStatus("verified");
+      setHasShownPassword(true);
     } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response?.status === 400) {
-        setEmailApiError("이미 가입된 이메일이에요");
+        setEmailApiError("이미 가입된 이메일이에요.");
       }
     }
   };
 
+  const handleLoginRedirect = () => {
+    navigate("/login", { state: { email: emailValue } });
+  };
+
+  const showPasswordField = hasShownPassword;
+  const showNameField = hasShownName;
+
+  const isFormValid =
+    emailStatus === "verified" &&
+    isPasswordValid &&
+    nameValue.trim().length > 0;
+
+  const handleSubmit = () => {
+    if (!isFormValid) return;
+    navigate("/signup/verify", {
+      state: {
+        type: "email",
+        email: emailValue,
+        password: passwordValue,
+        name: nameValue,
+      },
+    });
+  };
+
+  const emailSx = emailApiError ? errorPillInputSx : pillInputSx;
+
   return (
     <Box
-      component="form"
-      onSubmit={handleSubmit(onSubmit)}
-      sx={formWrapSx}
-      noValidate
+      sx={{
+        width: "480px",
+        minWidth: "480px",
+        height: "608px",
+        padding: "24px 20px 32px 20px",
+        borderRadius: { xs: 0, sm: "12px" },
+        border: { xs: "none", sm: "1px solid #FAFAFC" },
+        backgroundColor: "fill.normal",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "flex-start",
+        gap: "54px",
+        flexShrink: 0,
+        "@media (max-width: 599px)": {
+          width: "100%",
+          minWidth: "unset",
+          height: "auto",
+          minHeight: "100vh",
+          borderRadius: 0,
+          border: "none",
+          px: "16px",
+        },
+      }}
     >
-      {/* 이메일 */}
-      <Controller
-        name="email"
-        control={control}
-        render={({ field }) => (
-          <Box>
+      {/* 뒤로가기 + 제목 */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          alignSelf: "stretch",
+        }}
+      >
+        <IconButton
+          onClick={() => navigate("/login")}
+          size="small"
+          sx={{ p: 0 }}
+          aria-label="뒤로가기"
+        >
+          <ChevronLeftIcon sx={{ fontSize: 28, color: "label.normal" }} />
+        </IconButton>
+        <Typography
+          sx={{
+            fontSize: "24px",
+            fontWeight: 600,
+            lineHeight: "36px",
+            letterSpacing: "-0.528px",
+            color: "label.normal",
+          }}
+        >
+          계정 생성
+        </Typography>
+      </Box>
+
+      {/* 인풋들 */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-start",
+          gap: "12px",
+          alignSelf: "stretch",
+        }}
+      >
+        {/* 이름 인풋 - 가장 위, 가장 나중에 등장 */}
+        {showNameField && (
+          <TextField
+            {...register("name")}
+            placeholder="이름을 입력해주세요."
+            fullWidth
+            sx={pillInputSx}
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end" sx={{ gap: "4px" }}>
+                    <IconButton
+                      onClick={handleSubmit}
+                      sx={{
+                        width: "42px",
+                        height: "40px",
+                        padding: "8px 9px",
+                        borderRadius: "24px",
+                        backgroundColor: isFormValid ? "#1E2026" : "#D8DAE5",
+                        "&:hover": {
+                          backgroundColor: isFormValid
+                            ? "label.neutral"
+                            : "#D8DAE5",
+                        },
+                      }}
+                    >
+                      <ArrowForwardIcon
+                        sx={{ fontSize: 24, color: "static.white" }}
+                      />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
+            }}
+          />
+        )}
+
+        {/* 비밀번호 인풋 + 체크리스트 */}
+        {showPasswordField && (
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-start",
+              gap: { xs: "8px", sm: "12px" },
+              alignSelf: "stretch",
+            }}
+          >
             <TextField
-              {...field}
-              label="이메일"
-              type="email"
-              autoComplete="email"
+              {...register("password")}
+              onChange={handlePasswordChange}
+              placeholder="비밀번호를 입력해주세요."
+              type={showPassword ? "text" : "password"}
               fullWidth
-              error={!!errors.email}
-              sx={getInputSx(getEmailBorderColor())}
+              sx={pillInputSx}
               slotProps={{
                 input: {
-                  endAdornment:
-                    emailValue.length > 0 ? (
-                      <InputAdornment position="end">
-                        <IconButton
-                          onClick={() =>
-                            setValue("email", "", { shouldValidate: true })
-                          }
-                          edge="end"
-                          size="small"
-                          aria-label="이메일 초기화"
-                        >
-                          <CloseIcon
+                  endAdornment: (
+                    <InputAdornment position="end" sx={{ gap: "4px" }}>
+                      <IconButton
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        size="small"
+                        sx={{
+                          width: "40px",
+                          height: "40px",
+                          padding: "10px",
+                          borderRadius: "24px",
+                        }}
+                      >
+                        {showPassword ? (
+                          <VisibilityOutlinedIcon
                             sx={{ fontSize: 20, color: "label.alternative" }}
                           />
-                        </IconButton>
-                      </InputAdornment>
-                    ) : null,
+                        ) : (
+                          <VisibilityOffOutlinedIcon
+                            sx={{ fontSize: 20, color: "label.alternative" }}
+                          />
+                        )}
+                      </IconButton>
+                      <IconButton
+                        sx={{
+                          width: "42px",
+                          height: "40px",
+                          padding: "8px 9px",
+                          borderRadius: "24px",
+                          cursor: "default",
+                          backgroundColor: "transparent",
+                          "&:hover": { backgroundColor: "transparent" },
+                        }}
+                      >
+                        <CheckIcon
+                          sx={{
+                            fontSize: 24,
+                            color: isPasswordValid
+                              ? "primary.dark"
+                              : "label.disable",
+                          }}
+                        />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
                 },
               }}
             />
-            {(errors.email || emailApiError) && (
-              <Typography
+
+            {/* 체크리스트 - 충족되면 사라짐 */}
+            {!isPasswordValid && (
+              <Box
                 sx={{
-                  mt: "4px",
-                  ml: "4px",
-                  fontSize: "13px",
-                  color: "status.negative",
-                  fontWeight: 400,
+                  display: "flex",
+                  flexDirection: { xs: "column", sm: "row" },
+                  alignItems: { xs: "flex-start", sm: "center" },
+                  gap: { xs: "4px", sm: "8px" },
+                  alignSelf: "stretch",
                 }}
               >
-                {errors.email?.message ?? emailApiError}
-              </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                  <Box
+                    sx={{
+                      width: 24,
+                      height: 24,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 4,
+                        height: 4,
+                        borderRadius: "50%",
+                        backgroundColor: isLengthOk
+                          ? "primary.dark"
+                          : "label.alternative",
+                      }}
+                    />
+                  </Box>
+                  <Typography
+                    sx={{
+                      fontSize: "13px",
+                      fontWeight: 400,
+                      lineHeight: "22px",
+                      letterSpacing: "-0.26px",
+                      color: isLengthOk ? "primary.dark" : "label.alternative",
+                    }}
+                  >
+                    8자 이상·20자 이하
+                  </Typography>
+                </Box>
+                <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                  <Box
+                    sx={{
+                      width: 24,
+                      height: 24,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 4,
+                        height: 4,
+                        borderRadius: "50%",
+                        backgroundColor: isComplexityOk
+                          ? "primary.dark"
+                          : "label.alternative",
+                      }}
+                    />
+                  </Box>
+                  <Typography
+                    sx={{
+                      fontSize: "13px",
+                      fontWeight: 400,
+                      lineHeight: "22px",
+                      letterSpacing: "-0.26px",
+                      color: isComplexityOk
+                        ? "primary.dark"
+                        : "label.alternative",
+                    }}
+                  >
+                    대문자·소문자·특수문자를 모두 포함
+                  </Typography>
+                </Box>
+              </Box>
             )}
           </Box>
         )}
-      />
 
-      {/* 비밀번호 */}
-      <Box>
-        <TextField
-          {...register("password")}
-          label="비밀번호"
-          type={showPassword ? "text" : "password"}
-          autoComplete="new-password"
-          fullWidth
-          sx={getInputSx(getPasswordBorderColor())}
-          onBlur={() => setPasswordTouched(true)}
-          slotProps={{
-            input: {
-              endAdornment: (
-                <InputAdornment position="end" sx={{ mr: "2px" }}>
-                  <IconButton
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    edge="end"
-                    size="small"
-                    aria-label={
-                      showPassword ? "비밀번호 숨기기" : "비밀번호 보기"
-                    }
-                  >
-                    {showPassword ? (
-                      <VisibilityOutlinedIcon
-                        sx={{ fontSize: 24, color: "label.alternative" }}
-                      />
-                    ) : (
-                      <VisibilityOffOutlinedIcon
-                        sx={{ fontSize: 24, color: "label.alternative" }}
-                      />
-                    )}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            },
+        {/* 이메일 인풋 - 항상 보임, 가장 아래로 밀림 */}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            gap: "12px",
+            alignSelf: "stretch",
           }}
-        />
-        {/* 조건 체크리스트 */}
-        {showChecklist && (
-          <Box
-            sx={{
-              mt: "8px",
-              ml: "4px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "4px",
+        >
+          <TextField
+            {...register("email")}
+            onChange={handleEmailChange}
+            placeholder="이메일 주소를 입력해주세요."
+            fullWidth
+            sx={emailSx}
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end" sx={{ gap: "4px" }}>
+                    <IconButton
+                      onClick={
+                        emailStatus === "verified"
+                          ? undefined
+                          : handleEmailCheck
+                      }
+                      sx={{
+                        width: "42px",
+                        height: "40px",
+                        padding: "8px 9px",
+                        borderRadius: "24px",
+                        cursor:
+                          emailStatus === "verified" ? "default" : "pointer",
+                        backgroundColor:
+                          emailStatus === "verified"
+                            ? "primary.dark"
+                            : isEmailFormatValid
+                              ? "#1E2026"
+                              : "#D8DAE5",
+                        "&:hover": {
+                          backgroundColor:
+                            emailStatus === "verified"
+                              ? "primary.dark"
+                              : isEmailFormatValid
+                                ? "label.neutral"
+                                : "#D8DAE5",
+                        },
+                      }}
+                    >
+                      {emailStatus === "verified" ? (
+                        <CheckIcon
+                          sx={{ fontSize: 24, color: "static.white" }}
+                        />
+                      ) : (
+                        <ArrowForwardIcon
+                          sx={{ fontSize: 24, color: "static.white" }}
+                        />
+                      )}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
             }}
-          >
-            <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
-              <CheckIcon
-                sx={{
-                  fontSize: 16,
-                  color: isLengthOk ? "status.positive" : "label.assistive",
-                }}
-              />
+          />
+
+          {/* 에러 - 인풋 아래 */}
+          {emailApiError && (
+            <Box
+              sx={{
+                display: "flex",
+                height: "24px",
+                padding: "0 12px",
+                alignItems: "center",
+                gap: "8px",
+                alignSelf: "stretch",
+              }}
+            >
               <Typography
                 sx={{
-                  fontSize: "16px",
-                  fontWeight: 500,
-                  color: isLengthOk ? "status.positive" : "label.assistive",
+                  fontSize: "13px",
+                  fontWeight: 400,
+                  lineHeight: "22px",
+                  letterSpacing: "-0.26px",
+                  color: "label.normal",
                 }}
               >
-                8자 이상 20자 이하
+                {emailApiError}
+              </Typography>
+              <Typography
+                onClick={handleLoginRedirect}
+                sx={{
+                  fontSize: "13px",
+                  fontWeight: 400,
+                  lineHeight: "22px",
+                  letterSpacing: "-0.26px",
+                  color: "label.normal",
+                  textDecoration: "underline",
+                  cursor: "pointer",
+                }}
+              >
+                로그인하기
               </Typography>
             </Box>
-            <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
-              <CheckIcon
-                sx={{
-                  fontSize: 16,
-                  color: isComplexityOk ? "status.positive" : "label.assistive",
-                }}
-              />
+          )}
+          {!emailApiError && emailValue.length > 0 && !isEmailFormatValid && (
+            <Box
+              sx={{
+                display: "flex",
+                height: "24px",
+                padding: "0 12px",
+                alignItems: "center",
+                gap: "10px",
+                alignSelf: "stretch",
+              }}
+            >
               <Typography
                 sx={{
-                  fontSize: "16px",
-                  fontWeight: 500,
-                  color: isComplexityOk ? "status.positive" : "label.assistive",
+                  fontSize: "13px",
+                  fontWeight: 400,
+                  lineHeight: "22px",
+                  letterSpacing: "-0.26px",
+                  color: "label.normal",
                 }}
               >
-                대문자·소문자·특수문자를 모두 포함
+                올바른 이메일 형식을 작성해주세요.
               </Typography>
             </Box>
-          </Box>
-        )}
+          )}
+        </Box>
       </Box>
-
-      {/* 이름 */}
-      <TextField
-        {...register("name")}
-        label="이름"
-        fullWidth
-        sx={getInputSx("static.black")}
-      />
-
-      {/* 다음 버튼 */}
-      <Button
-        type="submit"
-        variant="contained"
-        disabled={!isFormValid}
-        sx={nextButtonSx(isFormValid)}
-        disableElevation
-      >
-        다음
-      </Button>
     </Box>
   );
 };

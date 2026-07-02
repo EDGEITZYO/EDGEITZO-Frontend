@@ -1,6 +1,5 @@
-import { type ReactNode } from 'react';
-import { Box } from '@mui/material';
-import Header from './Header';
+import { type ReactNode } from "react";
+import { Box } from "@mui/material";
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -8,11 +7,14 @@ interface AuthLayoutProps {
 
 const AuthLayout = ({ children }: AuthLayoutProps) => {
   return (
-    <Box sx={{ minHeight: '100vh', backgroundColor: 'background.paper' }}>
-      <Header />
-      <Box component="main">
-        {children}
-      </Box>
+    <Box
+      component="main"
+      sx={{
+        minHeight: "100vh",
+        backgroundColor: "#ffffff",
+      }}
+    >
+      {children}
     </Box>
   );
 };
