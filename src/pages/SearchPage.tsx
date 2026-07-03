@@ -134,15 +134,18 @@ const SearchPage = () => {
       if (!userId) return;
       setIsExecuting(true);
       try {
-        const result = await searchExecute({
-          session_id: currentSessionId,
-          search_params: params,
-          filter_paper_type: paperType,
-          filter_year: year,
-          filter_kci: kci,
-          filter_sci: sci,
-          sort_order: "relevance",
-        }, userId);
+        const result = await searchExecute(
+          {
+            session_id: currentSessionId,
+            search_params: params,
+            filter_paper_type: paperType,
+            filter_year: year,
+            filter_kci: kci,
+            filter_sci: sci,
+            sort_order: "relevance",
+          },
+          userId,
+        );
         setExecuteResult(result);
         queryClient.invalidateQueries({ queryKey: ["home"] });
         setView("list");
@@ -444,7 +447,7 @@ const SearchPage = () => {
   };
   const handleExitConfirm = () => {
     setExitDialogOpen(false);
-    navigate("/home");
+    navigate("/home", { replace: true });
   };
   const handleExitCancel = () => setExitDialogOpen(false);
   const handleSearchStart = async () => {
