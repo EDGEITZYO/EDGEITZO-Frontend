@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Box } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import AuthLayout from "../components/layout/AuthLayout";
 import Step1Name from "../components/onboarding/Step1Name";
 import Step2Gender from "../components/onboarding/Step2Gender";
@@ -11,11 +11,16 @@ import Step6Purpose from "../components/onboarding/Step6Purpose";
 import OnboardingComplete from "../components/onboarding/OnboardingComplete";
 import { type Gender, type Role, type Purpose } from "../types/user";
 import { authApi } from "../api/auth";
+import { useQueryClient } from "@tanstack/react-query";
+import { mypageKeys } from "../queries/keys";
 
 const TOTAL_STEPS = 6;
 
 const OnboardingPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const cameFromSignupFlow = !!location.state;
+  const queryClient = useQueryClient();
   const [currentStep, setCurrentStep] = useState(1);
   const [name, setName] = useState("");
   const [gender, setGender] = useState<Gender | null>(null);
@@ -48,7 +53,8 @@ const OnboardingPage = () => {
         purposes,
         purpose_custom: undefined,
       });
-      navigate("/home");
+      queryClient.invalidateQueries({ queryKey: mypageKeys.detail() });
+      navigate("/home", { replace: true });
     } catch {
       // TODO: 에러 처리
     }
@@ -96,6 +102,7 @@ const OnboardingPage = () => {
               onBack={handleBack}
               currentStep={currentStep}
               totalSteps={TOTAL_STEPS}
+              showBackButton={cameFromSignupFlow}
             />
           )}
           {currentStep === 2 && (

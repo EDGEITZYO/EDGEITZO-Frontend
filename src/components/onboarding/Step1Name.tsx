@@ -76,6 +76,7 @@ interface Step1NameProps {
   onBack: () => void;
   currentStep: number;
   totalSteps: number;
+  showBackButton?: boolean;
 }
 
 const Step1Name = ({
@@ -85,6 +86,7 @@ const Step1Name = ({
   onBack,
   currentStep,
   totalSteps,
+  showBackButton = true,
 }: Step1NameProps) => {
   const [error, setError] = useState<string | null>(null);
   const theme = useTheme();
@@ -282,14 +284,16 @@ const Step1Name = ({
             alignSelf: "stretch",
           }}
         >
-          <IconButton
-            onClick={onBack}
-            size="small"
-            sx={{ p: 0 }}
-            aria-label="뒤로가기"
-          >
-            <ChevronLeftIcon sx={{ fontSize: 28, color: "label.normal" }} />
-          </IconButton>
+          {showBackButton && (
+            <IconButton
+              onClick={onBack}
+              size="small"
+              sx={{ p: 0 }}
+              aria-label="뒤로가기"
+            >
+              <ChevronLeftIcon sx={{ fontSize: 28, color: "label.normal" }} />
+            </IconButton>
+          )}
         </Box>
 
         {/* 나머지 */}
@@ -354,14 +358,16 @@ const Step1Name = ({
         }}
       >
         <Box sx={{ display: "flex", paddingLeft: "4px", alignItems: "center" }}>
-          <IconButton
-            onClick={onBack}
-            size="small"
-            sx={{ p: 0 }}
-            aria-label="뒤로가기"
-          >
-            <ChevronLeftIcon sx={{ fontSize: 28, color: "label.normal" }} />
-          </IconButton>
+          {showBackButton && (
+            <IconButton
+              onClick={onBack}
+              size="small"
+              sx={{ p: 0 }}
+              aria-label="뒤로가기"
+            >
+              <ChevronLeftIcon sx={{ fontSize: 28, color: "label.normal" }} />
+            </IconButton>
+          )}
         </Box>
         {stepNumber}
       </Box>
