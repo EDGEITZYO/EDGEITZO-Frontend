@@ -135,8 +135,8 @@ export const searchChatStream = async ({
 
 export const searchExecute = async (
   body: Omit<SearchExecuteRequest, "user_id">,
+  userId: string,
 ): Promise<SearchExecuteResult> => {
-  const userId = useAuthStore.getState().userId;
   const { data } = await apiClient.post<{
     success: boolean;
     data: SearchExecuteResult;

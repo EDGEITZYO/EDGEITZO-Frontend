@@ -15,6 +15,7 @@ import {
   searchPapers,
   postFeedback,
 } from "../api/search";
+import { useMypageQuery } from "../queries/useMypageQuery";
 import {
   type SearchView,
   type ChatMessage,
@@ -78,6 +79,8 @@ const SearchPage = () => {
   const title = state?.title ?? "검색";
   const directSearch = state?.directSearch ?? false;
   const queryClient = useQueryClient();
+  const { data: mypageData } = useMypageQuery();
+  const userId = mypageData?.profile.id;
 
   // ─── 뷰 상태 ───────────────────────────────────────────
   const [view, setView] = useState<SearchView>(directSearch ? "list" : "chat");
@@ -128,6 +131,7 @@ const SearchPage = () => {
       kci: boolean | null,
       sci: boolean | null,
     ) => {
+      if (!userId) return;
       setIsExecuting(true);
       try {
         const result = await searchExecute({
@@ -138,7 +142,7 @@ const SearchPage = () => {
           filter_kci: kci,
           filter_sci: sci,
           sort_order: "relevance",
-        });
+        }, userId);
         setExecuteResult(result);
         queryClient.invalidateQueries({ queryKey: ["home"] });
         setView("list");
@@ -148,7 +152,7 @@ const SearchPage = () => {
         setIsExecuting(false);
       }
     },
-    [queryClient],
+    [queryClient, userId],
   );
 
   // ─── SSE 스트리밍 핸들러 ───────────────────────────────

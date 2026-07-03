@@ -13,7 +13,7 @@ import {
   useBreadcrumbs,
 } from "../../stores/keywordMapStore";
 import { keywordMapApi } from "../../api/keywordMap";
-import { useAuthStore } from "../../stores/authStore";
+import { useMypageQuery } from "../../queries/useMypageQuery";
 
 const filterChipSx: SxProps<Theme> = {
   px: "13px",
@@ -48,7 +48,8 @@ const PaperListPanel = ({ onFullscreen }: PaperListPanelProps) => {
   } = useKeywordMapActions();
   const breadcrumbs = useBreadcrumbs();
 
-  const userId = useAuthStore((state) => state.userId);
+  const { data: mypageData } = useMypageQuery();
+  const userId = mypageData?.profile.id;
   const queryClient = useQueryClient();
   const PAGE_SIZE = 20;
   const [openFilter, setOpenFilter] = useState<"year" | "type" | null>(null);

@@ -9,10 +9,9 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { type SxProps, type Theme } from "@mui/material/styles";
-import { useQuery } from "@tanstack/react-query";
 import Header from "../components/layout/Header";
 import LogoutDialog from "../components/mypage/LogoutDialog";
-import { mypageApi } from "../api/mypage";
+import { useMypageQuery } from "../queries/useMypageQuery";
 
 const INFO_ROWS = [
   { label: "성별", key: "gender" },
@@ -121,14 +120,7 @@ const MyPage = () => {
   const navigate = useNavigate();
   const [logoutOpen, setLogoutOpen] = useState(false);
 
-  const { data, isPending, isError } = useQuery({
-    queryKey: ["mypage"],
-    queryFn: async () => {
-      const res = await mypageApi.getMypage();
-      return res.data.data;
-    },
-    staleTime: 1000 * 60 * 5,
-  });
+  const { data, isPending, isError } = useMypageQuery();
 
   if (isPending) {
     return (
