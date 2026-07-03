@@ -1,6 +1,6 @@
 import { Box, Typography } from "@mui/material";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import AuthLayout from "../components/layout/AuthLayout";
 import { authApi } from "../api/auth";
 import { useAuthStore } from "../stores/authStore";
@@ -12,31 +12,50 @@ const SignupCompletePage = () => {
     | { type: "email"; email: string; password: string; name: string }
     | { type: "social"; name: string }
     | null;
-  const { setAccessToken } = useAuthStore();
+  const { accessToken, setAccessToken } = useAuthStore();
   const hasRegistered = useRef(false);
+  const [isRegistering, setIsRegistering] = useState(
+    state?.type === "email" && !accessToken,
+  );
 
   const name = state?.name ?? "";
 
   useEffect(() => {
     if (!state || state.type !== "email") return;
+    if (useAuthStore.getState().accessToken) {
+      return;
+    }
     if (!state.email || !state.password) {
       navigate("/signup", { replace: true });
       return;
     }
     if (hasRegistered.current) return;
     hasRegistered.current = true;
-    authApi
-      .register({
-        email: state.email,
-        password: state.password,
-        confirm_password: state.password,
-      })
-      .then(({ data }) => {
+    const run = async () => {
+      try {
+        const { data } = await authApi.register({
+          email: state.email,
+          password: state.password,
+          confirm_password: state.password,
+        });
         setAccessToken(data.data.access_token);
-      })
-      .catch(() => {
-        navigate("/signup", { replace: true });
-      });
+      } catch {
+        // 이미 가입된 계정일 수 있음 → 로그인 시도
+        try {
+          const { data } = await authApi.login({
+            email: state.email,
+            password: state.password,
+          });
+          setAccessToken(data.data.access_token);
+        } catch {
+          navigate("/signup", { replace: true });
+        }
+      } finally {
+        setIsRegistering(false);
+      }
+    };
+
+    run();
   }, []);
 
   return (
@@ -203,7 +222,10 @@ const SignupCompletePage = () => {
             {/* 시작하기 버튼 */}
             <Box
               component="button"
-              onClick={() => navigate("/onboarding")}
+              onClick={() => {
+                if (isRegistering) return;
+                navigate("/onboarding");
+              }}
               sx={{
                 display: "flex",
                 width: "440px",
@@ -214,7 +236,8 @@ const SignupCompletePage = () => {
                 borderRadius: "8px",
                 backgroundColor: "#1E2026",
                 border: "none",
-                cursor: "pointer",
+                cursor: isRegistering ? "default" : "pointer",
+                opacity: isRegistering ? 0.5 : 1,
                 // 모바일
                 "@media (max-width: 599px)": {
                   width: "100%",
