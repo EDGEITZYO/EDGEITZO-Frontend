@@ -35,4 +35,6 @@ export const authApi = {
   logout: () => apiClient.post<string>("/auth/logout"),
 
   start: () => apiClient.get<AuthStartResponse>("/auth/start"),
+
+  getMe: () => apiClient.get<string>("/auth/me"),
 };

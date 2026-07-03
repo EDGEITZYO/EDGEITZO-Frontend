@@ -7,7 +7,7 @@ import {
   Button,
   Typography,
 } from "@mui/material";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { authApi } from "../../api/auth";
 import { useAuthStore } from "../../stores/authStore";
 
@@ -19,11 +19,13 @@ interface LogoutDialogProps {
 const LogoutDialog = ({ open, onClose }: LogoutDialogProps) => {
   const navigate = useNavigate();
   const clearAuth = useAuthStore((state) => state.clearAuth);
+  const queryClient = useQueryClient();
 
   const { mutate: logout } = useMutation({
     mutationFn: () => authApi.logout(),
     onSettled: () => {
       clearAuth();
+      queryClient.clear();
       onClose();
       navigate("/login");
     },

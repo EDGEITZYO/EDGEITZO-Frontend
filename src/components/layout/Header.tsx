@@ -2,7 +2,7 @@ import { useState } from "react";
 import { AppBar, Toolbar, Box, Typography, Button } from "@mui/material";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuthStore } from "../../stores/authStore";
+import { useMypageQuery } from "../../queries/useMypageQuery";
 import LogoutDialog from "../mypage/LogoutDialog";
 
 interface HeaderProps {
@@ -17,7 +17,8 @@ const NAV_ITEMS = [
 const Header = ({ isLoggedIn = false }: HeaderProps) => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const userName = useAuthStore((state) => state.userName);
+  const { data } = useMypageQuery();
+  const userName = data?.profile.name;
   const [logoutOpen, setLogoutOpen] = useState(false);
 
   return (

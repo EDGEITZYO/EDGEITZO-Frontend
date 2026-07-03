@@ -3,7 +3,7 @@ import { Box, Drawer, IconButton, Tooltip, Typography } from "@mui/material";
 import { Bookmark, Clock, Menu, X } from "lucide-react";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuthStore } from "../../stores/authStore";
+import { useMypageQuery } from "../../queries/useMypageQuery";
 
 interface SidebarNavItem {
   icon: React.ReactNode;
@@ -14,7 +14,8 @@ interface SidebarNavItem {
 const Sidebar = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const userName = useAuthStore((state) => state.userName);
+  const { data } = useMypageQuery();
+  const userName = data?.profile.name;
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const NAV_ITEMS: SidebarNavItem[] = [

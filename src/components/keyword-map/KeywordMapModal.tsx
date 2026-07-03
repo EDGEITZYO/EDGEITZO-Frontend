@@ -9,10 +9,8 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
-import { useQueryClient } from "@tanstack/react-query";
-import { type MypageData } from "../../types/mypage";
 import { keywordMapApi } from "../../api/keywordMap";
-import { useAuthStore } from "../../stores/authStore";
+import { useMypageQuery } from "../../queries/useMypageQuery";
 import { useKeywordMapActions } from "../../stores/keywordMapStore";
 
 interface KeywordMapModalProps {
@@ -69,14 +67,12 @@ const generateButtonSx: SxProps<Theme> = {
 
 const KeywordMapModal = ({ open, onClose }: KeywordMapModalProps) => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
 
-  const userId = useAuthStore((state) => state.userId);
+  const { data: mypageData } = useMypageQuery();
+  const userId = mypageData?.profile.id;
   const { setResearchField } = useKeywordMapActions();
   const [isLoading, setIsLoading] = useState(false);
 
-  // keywordMapStore 대신 mypage 캐시에서 research_field 읽기
-  const mypageData = queryClient.getQueryData<MypageData>(["mypage"]);
   const researchField = mypageData?.profile.research_field ?? null;
 
   const handleEdit = () => {

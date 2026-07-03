@@ -12,7 +12,6 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 import { Box, Typography, CircularProgress } from "@mui/material";
 import { type Node, type Edge } from "reactflow";
-import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import KeywordNode from "./KeywordNode";
 import KeywordEdge from "./KeywordEdge";
@@ -31,7 +30,7 @@ import {
 } from "../../types/keywordMap";
 import NodeTooltip from "./NodeTooltip";
 import { keywordMapApi } from "../../api/keywordMap";
-import { useAuthStore } from "../../stores/authStore";
+import { useMypageQuery } from "../../queries/useMypageQuery";
 
 // ─── 노드/엣지 타입 등록 ──────────────────────────────────
 
@@ -169,8 +168,8 @@ const buildGraphFromTree = (
 
 const KeywordMapGraph = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const userId = useAuthStore((state) => state.userId);
+  const { data: mypageData } = useMypageQuery();
+  const userId = mypageData?.profile.id;
   const { isGenerating } = useKeywordMapGenerating();
   const selectedNodeId = useSelectedNodeId();
   const breadcrumbs = useBreadcrumbs();
@@ -232,9 +231,6 @@ const KeywordMapGraph = () => {
           (err as { response?: { status?: number } }).response?.status === 404;
 
         if (isNotFound) {
-          const mypageData = queryClient.getQueryData<{
-            profile: { research_field: string };
-          }>(["mypage"]);
           const researchField = mypageData?.profile.research_field;
 
           if (!researchField) {
@@ -268,7 +264,7 @@ const KeywordMapGraph = () => {
     userId,
     applyTree,
     navigate,
-    queryClient,
+    mypageData,
     setGenerateError,
     setIsGenerating,
     setResearchField,
