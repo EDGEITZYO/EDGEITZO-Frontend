@@ -107,7 +107,7 @@ const SignupVerifyForm = ({ email, state }: SignupVerifyFormProps) => {
     if (!code) return;
     try {
       await authApi.verifyCode({ email, code });
-      navigate("/signup/complete", { state });
+      navigate("/signup/complete", { state: { type: "email", ...state } });
     } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response?.status === 400) {
         setVerifyError(true);
@@ -304,7 +304,6 @@ const SignupVerifyForm = ({ email, state }: SignupVerifyFormProps) => {
               alignSelf: "stretch",
             }}
           >
-
             {/* 인증코드 인풋 */}
             <TextField
               value={code}

@@ -154,7 +154,7 @@ const LoginForm = () => {
     try {
       const { data: tokenData } = await authApi.login(data);
       setAccessToken(tokenData.data.access_token);
-      navigate("/home");
+      navigate("/home", { replace: true });
     } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response?.status === 400) {
         const detail = error.response.data?.message ?? "";

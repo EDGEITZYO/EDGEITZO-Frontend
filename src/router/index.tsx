@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import AuthGuard from "./AuthGuard";
 import GuestGuard from "./GuestGuard";
+import OnboardingGuard from "./OnboardingGuard";
 import LandingPage from "../pages/LandingPage";
 import LoginPage from "../pages/LoginPage";
 import SignupPage from "../pages/SignupPage";
@@ -57,11 +58,22 @@ const router = createBrowserRouter([
   },
   {
     path: "/signup/complete",
-    element: <SignupCompletePage />,
+    element: (
+      <OnboardingGuard>
+        <SignupCompletePage />
+      </OnboardingGuard>
+    ),
   },
 
-  // 온보딩 (가드 없음)
-  { path: "/onboarding", element: <OnboardingPage /> },
+  // 온보딩
+  {
+    path: "/onboarding",
+    element: (
+      <OnboardingGuard>
+        <OnboardingPage />
+      </OnboardingGuard>
+    ),
+  },
 
   // OAuth 콜백 (가드 없음)
   { path: "/profile", element: <OAuthCallbackPage type="new" /> },
