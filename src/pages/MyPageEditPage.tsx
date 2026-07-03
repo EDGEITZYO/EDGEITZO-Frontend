@@ -14,7 +14,7 @@ import {
 import { type SxProps, type Theme } from "@mui/material/styles";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import CheckIcon from "@mui/icons-material/Check";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Header from "../components/layout/Header";
 import {
   profileEditSchema,
@@ -26,6 +26,8 @@ import {
   GENDER_OPTIONS,
 } from "../types/mypage";
 import { mypageApi } from "../api/mypage";
+import { useMypageQuery } from "../queries/useMypageQuery";
+import { mypageKeys } from "../queries/keys";
 
 const containerSx: SxProps<Theme> = {
   display: "flex",
@@ -111,19 +113,12 @@ const MyPageEditPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const { data, isPending } = useQuery({
-    queryKey: ["mypage"],
-    queryFn: async () => {
-      const res = await mypageApi.getMypage();
-      return res.data.data;
-    },
-    staleTime: 1000 * 60 * 5,
-  });
+  const { data, isPending } = useMypageQuery();
 
   const { mutate: updateProfile, isPending: isSubmitting } = useMutation({
     mutationFn: mypageApi.updateProfile,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["mypage"] });
+      queryClient.invalidateQueries({ queryKey: mypageKeys.detail() });
       navigate("/mypage");
     },
   });

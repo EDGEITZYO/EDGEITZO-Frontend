@@ -12,9 +12,10 @@ import { type SxProps, type Theme } from "@mui/material/styles";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import Header from "../components/layout/Header";
 import { useKeywordMapActions } from "../stores/keywordMapStore";
-import { useAuthStore } from "../stores/authStore";
 import { keywordMapApi } from "../api/keywordMap";
 import { mypageApi } from "../api/mypage";
+import { useMypageQuery } from "../queries/useMypageQuery";
+import { mypageKeys } from "../queries/keys";
 
 const containerSx: SxProps<Theme> = {
   display: "flex",
@@ -75,7 +76,8 @@ const KeywordMapEditPage = () => {
   const navigate = useNavigate();
   const { setResearchField, setIsGenerating, setGenerateError } =
     useKeywordMapActions();
-  const userId = useAuthStore((state) => state.userId);
+  const { data: mypageData } = useMypageQuery();
+  const userId = mypageData?.profile.id;
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -96,7 +98,7 @@ const KeywordMapEditPage = () => {
     try {
       await keywordMapApi.generate(inputValue.trim(), userId);
       await mypageApi.updateResearchField(inputValue.trim());
-      queryClient.invalidateQueries({ queryKey: ["mypage"] });
+      queryClient.invalidateQueries({ queryKey: mypageKeys.detail() });
       setResearchField(inputValue.trim());
       navigate("/keyword-map");
     } catch {
