@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "../stores/authStore";
 import { authApi } from "../api/auth";
 import { mypageApi } from "../api/mypage";
+import { mypageKeys } from "../queries/keys";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -10,9 +12,9 @@ interface AuthGuardProps {
 
 export default function AuthGuard({ children }: AuthGuardProps) {
   const [isChecking, setIsChecking] = useState(true);
-  const { accessToken, setAccessToken, setUserName, setUserId, clearAuth } =
-    useAuthStore();
+  const { accessToken, setAccessToken, clearAuth } = useAuthStore();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const hasChecked = useRef(false);
 
   useEffect(() => {
@@ -21,15 +23,6 @@ export default function AuthGuard({ children }: AuthGuardProps) {
       hasChecked.current = true;
 
       if (accessToken) {
-        if (!useAuthStore.getState().userName) {
-          try {
-            const { data } = await mypageApi.getMypage();
-            setUserName(data.data.profile.name);
-            setUserId(data.data.profile.id);
-          } catch {
-            // userName 복원 실패는 치명적이지 않으므로 무시
-          }
-        }
         setIsChecking(false);
         return;
       }
@@ -38,9 +31,14 @@ export default function AuthGuard({ children }: AuthGuardProps) {
         const { data } = await authApi.refresh();
         setAccessToken(data.access_token);
 
-        const { data: mypageData } = await mypageApi.getMypage();
-        setUserName(mypageData.data.profile.name);
-        setUserId(mypageData.data.profile.id);
+        await queryClient.fetchQuery({
+          queryKey: mypageKeys.detail(),
+          queryFn: async () => {
+            const res = await mypageApi.getMypage();
+            return res.data.data;
+          },
+          staleTime: 1000 * 60 * 5,
+        });
       } catch {
         clearAuth();
         navigate("/login", { replace: true });
