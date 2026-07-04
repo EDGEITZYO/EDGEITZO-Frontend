@@ -66,7 +66,11 @@ export const PURPOSE_OPTIONS = PURPOSES;
 export const GENDER_OPTIONS = GENDERS;
 
 export const profileEditSchema = z.object({
-  name: z.string().min(1, "이름을 입력해주세요"),
+  name: z
+    .string()
+    .min(1, "이름을 입력해주세요")
+    .max(10, "이름은 10자 이하로 입력해주세요")
+    .regex(/^[a-zA-Z0-9가-힣]*$/, "특수문자는 입력할 수 없어요"),
   gender: z.enum(GENDERS, { message: "성별을 선택해주세요" }),
   age: z.enum(AGE_OPTIONS, { message: "나이를 선택해주세요" }),
   role: z.enum(ROLES, { message: "역할을 선택해주세요" }),
@@ -77,3 +81,13 @@ export const profileEditSchema = z.object({
 });
 
 export type ProfileEditForm = z.infer<typeof profileEditSchema>;
+
+// ─── 유틸 ─────────────────────────────────────────────────
+
+export const birthYearToAgeGroup = (birthYear: number): AgeGroup => {
+  const koreanAge = new Date().getFullYear() - birthYear + 1;
+  const decade = Math.floor(koreanAge / 10) * 10;
+  if (decade >= 80) return "80대 이상";
+  if (decade < 20) return "20대";
+  return `${decade}대` as AgeGroup;
+};
