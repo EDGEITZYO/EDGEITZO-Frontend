@@ -11,7 +11,8 @@ import OnboardingPage from "../pages/OnboardingPage";
 import HomePage from "../pages/HomePage";
 import SearchPage from "../pages/SearchPage";
 import KeywordMapPage from "../pages/KeywordMapPage";
-import SavedPage from "../pages/SavedPage";
+import BookmarkPage from "../pages/BookmarkPage";
+import RecentPaperPage from "../pages/RecentPaperPage";
 import MyPage from "../pages/MyPage";
 import PaperDetailPage from "../pages/PaperDetailPage";
 import KeywordMapEditPage from "../pages/KeywordMapEditPage";
@@ -113,18 +114,18 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/saved",
-    element: (
-      <AuthGuard>
-        <SavedPage />
-      </AuthGuard>
-    ),
-  },
-  {
     path: "/mypage",
     element: (
       <AuthGuard>
         <MyPage />
+      </AuthGuard>
+    ),
+  },
+  {
+    path: "/mypage/edit",
+    element: (
+      <AuthGuard>
+        <MyPageEditPage />
       </AuthGuard>
     ),
   },
@@ -153,10 +154,18 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/mypage/edit",
+    path: "/saved/bookmark",
     element: (
       <AuthGuard>
-        <MyPageEditPage />
+        <BookmarkPage />
+      </AuthGuard>
+    ),
+  },
+  {
+    path: "/saved/recent",
+    element: (
+      <AuthGuard>
+        <RecentPaperPage />
       </AuthGuard>
     ),
   },
