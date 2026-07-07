@@ -1,7 +1,5 @@
 import { useState, useRef } from "react";
-import { Box, Button, IconButton, Paper, Typography } from "@mui/material";
-import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlined";
+import { Box, Button, Paper, Typography } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import { type BookmarkFilter } from "../../types/saved";
@@ -10,8 +8,6 @@ import { type BookmarkPaperTypeFilter } from "../../api/bookmark";
 interface BookmarkFilterBarProps {
   filter: BookmarkFilter;
   onFilterChange: (filter: BookmarkFilter) => void;
-  onEdit: () => void;
-  onDelete: () => void;
 }
 
 const containerSx: SxProps<Theme> = {
@@ -38,14 +34,6 @@ const filterButtonSx = (isActive: boolean): SxProps<Theme> => ({
   gap: "4px",
   "&:hover": { backgroundColor: isActive ? "label.neutral" : "fill.normal" },
 });
-
-const iconButtonSx: SxProps<Theme> = {
-  width: 40,
-  height: 39,
-  borderRadius: "13px",
-  backgroundColor: "background.default",
-  "&:hover": { backgroundColor: "fill.normal" },
-};
 
 const dropdownSx: SxProps<Theme> = {
   position: "absolute",
@@ -84,8 +72,6 @@ const PAPER_TYPES: BookmarkPaperTypeFilter[] = [
 const BookmarkFilterBar = ({
   filter,
   onFilterChange,
-  onEdit,
-  onDelete,
 }: BookmarkFilterBarProps) => {
   const [openDropdown, setOpenDropdown] = useState<"year" | "type" | null>(
     null,
@@ -94,33 +80,21 @@ const BookmarkFilterBar = ({
   const typeRef = useRef<HTMLDivElement>(null);
 
   const handleYearSelect = (year: number) => {
-    onFilterChange({
-      ...filter,
-      year: filter.year === year ? null : year,
-    });
+    onFilterChange({ ...filter, year: filter.year === year ? null : year });
     setOpenDropdown(null);
   };
 
   const handleTypeSelect = (type: BookmarkPaperTypeFilter) => {
-    onFilterChange({
-      ...filter,
-      type: filter.type === type ? null : type,
-    });
+    onFilterChange({ ...filter, type: filter.type === type ? null : type });
     setOpenDropdown(null);
   };
 
   const handleKciToggle = () => {
-    onFilterChange({
-      ...filter,
-      kci: filter.kci === true ? null : true,
-    });
+    onFilterChange({ ...filter, kci: filter.kci === true ? null : true });
   };
 
   const handleSciToggle = () => {
-    onFilterChange({
-      ...filter,
-      sci: filter.sci === true ? null : true,
-    });
+    onFilterChange({ ...filter, sci: filter.sci === true ? null : true });
   };
 
   const toggleDropdown = (type: "year" | "type") => {
@@ -208,14 +182,6 @@ const BookmarkFilterBar = ({
       >
         SCI 등재
       </Button>
-
-      <Box sx={{ flex: 1 }} />
-      <IconButton sx={iconButtonSx} onClick={onEdit}>
-        <EditOutlinedIcon sx={{ fontSize: 24, color: "label.alternative" }} />
-      </IconButton>
-      <IconButton sx={iconButtonSx} onClick={onDelete}>
-        <DeleteOutlineIcon sx={{ fontSize: 24, color: "label.alternative" }} />
-      </IconButton>
     </Box>
   );
 };

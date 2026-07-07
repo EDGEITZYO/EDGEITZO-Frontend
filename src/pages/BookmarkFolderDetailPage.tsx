@@ -17,9 +17,8 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import BookmarkFilterBar from "../components/saved/BookmarkFilterBar";
-import FolderDialog from "../components/saved/FolderDialog";
 import BookmarkPaperCard from "../components/saved/BookmarkPaperCard";
-import { type FolderDialogState, type BookmarkFilter } from "../types/saved";
+import { type BookmarkFilter } from "../types/saved";
 import { bookmarkApi } from "../api/bookmark";
 
 const pageWrapperSx: SxProps<Theme> = {
@@ -68,18 +67,10 @@ const paperListSx: SxProps<Theme> = {
   gap: "17px",
 };
 
-const INITIAL_DIALOG_STATE: FolderDialogState = {
-  open: false,
-  mode: "edit",
-  targetFolder: null,
-};
-
 const BookmarkFolderDetailPage = () => {
   const navigate = useNavigate();
   const { folderId } = useParams<{ folderId: string }>();
   const queryClient = useQueryClient();
-  const [dialogState, setDialogState] =
-    useState<FolderDialogState>(INITIAL_DIALOG_STATE);
   const [filter, setFilter] = useState<BookmarkFilter>({
     year: null,
     type: null,
@@ -99,7 +90,6 @@ const BookmarkFolderDetailPage = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // 폴더 단건 조회
   const { data: folder, isPending: isFolderPending } = useQuery({
     queryKey: ["bookmark-folder", folderId],
     queryFn: async () => {
@@ -110,7 +100,6 @@ const BookmarkFolderDetailPage = () => {
     staleTime: 1000 * 60 * 5,
   });
 
-  // 북마크 논문 목록 무한스크롤
   const {
     data: bookmarkPages,
     isPending: isBookmarksPending,
@@ -143,7 +132,6 @@ const BookmarkFolderDetailPage = () => {
 
   const papers = bookmarkPages?.pages.flatMap((page) => page.items) ?? [];
 
-  // Intersection Observer — 마지막 5번째 아이템에서 미리 fetch
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -157,7 +145,6 @@ const BookmarkFolderDetailPage = () => {
     return () => observer.disconnect();
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
-  // 북마크 삭제
   const { mutate: removeBookmark } = useMutation({
     mutationFn: (paperId: string) => bookmarkApi.removeBookmark(paperId),
     onSuccess: () => {
@@ -179,71 +166,13 @@ const BookmarkFolderDetailPage = () => {
     },
   });
 
-  // 폴더 수정
-  const { mutate: updateFolder } = useMutation({
-    mutationFn: ({ name }: { name: string }) =>
-      bookmarkApi.updateFolder(folderId!, name),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["bookmark-folder", folderId],
-      });
-      queryClient.invalidateQueries({ queryKey: ["saved-bookmark-folders"] });
-    },
-    onError: () => {
-      setSnackbarMessage("폴더 수정에 실패했어요");
-      setSnackbarOpen(true);
-    },
-  });
-
-  // 폴더 삭제
-  const { mutate: deleteFolder } = useMutation({
-    mutationFn: () => bookmarkApi.deleteFolder(folderId!),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["saved-bookmark-folders"] });
-      navigate("/saved");
-    },
-    onError: () => {
-      setSnackbarMessage("폴더 삭제에 실패했어요");
-      setSnackbarOpen(true);
-    },
-  });
-
-  const handleBack = () => navigate("/saved");
-
-  const handleEdit = () => {
-    if (!folder) return;
-    setDialogState({ open: true, mode: "edit", targetFolder: folder });
-  };
-
-  const handleDelete = () => {
-    if (!folder) return;
-    setDialogState({ open: true, mode: "delete", targetFolder: folder });
-  };
-
-  const handleDialogClose = () => setDialogState(INITIAL_DIALOG_STATE);
-
-  const handleDialogConfirm = (
-    mode: FolderDialogState["mode"],
-    name?: string,
-  ) => {
-    if (mode === "edit" && name) {
-      updateFolder({ name });
-    } else if (mode === "delete") {
-      deleteFolder();
-    }
-    handleDialogClose();
-  };
-
-  const handleBookmarkRemove = (paperId: string) => {
-    removeBookmark(paperId);
-  };
-
+  const handleBack = () => navigate("/saved/bookmark");
+  const handleBookmarkRemove = (paperId: string) => removeBookmark(paperId);
   const handlePaperClick = (paperId: string) => {
     navigate(
       `/papers/${paperId}?returnTo=${encodeURIComponent(`/saved/bookmark/${folderId}`)}`,
     );
   };
-
   const handleScrollTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
   if (isFolderPending && folderId !== "all") {
@@ -280,12 +209,7 @@ const BookmarkFolderDetailPage = () => {
             : (folder?.paper_count ?? 0)}
           개
         </Typography>
-        <BookmarkFilterBar
-          filter={filter}
-          onFilterChange={setFilter}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
+        <BookmarkFilterBar filter={filter} onFilterChange={setFilter} />
 
         {isBookmarksPending ? (
           <Box sx={{ display: "flex", justifyContent: "center", py: "40px" }}>
@@ -321,15 +245,6 @@ const BookmarkFolderDetailPage = () => {
           </Box>
         )}
       </Box>
-
-      <FolderDialog
-        key={`${dialogState.mode}-${dialogState.targetFolder?.id ?? "none"}`}
-        open={dialogState.open}
-        mode={dialogState.mode}
-        targetFolder={dialogState.targetFolder}
-        onClose={handleDialogClose}
-        onConfirm={handleDialogConfirm}
-      />
 
       <Snackbar
         open={snackbarOpen}
