@@ -1,14 +1,15 @@
 import { useState } from "react";
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
   DialogActions,
   Button,
   TextField,
   Typography,
   Box,
+  IconButton,
 } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import { type BookmarkFolder, type FolderDialogMode } from "../../types/saved";
 
@@ -21,40 +22,93 @@ interface FolderDialogProps {
 }
 
 const dialogPaperSx: SxProps<Theme> = {
-  borderRadius: "20px",
-  padding: "8px",
-  minWidth: "400px",
+  width: "480px",
+  padding: "24px 20px",
+  borderRadius: "12px",
+  backgroundColor: "background.default",
+  margin: 0,
+};
+
+const innerSx: SxProps<Theme> = {
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "center",
+  alignItems: "center",
+  gap: "32px",
+  alignSelf: "stretch",
+};
+
+const titleRowSx: SxProps<Theme> = {
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  alignSelf: "stretch",
+  position: "relative",
 };
 
 const titleSx: SxProps<Theme> = {
-  fontSize: "20px",
-  fontWeight: 700,
-  color: "static.black",
+  display: "-webkit-box",
+  WebkitBoxOrient: "vertical",
+  WebkitLineClamp: 1,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  fontSize: "24px",
+  fontWeight: 600,
+  lineHeight: "36px",
+  letterSpacing: "-0.528px",
+  color: "label.normal",
 };
 
-const confirmButtonSx = (mode: FolderDialogMode): SxProps<Theme> => ({
-  borderRadius: "12px",
+const closeButtonSx: SxProps<Theme> = {
+  position: "absolute",
+  right: 0,
+  display: "flex",
+  width: "32px",
+  height: "32px",
+  justifyContent: "center",
+  alignItems: "center",
+  p: 0,
+  flexShrink: 0,
+};
+
+const deleteButtonSx: SxProps<Theme> = {
+  display: "flex",
+  height: "56px",
+  padding: "8px 0",
+  justifyContent: "center",
+  alignItems: "center",
+  flex: "1 0 0",
+  borderRadius: "8px",
+  backgroundColor: "label.neutral",
+  color: "#FAFAFC",
+  fontSize: "18px",
   fontWeight: 600,
-  backgroundColor: mode === "delete" ? "error.main" : "static.black",
-  color: "static.white",
-  "&:hover": {
-    backgroundColor: mode === "delete" ? "error.dark" : "label.neutral",
-  },
+  lineHeight: "29px",
+  letterSpacing: "-0.378px",
+  "&:hover": { backgroundColor: "label.normal" },
   "&:disabled": {
     backgroundColor: "fill.normal",
     color: "label.assistive",
   },
-});
+};
 
 const cancelButtonSx: SxProps<Theme> = {
-  borderRadius: "12px",
-  fontWeight: 600,
+  display: "flex",
+  height: "56px",
+  padding: "8px 0",
+  justifyContent: "center",
+  alignItems: "center",
+  flex: "1 0 0",
+  borderRadius: "8px",
+  border: "1px solid",
+  borderColor: "line.neutral",
+  backgroundColor: "background.default",
   color: "label.normal",
-  borderColor: "line.normal",
-  "&:hover": {
-    borderColor: "label.normal",
-    backgroundColor: "background.default",
-  },
+  fontSize: "18px",
+  fontWeight: 600,
+  lineHeight: "29px",
+  letterSpacing: "-0.378px",
+  "&:hover": { backgroundColor: "fill.normal" },
 };
 
 const DIALOG_CONFIG: Record<
@@ -62,26 +116,18 @@ const DIALOG_CONFIG: Record<
   { title: string; confirmLabel: string }
 > = {
   create: { title: "파일 새로 생성", confirmLabel: "완료" },
-  edit: { title: "파일명 수정", confirmLabel: "완료" },
-  delete: {
-    title: "파일 삭제",
-    confirmLabel: "삭제",
-  },
+  delete: { title: "정말 삭제하시겠습니까?", confirmLabel: "삭제" },
 };
 
 const FolderDialog = ({
   open,
   mode,
-  targetFolder,
   onClose,
   onConfirm,
 }: FolderDialogProps) => {
-  const [name, setName] = useState(
-    mode === "edit" && targetFolder ? targetFolder.name : "",
-  );
-
+  const [name, setName] = useState("");
   const config = DIALOG_CONFIG[mode];
-  const isNameMode = mode === "create" || mode === "edit";
+  const isNameMode = mode === "create";
   const isConfirmDisabled = isNameMode && name.trim() === "";
 
   const handleConfirm = () => {
@@ -96,21 +142,18 @@ const FolderDialog = ({
       }}
       slotProps={{ paper: { sx: dialogPaperSx } }}
     >
-      <DialogTitle>
-        <Typography sx={titleSx}>{config.title}</Typography>
-      </DialogTitle>
+      <DialogContent sx={{ p: 0 }}>
+        <Box sx={innerSx}>
+          {/* 제목 + X 버튼 */}
+          <Box sx={titleRowSx}>
+            <Typography sx={titleSx}>{config.title}</Typography>
+            <IconButton sx={closeButtonSx} onClick={onClose}>
+              <CloseIcon sx={{ fontSize: 24, color: "label.normal" }} />
+            </IconButton>
+          </Box>
 
-      <DialogContent>
-        {mode === "delete" ? (
-          <Typography
-            sx={{ fontSize: "16px", color: "label.normal", lineHeight: "160%" }}
-          >
-            정말 해당 파일을 삭제하시나요? 삭제하시면 다시 복구가 어려워요.
-            <br />
-            파일 내 논문들의 북마크가 전체 해제돼요.
-          </Typography>
-        ) : (
-          <Box sx={{ pt: "8px" }}>
+          {/* delete: 텍스트 없음 / create: 텍스트 필드 */}
+          {mode === "delete" ? null : (
             <TextField
               fullWidth
               placeholder="파일명을 입력해주세요"
@@ -118,30 +161,32 @@ const FolderDialog = ({
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setName(e.target.value)
               }
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "12px",
-                },
-              }}
+              sx={{ "& .MuiOutlinedInput-root": { borderRadius: "12px" } }}
             />
-          </Box>
-        )}
-      </DialogContent>
+          )}
 
-      <DialogActions sx={{ px: "24px", pb: "16px", gap: "8px" }}>
-        <Button variant="outlined" sx={cancelButtonSx} onClick={onClose}>
-          취소
-        </Button>
-        <Button
-          variant="contained"
-          sx={confirmButtonSx(mode)}
-          onClick={handleConfirm}
-          disabled={isConfirmDisabled}
-          disableElevation
-        >
-          {config.confirmLabel}
-        </Button>
-      </DialogActions>
+          {/* 버튼 */}
+          <DialogActions sx={{ p: 0, gap: "12px", alignSelf: "stretch", "& > :not(:first-of-type)": { ml: 0 } }}>
+            <Button
+              variant="contained"
+              disableElevation
+              sx={deleteButtonSx}
+              onClick={handleConfirm}
+              disabled={isConfirmDisabled}
+            >
+              {config.confirmLabel}
+            </Button>
+            <Button
+              variant="outlined"
+              disableElevation
+              sx={cancelButtonSx}
+              onClick={onClose}
+            >
+              취소
+            </Button>
+          </DialogActions>
+        </Box>
+      </DialogContent>
     </Dialog>
   );
 };

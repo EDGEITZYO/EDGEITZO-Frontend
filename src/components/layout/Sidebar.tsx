@@ -22,12 +22,12 @@ const Sidebar = () => {
     {
       icon: <Bookmark size={20} />,
       label: "저장한 논문",
-      path: "/saved",
+      path: "/saved/bookmark",
     },
     {
       icon: <Clock size={20} />,
       label: "최근 본 논문",
-      path: "/saved?tab=recent",
+      path: "/saved/recent",
     },
   ];
 

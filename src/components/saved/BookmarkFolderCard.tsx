@@ -1,97 +1,122 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Box, Typography, IconButton, Menu, MenuItem } from "@mui/material";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import { type SxProps, type Theme } from "@mui/material/styles";
-import { formatDistanceToNow } from "date-fns";
-import { ko } from "date-fns/locale";
 import { type BookmarkFolder } from "../../types/saved";
 
 interface BookmarkFolderCardProps {
   folder: BookmarkFolder;
   onClick: (folderId: string) => void;
-  onMoreClick: (folder: BookmarkFolder, action: "edit" | "delete") => void;
+  onMoreClick: (folder: BookmarkFolder, action: "delete") => void;
+  onRename: (folderId: string, name: string) => void;
 }
 
 const cardSx: SxProps<Theme> = {
-  width: "100%",
-  borderRadius: "12px",
+  width: { xs: "100%", sm: "214px" },
+  height: { xs: "120px", sm: "144px" },
+  padding: "16px",
+  flexShrink: 0,
+  borderRadius: "8px",
   border: "1px solid",
-  borderColor: "line.normal",
-  padding: "20px 24px",
+  borderColor: "line.neutral",
   display: "flex",
   flexDirection: "column",
-  gap: "8px",
+  justifyContent: "space-between",
+  alignItems: "flex-start",
   cursor: "pointer",
   backgroundColor: "background.default",
-  "&:hover": {
-    backgroundColor: "background.paper",
-  },
+  position: "relative",
 };
 
 const headerSx: SxProps<Theme> = {
   display: "flex",
   justifyContent: "space-between",
   alignItems: "flex-start",
+  alignSelf: "stretch",
 };
 
 const nameSx: SxProps<Theme> = {
-  fontSize: "18px",
+  display: "-webkit-box",
+  WebkitBoxOrient: "vertical",
+  WebkitLineClamp: 2,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  flex: "1 0 0",
+  fontSize: { xs: "18px", sm: "20px" },
   fontWeight: 600,
-  color: "static.black",
-  lineHeight: "normal",
+  lineHeight: { xs: "29px", sm: "30px" },
+  letterSpacing: { xs: "-0.378px", sm: "-0.42px" },
+  color: "label.normal",
 };
 
-const keywordRowSx: SxProps<Theme> = {
-  display: "flex",
-  gap: "8px",
-  flexWrap: "wrap",
+const editingNameSx: SxProps<Theme> = {
+  ...nameSx,
+  color: "label.alternative",
+  outline: "none",
+  border: "none",
+  background: "transparent",
+  fontFamily: "Pretendard Variable, sans-serif",
+  width: "100%",
+  cursor: "text",
 };
 
-const keywordTagSx: SxProps<Theme> = {
-  display: "inline-flex",
-  padding: "0 6px",
-  borderRadius: "7px",
-  backgroundColor: "fill.normal",
-  fontSize: "14px",
+const countSx: SxProps<Theme> = {
+  display: "-webkit-box",
+  WebkitBoxOrient: "vertical",
+  WebkitLineClamp: 2,
+  alignSelf: "stretch",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  fontSize: "16px",
   fontWeight: 400,
+  lineHeight: "24px",
+  letterSpacing: "-0.336px",
   color: "label.alternative",
 };
 
-const metaSx: SxProps<Theme> = {
-  fontSize: "14px",
-  fontWeight: 500,
-  color: "label.assistive",
-  lineHeight: "normal",
+const menuButtonSx: SxProps<Theme> = {
+  display: "flex",
+  width: "36px",
+  height: "36px",
+  padding: "4px",
+  justifyContent: "center",
+  alignItems: "center",
+  flexShrink: 0,
 };
 
 const menuItemSx: SxProps<Theme> = {
-  fontSize: "14px",
-  fontWeight: 500,
+  padding: "12px 16px",
+  fontSize: "16px",
+  fontWeight: 400,
+  lineHeight: "24px",
+  letterSpacing: "-0.336px",
   color: "label.normal",
-  borderRadius: "8px",
-  px: "12px",
-};
-
-const formatUpdatedAt = (updatedAt: string): string => {
-  if (!updatedAt) return "";
-  try {
-    return formatDistanceToNow(new Date(updatedAt), {
-      addSuffix: true,
-      locale: ko,
-    });
-  } catch {
-    return "";
-  }
+  display: "-webkit-box",
+  WebkitBoxOrient: "vertical",
+  WebkitLineClamp: 1,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
 };
 
 const BookmarkFolderCard = ({
   folder,
   onClick,
   onMoreClick,
+  onRename,
 }: BookmarkFolderCardProps) => {
-  const { id, name, representative_keywords, paper_count, updated_at } = folder;
-  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+  const { id, name, paper_count } = folder;
   const isAllFolder = id === "all";
+  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingName, setEditingName] = useState(name);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing]);
 
   const handleMoreClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
@@ -104,21 +129,64 @@ const BookmarkFolderCard = ({
 
   const handleMenuAction = (action: "edit" | "delete") => {
     handleMenuClose();
-    onMoreClick(folder, action);
+    if (action === "edit") {
+      setEditingName(name);
+      setIsEditing(true);
+    } else {
+      onMoreClick(folder, action);
+    }
+  };
+
+  const handleRenameCommit = () => {
+    const trimmed = editingName.trim();
+    if (trimmed && trimmed !== name) {
+      onRename(id, trimmed);
+    }
+    setIsEditing(false);
+  };
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleRenameCommit();
+    } else if (e.key === "Escape") {
+      setIsEditing(false);
+    }
   };
 
   return (
-    <Box sx={cardSx} onClick={() => onClick(id)}>
+    <Box
+      sx={cardSx}
+      onClick={() => {
+        if (!isEditing) onClick(id);
+      }}
+    >
+      {/* 제목 + 메뉴 */}
       <Box sx={headerSx}>
-        <Typography sx={nameSx}>{name}</Typography>
-        {!isAllFolder && (
-          <>
-            <IconButton
-              size="small"
-              sx={{ p: "0px", width: 24, height: 24 }}
-              onClick={handleMoreClick}
-            >
-              <MoreHorizIcon sx={{ fontSize: 24, color: "label.assistive" }} />
+        {isEditing ? (
+          <Box
+            component="input"
+            ref={inputRef}
+            value={editingName}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setEditingName(e.target.value)
+            }
+            onBlur={handleRenameCommit}
+            onKeyDown={handleInputKeyDown}
+            onClick={(e: React.MouseEvent<HTMLInputElement>) =>
+              e.stopPropagation()
+            }
+            sx={editingNameSx}
+          />
+        ) : (
+          <Typography sx={nameSx}>{name}</Typography>
+        )}
+
+        {!isAllFolder && !isEditing && (
+          <Box sx={{ display: { xs: "none", sm: "flex" } }}>
+            <IconButton sx={menuButtonSx} onClick={handleMoreClick}>
+              <MoreHorizIcon
+                sx={{ width: "28px", height: "28px", color: "label.assistive" }}
+              />
             </IconButton>
             <Menu
               anchorEl={anchorEl}
@@ -127,9 +195,13 @@ const BookmarkFolderCard = ({
               slotProps={{
                 paper: {
                   sx: {
-                    borderRadius: "12px",
-                    boxShadow: "0px 4px 16px rgba(0,0,0,0.12)",
-                    padding: "4px",
+                    width: "148px",
+                    borderRadius: "8px",
+                    border: "1px solid",
+                    borderColor: "line.normal",
+                    backgroundColor: "background.default",
+                    boxShadow: "none",
+                    padding: "0 1px",
                   },
                 },
               }}
@@ -142,10 +214,10 @@ const BookmarkFolderCard = ({
                   handleMenuAction("edit");
                 }}
               >
-                수정
+                이름 수정
               </MenuItem>
               <MenuItem
-                sx={{ ...menuItemSx, color: "error.main" }}
+                sx={{ ...menuItemSx, color: "status.negative" }}
                 onClick={(e: React.MouseEvent) => {
                   e.stopPropagation();
                   handleMenuAction("delete");
@@ -154,20 +226,12 @@ const BookmarkFolderCard = ({
                 삭제
               </MenuItem>
             </Menu>
-          </>
+          </Box>
         )}
       </Box>
-      <Box sx={keywordRowSx}>
-        {representative_keywords.map((keyword, index) => (
-          <Typography key={`${keyword}-${index}`} sx={keywordTagSx}>
-            {keyword}
-          </Typography>
-        ))}
-      </Box>
-      <Typography sx={metaSx}>
-        논문 {paper_count}개 &nbsp;{" "}
-        {updated_at ? formatUpdatedAt(updated_at) : ""}
-      </Typography>
+
+      {/* 논문 개수 */}
+      <Typography sx={countSx}>논문 {paper_count}개</Typography>
     </Box>
   );
 };

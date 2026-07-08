@@ -1,50 +1,54 @@
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Box, Typography } from '@mui/material';
-import { type SxProps, type Theme } from '@mui/material/styles';
-import RecentPaperHeader from './RecentPaperHeader';
-import RecentPaperListView from './RecentPaperListView';
-import RecentPaperChartView from './RecentPaperChartView';
-import { type PeriodMode, type ViewMode, type ChartFilter } from '../../types/saved';
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Box, Typography } from "@mui/material";
+import { type SxProps, type Theme } from "@mui/material/styles";
+import RecentPaperHeader from "./RecentPaperHeader";
+import RecentPaperListView from "./RecentPaperListView";
+import RecentPaperChartView from "./RecentPaperChartView";
+import {
+  type PeriodMode,
+  type ViewMode,
+  type ChartFilter,
+} from "../../types/saved";
 import {
   parseDateParam,
   formatDateParam,
   isPeriodMode,
   isViewMode,
-} from '../../utils/savedUtils';
+} from "../../utils/savedUtils";
 
 const titleSx: SxProps<Theme> = {
-  fontSize: '24px',
+  fontSize: "24px",
   fontWeight: 600,
-  color: 'static.black',
-  mb: '14px',
+  color: "static.black",
+  mb: "14px",
 };
 
 const baseContainerSx: SxProps<Theme> = {
-  display: 'flex',
-  flexDirection: 'column',
+  display: "flex",
+  flexDirection: "column",
   flex: 1,
-  padding: '24px 40px',
-  gap: '13px',
+  padding: "24px 40px",
+  gap: "13px",
 };
 
 const listContainerSx: SxProps<Theme> = {
   ...baseContainerSx,
-  overflow: 'visible',
+  overflow: "visible",
 };
 
 const chartContainerSx: SxProps<Theme> = {
   ...baseContainerSx,
-  height: 'calc(100vh - 65px)',
+  height: "calc(100vh - 65px)",
   minHeight: 0,
-  overflow: 'hidden',
+  overflow: "hidden",
 };
 
 const chartViewWrapperSx: SxProps<Theme> = {
   flex: 1,
   minHeight: 0,
-  overflow: 'hidden',
-  display: 'flex',
-  flexDirection: 'column',
+  overflow: "hidden",
+  display: "flex",
+  flexDirection: "column",
 };
 
 // ─── 컴포넌트 ─────────────────────────────────────────────
@@ -54,19 +58,18 @@ const RecentPaperContent = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   // 중복 호출 제거 — 변수로 먼저 받기
-  const modeParam = searchParams.get('mode');
-  const viewParam = searchParams.get('view');
+  const modeParam = searchParams.get("mode");
+  const viewParam = searchParams.get("view");
 
-  const periodMode: PeriodMode = isPeriodMode(modeParam) ? modeParam : 'day';
-  const viewMode: ViewMode = isViewMode(viewParam) ? viewParam : 'list';
-  const currentDate: Date = parseDateParam(searchParams.get('date'));
+  const periodMode: PeriodMode = isPeriodMode(modeParam) ? modeParam : "day";
+  const viewMode: ViewMode = isViewMode(viewParam) ? viewParam : "list";
+  const currentDate: Date = parseDateParam(searchParams.get("date"));
 
   // 기존 query를 보존하면서 필요한 값만 업데이트
   const updateParams = (updates: Record<string, string | null>) => {
     const next = new URLSearchParams(searchParams);
-    next.set('tab', 'recent');
     Object.entries(updates).forEach(([key, value]) => {
-      if (value === null || value === '') next.delete(key);
+      if (value === null || value === "") next.delete(key);
       else next.set(key, value);
     });
     setSearchParams(next, { replace: true });
@@ -78,24 +81,40 @@ const RecentPaperContent = () => {
 
   const handleDatePrev = () => {
     const next = new Date(currentDate);
-    if (periodMode === 'day') next.setDate(next.getDate() - 1);
+    if (periodMode === "day") next.setDate(next.getDate() - 1);
     else next.setDate(next.getDate() - 7);
-    updateParams({ view: viewMode, mode: periodMode, date: formatDateParam(next) });
+    updateParams({
+      view: viewMode,
+      mode: periodMode,
+      date: formatDateParam(next),
+    });
   };
 
   const handleDateNext = () => {
     const next = new Date(currentDate);
-    if (periodMode === 'day') next.setDate(next.getDate() + 1);
+    if (periodMode === "day") next.setDate(next.getDate() + 1);
     else next.setDate(next.getDate() + 7);
-    updateParams({ view: viewMode, mode: periodMode, date: formatDateParam(next) });
+    updateParams({
+      view: viewMode,
+      mode: periodMode,
+      date: formatDateParam(next),
+    });
   };
 
   const handleDateSelect = (date: Date) => {
-    updateParams({ view: viewMode, mode: periodMode, date: formatDateParam(date) });
+    updateParams({
+      view: viewMode,
+      mode: periodMode,
+      date: formatDateParam(date),
+    });
   };
 
   const handleViewModeChange = (mode: ViewMode) => {
-    updateParams({ view: mode, mode: periodMode, date: formatDateParam(currentDate) });
+    updateParams({
+      view: mode,
+      mode: periodMode,
+      date: formatDateParam(currentDate),
+    });
   };
 
   const handleFilterChange = (filter: ChartFilter) => {
@@ -109,12 +128,12 @@ const RecentPaperContent = () => {
   };
 
   const handlePaperClick = (paperId: string) => {
-    const returnTo = `/saved?${searchParams.toString()}`;
+    const returnTo = `/saved/recent?${searchParams.toString()}`;
     navigate(`/papers/${paperId}?returnTo=${encodeURIComponent(returnTo)}`);
   };
 
   return (
-    <Box sx={viewMode === 'chart' ? chartContainerSx : listContainerSx}>
+    <Box sx={viewMode === "chart" ? chartContainerSx : listContainerSx}>
       <Typography sx={titleSx}>최근 읽은 논문</Typography>
       <RecentPaperHeader
         periodMode={periodMode}
@@ -126,14 +145,14 @@ const RecentPaperContent = () => {
         onDateSelect={handleDateSelect}
         onViewModeChange={handleViewModeChange}
       />
-      {viewMode === 'list' && (
+      {viewMode === "list" && (
         <RecentPaperListView
           periodMode={periodMode}
           currentDate={currentDate}
           onPaperClick={handlePaperClick}
         />
       )}
-      {viewMode === 'chart' && (
+      {viewMode === "chart" && (
         <Box sx={chartViewWrapperSx}>
           <RecentPaperChartView
             periodMode={periodMode}
