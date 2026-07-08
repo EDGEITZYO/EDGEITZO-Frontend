@@ -48,7 +48,7 @@ const titleSx: SxProps<Theme> = {
 
 const ALL_FOLDER: BookmarkFolder = {
   id: "all",
-  name: "전체 파일",
+  name: "전체",
   created_at: "",
   paper_count: 0,
   representative_keywords: [],
@@ -99,6 +99,7 @@ const BookmarkContent = () => {
       bookmarkApi.updateFolder(folderId, name),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["saved-bookmark-folders"] });
+      queryClient.invalidateQueries({ queryKey: ["bookmark-folder"] });
     },
   });
 

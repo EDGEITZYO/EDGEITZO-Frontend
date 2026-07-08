@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import { Box, Typography, Snackbar, CircularProgress } from "@mui/material";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import RecentPaperCard from "../common/RecentPaperCard";
+import SavedPaperCard from "./SavedPaperCard";
 import { type RecentPaper, type PeriodMode } from "../../types/saved";
 import { savedApi } from "../../api/saved";
 import { formatDateParam } from "../../utils/savedUtils";
@@ -195,10 +195,11 @@ const RecentPaperListView = ({
                 sx={{ display: "flex", flexDirection: "column", gap: "17px" }}
               >
                 {grouped[dateKey].map((paper) => (
-                  <RecentPaperCard
+                  <SavedPaperCard
                     key={paper.paper_id}
+                    variant="recent"
                     paper={paper}
-                    onBookmark={handleBookmark}
+                    onBookmarkToggle={handleBookmark}
                     onDelete={handleDelete}
                     onClick={onPaperClick}
                   />

@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Box, Button, Paper, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import { type BookmarkFilter } from "../../types/saved";
@@ -10,51 +10,123 @@ interface BookmarkFilterBarProps {
   onFilterChange: (filter: BookmarkFilter) => void;
 }
 
-const containerSx: SxProps<Theme> = {
+const filterPillSx: SxProps<Theme> = {
   display: "flex",
+  width: "164px",
+  height: "42px",
+  padding: "8px 8px 8px 16px",
+  justifyContent: "space-between",
   alignItems: "center",
-  gap: "6px",
+  borderRadius: "216px",
+  backgroundColor: "background.default",
+  cursor: "pointer",
   flexShrink: 0,
 };
 
-const filterButtonSx = (isActive: boolean): SxProps<Theme> => ({
-  padding: "5px 13px",
-  borderRadius: "7px",
-  border: "1px solid",
-  borderColor: isActive ? "static.black" : "line.normal",
-  backgroundColor: isActive ? "static.black" : "background.default",
-  color: isActive ? "static.white" : "label.normal",
-  fontSize: "17px",
-  fontWeight: 600,
-  lineHeight: "170%",
-  letterSpacing: "-0.34px",
-  textTransform: "none",
-  display: "flex",
-  alignItems: "center",
-  gap: "4px",
-  "&:hover": { backgroundColor: isActive ? "label.neutral" : "fill.normal" },
-});
+const filterTextSx: SxProps<Theme> = {
+  display: "-webkit-box",
+  WebkitBoxOrient: "vertical",
+  WebkitLineClamp: 1,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  color: "label.alternative",
+  fontSize: "16px",
+  fontWeight: 400,
+  lineHeight: "24px",
+  letterSpacing: "-0.336px",
+};
 
-const dropdownSx: SxProps<Theme> = {
+const dropdownArrowSx: SxProps<Theme> = {
+  display: "flex",
+  width: "40px",
+  height: "40px",
+  padding: "9px 10px 11px 10px",
+  justifyContent: "center",
+  alignItems: "center",
+  borderRadius: "24px",
+  flexShrink: 0,
+};
+
+const dropdownContainerSx: SxProps<Theme> = {
   position: "absolute",
   top: "calc(100% + 4px)",
   left: 0,
   zIndex: 100,
-  borderRadius: "8px",
+  display: "flex",
+  padding: "8px",
+  flexDirection: "column",
+  alignItems: "center",
+  alignSelf: "stretch",
+  borderRadius: "28px",
   border: "1px solid",
-  borderColor: "line.normal",
+  borderColor: "label.alternative",
   backgroundColor: "background.default",
-  minWidth: "140px",
-  overflow: "hidden",
-  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+  minWidth: "164px",
 };
 
-const dropdownItemSx = (isActive: boolean): SxProps<Theme> => ({
-  px: "16px",
-  py: "10px",
+const dropdownItemActiveSx: SxProps<Theme> = {
+  display: "flex",
+  height: "42px",
+  padding: "8px",
+  justifyContent: "center",
+  alignItems: "center",
+  gap: "16px",
+  alignSelf: "stretch",
+  borderRadius: "216px",
+  backgroundColor: "background.paper",
   cursor: "pointer",
-  backgroundColor: isActive ? "fill.normal" : "transparent",
-  "&:hover": { backgroundColor: "fill.normal" },
+};
+
+const dropdownItemSx: SxProps<Theme> = {
+  display: "flex",
+  height: "42px",
+  padding: "8px",
+  justifyContent: "center",
+  alignItems: "center",
+  gap: "16px",
+  alignSelf: "stretch",
+  borderRadius: "216px",
+  backgroundColor: "background.default",
+  cursor: "pointer",
+  "&:hover": { backgroundColor: "background.paper" },
+};
+
+const dropdownItemTextSx: SxProps<Theme> = {
+  display: "-webkit-box",
+  WebkitBoxOrient: "vertical",
+  WebkitLineClamp: 1,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  color: "label.normal",
+  fontSize: "16px",
+  fontWeight: 400,
+  lineHeight: "24px",
+  letterSpacing: "-0.336px",
+  flex: "1 0 0",
+};
+
+const togglePillSx = (isActive: boolean): SxProps<Theme> => ({
+  display: "flex",
+  padding: "8px 13px",
+  justifyContent: "center",
+  alignItems: "center",
+  borderRadius: "24px",
+  backgroundColor: isActive ? "primary.dark" : "background.default",
+  cursor: "pointer",
+  flexShrink: 0,
+});
+
+const toggleTextSx = (isActive: boolean): SxProps<Theme> => ({
+  display: "-webkit-box",
+  WebkitBoxOrient: "vertical",
+  WebkitLineClamp: 1,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  color: isActive ? "static.white" : "label.alternative",
+  fontSize: "16px",
+  fontWeight: 400,
+  lineHeight: "24px",
+  letterSpacing: "-0.336px",
 });
 
 const CURRENT_YEAR = new Date().getFullYear();
@@ -102,86 +174,99 @@ const BookmarkFilterBar = ({
   };
 
   return (
-    <Box sx={containerSx}>
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        gap: "12px",
+        flexWrap: "wrap",
+      }}
+    >
       {/* 발행 연도 */}
       <Box ref={yearRef} sx={{ position: "relative" }}>
-        <Button
-          sx={filterButtonSx(filter.year !== null)}
-          onClick={() => toggleDropdown("year")}
-        >
-          {filter.year !== null ? `${filter.year}년` : "발행 연도"}
-          <KeyboardArrowDownIcon sx={{ fontSize: 18 }} />
-        </Button>
+        <Box sx={filterPillSx} onClick={() => toggleDropdown("year")}>
+          <Typography sx={filterTextSx}>
+            {filter.year !== null ? `${filter.year}년` : "발행 연도"}
+          </Typography>
+          <Box sx={dropdownArrowSx}>
+            <KeyboardArrowDownIcon
+              sx={{ fontSize: 20, color: "label.alternative" }}
+            />
+          </Box>
+        </Box>
         {openDropdown === "year" && (
-          <Paper sx={dropdownSx}>
+          <Box sx={dropdownContainerSx}>
             {YEARS.map((year) => (
               <Box
                 key={year}
-                sx={dropdownItemSx(filter.year === year)}
+                sx={
+                  filter.year === year ? dropdownItemActiveSx : dropdownItemSx
+                }
                 onClick={() => handleYearSelect(year)}
               >
-                <Typography
+                <Box
                   sx={{
-                    fontSize: "16px",
-                    fontWeight: filter.year === year ? 600 : 400,
-                    color: "label.strong",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    flex: "1 0 0",
                   }}
                 >
-                  {year}
-                </Typography>
+                  <Typography sx={dropdownItemTextSx}>{year}</Typography>
+                </Box>
               </Box>
             ))}
-          </Paper>
+          </Box>
         )}
       </Box>
 
       {/* 논문 유형 */}
       <Box ref={typeRef} sx={{ position: "relative" }}>
-        <Button
-          sx={filterButtonSx(filter.type !== null)}
-          onClick={() => toggleDropdown("type")}
-        >
-          {filter.type ?? "논문 유형"}
-          <KeyboardArrowDownIcon sx={{ fontSize: 18 }} />
-        </Button>
+        <Box sx={filterPillSx} onClick={() => toggleDropdown("type")}>
+          <Typography sx={filterTextSx}>
+            {filter.type ?? "논문 유형"}
+          </Typography>
+          <Box sx={dropdownArrowSx}>
+            <KeyboardArrowDownIcon
+              sx={{ fontSize: 20, color: "label.alternative" }}
+            />
+          </Box>
+        </Box>
         {openDropdown === "type" && (
-          <Paper sx={dropdownSx}>
+          <Box sx={dropdownContainerSx}>
             {PAPER_TYPES.map((type) => (
               <Box
                 key={type}
-                sx={dropdownItemSx(filter.type === type)}
+                sx={
+                  filter.type === type ? dropdownItemActiveSx : dropdownItemSx
+                }
                 onClick={() => handleTypeSelect(type)}
               >
-                <Typography
+                <Box
                   sx={{
-                    fontSize: "16px",
-                    fontWeight: filter.type === type ? 600 : 400,
-                    color: "label.strong",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    flex: "1 0 0",
                   }}
                 >
-                  {type}
-                </Typography>
+                  <Typography sx={dropdownItemTextSx}>{type}</Typography>
+                </Box>
               </Box>
             ))}
-          </Paper>
+          </Box>
         )}
       </Box>
 
       {/* KCI 등재 */}
-      <Button
-        sx={filterButtonSx(filter.kci === true)}
-        onClick={handleKciToggle}
-      >
-        KCI 등재
-      </Button>
+      <Box sx={togglePillSx(filter.kci === true)} onClick={handleKciToggle}>
+        <Typography sx={toggleTextSx(filter.kci === true)}>KCI 등재</Typography>
+      </Box>
 
       {/* SCI 등재 */}
-      <Button
-        sx={filterButtonSx(filter.sci === true)}
-        onClick={handleSciToggle}
-      >
-        SCI 등재
-      </Button>
+      <Box sx={togglePillSx(filter.sci === true)} onClick={handleSciToggle}>
+        <Typography sx={toggleTextSx(filter.sci === true)}>SCI 등재</Typography>
+      </Box>
     </Box>
   );
 };
