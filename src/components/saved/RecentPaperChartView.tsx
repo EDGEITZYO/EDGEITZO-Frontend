@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Box, Typography, IconButton, CircularProgress } from "@mui/material";
+import {
+  Box,
+  Typography,
+  IconButton,
+  CircularProgress,
+  useMediaQuery,
+} from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import { useQuery } from "@tanstack/react-query";
@@ -9,83 +16,7 @@ import ChartRightPanel from "./ChartRightPanel";
 import { type ChartFilter, type PeriodMode } from "../../types/saved";
 import { savedApi } from "../../api/saved";
 import { formatDateParam } from "../../utils/savedUtils";
-
-// ─── 스타일 ───────────────────────────────────────────────
-
-const containerSx: SxProps<Theme> = {
-  display: "flex",
-  flexDirection: "column",
-  flex: 1,
-  gap: "15px",
-  minHeight: 0,
-  overflow: "hidden",
-};
-
-const summarySx: SxProps<Theme> = {
-  display: "flex",
-  alignItems: "center",
-  padding: "16px 40px",
-  borderRadius: "16px",
-  border: "1px solid",
-  borderColor: "line.normal",
-  justifyContent: "flex-start",
-};
-
-const summaryItemSx: SxProps<Theme> = {
-  display: "flex",
-  flexDirection: "column",
-  gap: "4px",
-};
-
-const summaryDividerSx: SxProps<Theme> = {
-  width: "1px",
-  height: "44px",
-  backgroundColor: "line.normal",
-  ml: "45px",
-  mr: "30px",
-  flexShrink: 0,
-};
-
-const summaryLabelSx: SxProps<Theme> = {
-  fontSize: "14px",
-  fontWeight: 400,
-  color: "label.alternative",
-};
-
-const summaryValueSx: SxProps<Theme> = {
-  fontSize: "20px",
-  fontWeight: 700,
-  color: "static.black",
-};
-
-const chartAreaSx: SxProps<Theme> = {
-  display: "flex",
-  gap: "15px",
-  flex: 1,
-  minHeight: 0,
-  overflow: "hidden",
-};
-
-const chartWrapperSx: SxProps<Theme> = {
-  flex: 1,
-  borderRadius: "16px",
-  backgroundColor: "background.paper",
-  position: "relative",
-  minHeight: 0,
-  overflow: "hidden",
-};
-
-const fullscreenButtonSx: SxProps<Theme> = {
-  position: "absolute",
-  top: "12px",
-  right: "12px",
-  zIndex: 10,
-  backgroundColor: "background.default",
-  borderRadius: "8px",
-  "&:hover": { backgroundColor: "fill.normal" },
-};
-
-// ─── 컴포넌트 ─────────────────────────────────────────────
+import ChartAxisOverlay from "./ChartAxisOverlay";
 
 interface RecentPaperChartViewProps {
   periodMode: PeriodMode;
@@ -94,6 +25,41 @@ interface RecentPaperChartViewProps {
   onFilterChange: (filter: ChartFilter) => void;
 }
 
+const summarySx: SxProps<Theme> = {
+  display: "flex",
+  padding: "24px",
+  alignItems: "flex-end",
+  alignContent: "flex-end",
+  gap: "12px 32px",
+  alignSelf: "stretch",
+  flexWrap: "wrap",
+  borderRadius: "8px",
+  border: "1px solid",
+  borderColor: "line.normal",
+};
+
+const summaryItemSx: SxProps<Theme> = {
+  display: "flex",
+  alignItems: "flex-end",
+  gap: "12px",
+};
+
+const summaryLabelSx: SxProps<Theme> = {
+  color: "label.alternative",
+  fontSize: "16px",
+  fontWeight: 400,
+  lineHeight: "24px",
+  letterSpacing: "-0.336px",
+};
+
+const summaryValueSx: SxProps<Theme> = {
+  color: "primary.dark",
+  fontSize: "28px",
+  fontWeight: 600,
+  lineHeight: "42px",
+  letterSpacing: "-0.784px",
+};
+
 const RecentPaperChartView = ({
   periodMode,
   currentDate,
@@ -101,6 +67,8 @@ const RecentPaperChartView = ({
   onFilterChange,
 }: RecentPaperChartViewProps) => {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
   const [searchParams] = useSearchParams();
   const [selectedPaperIds, setSelectedPaperIds] = useState<string[] | null>(
     null,
@@ -142,7 +110,8 @@ const RecentPaperChartView = ({
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          flex: 1,
+          py: "80px",
+          width: "100%",
         }}
       >
         <CircularProgress />
@@ -157,7 +126,8 @@ const RecentPaperChartView = ({
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          flex: 1,
+          py: "80px",
+          width: "100%",
         }}
       >
         <Typography sx={{ fontSize: "16px", color: "label.alternative" }}>
@@ -169,20 +139,28 @@ const RecentPaperChartView = ({
 
   const chartData = data.chart_data;
 
-  return (
-    <Box sx={containerSx}>
-      {/* 요약 카드 */}
+  // 좌측: 요약 + 차트
+  const LeftPanel = (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: isDesktop ? "flex-start" : "stretch",
+        width: isDesktop ? "auto" : "100%",
+        gap: "8px",
+        flex: isDesktop ? "1 0 0" : "auto",
+      }}
+    >
+      {/* 요약 */}
       <Box sx={summarySx}>
         <Box sx={summaryItemSx}>
           <Typography sx={summaryLabelSx}>총 탐색 논문</Typography>
           <Typography sx={summaryValueSx}>{data.total_papers}건</Typography>
         </Box>
-        <Box sx={summaryDividerSx} />
         <Box sx={summaryItemSx}>
           <Typography sx={summaryLabelSx}>키워드 수</Typography>
           <Typography sx={summaryValueSx}>{data.keyword_count}개</Typography>
         </Box>
-        <Box sx={summaryDividerSx} />
         <Box sx={summaryItemSx}>
           <Typography sx={summaryLabelSx}>가장 많이 탐색한 키워드</Typography>
           <Typography sx={summaryValueSx}>{data.top_keyword}</Typography>
@@ -190,19 +168,100 @@ const RecentPaperChartView = ({
       </Box>
 
       {/* 차트 영역 */}
-      <Box sx={chartAreaSx}>
-        <Box sx={chartWrapperSx}>
-          <IconButton sx={fullscreenButtonSx} onClick={handleFullscreen}>
-            <FullscreenIcon sx={{ fontSize: 24, color: "label.alternative" }} />
+      <Box
+        sx={{
+          height: "708px",
+          alignSelf: "stretch",
+          borderRadius: "8px",
+          background: "linear-gradient(180deg, #F7F8FA 0%, #E6F9F0 100%)",
+          position: "relative",
+          padding: "24px",
+          boxSizing: "border-box",
+        }}
+      >
+        {/* 확대 버튼 — 데스크탑에서만 */}
+        {isDesktop && (
+          <IconButton
+            onClick={handleFullscreen}
+            sx={{
+              position: "absolute",
+              top: "12px",
+              right: "12px",
+              zIndex: 10,
+              display: "flex",
+              width: "36px",
+              height: "36px",
+              padding: "4px",
+              justifyContent: "center",
+              alignItems: "center",
+              borderRadius: "8px",
+              backgroundColor: "label.normal",
+              "&:hover": { backgroundColor: "label.strong" },
+            }}
+          >
+            <FullscreenIcon
+              sx={{ width: "28px", height: "28px", color: "static.white" }}
+            />
           </IconButton>
+        )}
+
+        <ChartAxisOverlay />
+
+        {/* 버블 차트 */}
+        <Box
+          sx={{
+            position: "relative",
+            width: "100%",
+            height: "100%",
+            zIndex: 2,
+          }}
+        >
           <BubbleChart
-            variant="normal"
             papers={chartData}
             selectedPaperIds={selectedPaperIds}
             onDotClick={setSelectedPaperIds}
             onBackgroundClick={() => setSelectedPaperIds(null)}
           />
         </Box>
+      </Box>
+    </Box>
+  );
+
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: isDesktop ? "row" : "column",
+        alignItems: "stretch",
+        gap: "8px",
+        width: "100%",
+      }}
+    >
+      {LeftPanel}
+
+      {/* 데스크탑일 때 좌측 높이에 맞추기 위한 래퍼(Wrapper) 적용 */}
+      {isDesktop ? (
+        <Box sx={{ width: "455px", position: "relative", flexShrink: 0 }}>
+          <Box
+            sx={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+            }}
+          >
+            <ChartRightPanel
+              papers={chartData}
+              filter={filter}
+              selectedPaperIds={selectedPaperIds}
+              onFilterChange={onFilterChange}
+              onBack={() => setSelectedPaperIds(null)}
+              onPaperClick={onPaperClick}
+            />
+          </Box>
+        </Box>
+      ) : (
         <ChartRightPanel
           papers={chartData}
           filter={filter}
@@ -211,7 +270,7 @@ const RecentPaperChartView = ({
           onBack={() => setSelectedPaperIds(null)}
           onPaperClick={onPaperClick}
         />
-      </Box>
+      )}
     </Box>
   );
 };
