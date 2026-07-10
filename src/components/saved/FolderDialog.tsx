@@ -117,6 +117,7 @@ const DIALOG_CONFIG: Record<
 > = {
   create: { title: "파일 새로 생성", confirmLabel: "완료" },
   delete: { title: "정말 삭제하시겠습니까?", confirmLabel: "삭제" },
+  "bookmark-delete": { title: "북마크에서 삭제하시겠습니까?", confirmLabel: "삭제" },
 };
 
 const FolderDialog = ({
@@ -153,7 +154,7 @@ const FolderDialog = ({
           </Box>
 
           {/* delete: 텍스트 없음 / create: 텍스트 필드 */}
-          {mode === "delete" ? null : (
+          {mode === "delete" || mode === "bookmark-delete" ? null : (
             <TextField
               fullWidth
               placeholder="파일명을 입력해주세요"

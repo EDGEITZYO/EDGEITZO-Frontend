@@ -77,7 +77,10 @@ const badgeAndButtonRowSx: SxProps<Theme> = {
   alignSelf: "stretch",
 };
 
-const badgeAndJournalSx = (isMobile: boolean, isNarrow: boolean): SxProps<Theme> => ({
+const badgeAndJournalSx = (
+  isMobile: boolean,
+  isNarrow: boolean,
+): SxProps<Theme> => ({
   display: "flex",
   flexDirection: isMobile || isNarrow ? "column" : "row",
   justifyContent: "center",
@@ -89,6 +92,7 @@ const badgesSx: SxProps<Theme> = {
   display: "flex",
   alignItems: "center",
   gap: "8px",
+  flexWrap: "wrap",
 };
 
 const kciSciBadgeSx: SxProps<Theme> = {
@@ -99,6 +103,7 @@ const kciSciBadgeSx: SxProps<Theme> = {
   borderRadius: "6px",
   border: "1px solid",
   borderColor: "secondary.dark",
+  whiteSpace: "nowrap",
 };
 
 const kciSciTextSx: SxProps<Theme> = {
@@ -123,6 +128,7 @@ const citationBadgeSx: SxProps<Theme> = {
   border: "1px solid",
   borderColor: "label.normal",
   alignSelf: "flex-start",
+  whiteSpace: "nowrap",
 };
 
 const citationTextSx: SxProps<Theme> = {
@@ -383,7 +389,7 @@ const SavedPaperCard = (props: SavedPaperCardProps) => {
                   />
                 )}
               </IconButton>
-              {variant === "recent" && (
+              {variant === "recent" && !isMobile && (
                 <IconButton
                   sx={iconButtonSx}
                   onClick={(e: React.MouseEvent<HTMLButtonElement>) => {

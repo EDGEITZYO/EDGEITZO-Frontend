@@ -48,7 +48,7 @@ export interface SavedBookmarkListResponse {
 
 // ─── 폴더 Dialog ─────────────────────────────────────────
 
-export type FolderDialogMode = "create" | "delete";
+export type FolderDialogMode = "create" | "delete" | "bookmark-delete";
 
 export interface FolderDialogState {
   open: boolean;
