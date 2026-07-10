@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
-import { Box, Typography, CircularProgress } from "@mui/material";
+import { Box, Typography, IconButton, CircularProgress } from "@mui/material";
 import { type SxProps, type Theme } from "@mui/material/styles";
+import CloseFullscreenIcon from "@mui/icons-material/CloseFullscreen";
 import { useQuery } from "@tanstack/react-query";
 import RecentPaperHeader from "../components/saved/RecentPaperHeader";
 import BubbleChart from "../components/saved/BubbleChart";
@@ -13,91 +14,25 @@ import {
   formatDateParam,
   isPeriodMode,
 } from "../utils/savedUtils";
+import ChartAxisOverlay from "../components/saved/ChartAxisOverlay";
 
-// ─── 스타일 ───────────────────────────────────────────────
-
-const pageWrapperSx: SxProps<Theme> = {
+const labelBoxSx: SxProps<Theme> = {
   display: "flex",
-  flexDirection: "column",
-  height: "100vh",
-  backgroundColor: "background.default",
-  overflow: "hidden",
-  padding: "24px 40px",
-  gap: "13px",
-};
-
-const summarySx: SxProps<Theme> = {
-  display: "flex",
-  alignItems: "center",
-  padding: "16px 40px",
-  borderRadius: "16px",
-  border: "1px solid",
-  borderColor: "line.normal",
-  flexShrink: 0,
-};
-
-const summaryItemSx: SxProps<Theme> = {
-  display: "flex",
-  flexDirection: "column",
-  gap: "4px",
-};
-
-const summaryDividerSx: SxProps<Theme> = {
-  width: "1px",
-  height: "44px",
-  backgroundColor: "line.normal",
-  ml: "45px",
-  mr: "30px",
-  flexShrink: 0,
-};
-
-const summaryLabelSx: SxProps<Theme> = {
-  fontSize: "14px",
-  fontWeight: 400,
-  color: "label.alternative",
-};
-
-const summaryValueSx: SxProps<Theme> = {
-  fontSize: "20px",
-  fontWeight: 700,
-  color: "static.black",
-};
-
-const chartAreaSx: SxProps<Theme> = {
-  display: "flex",
-  gap: "15px",
-  flex: 1,
-  minHeight: 0,
-  overflow: "hidden",
-};
-
-const axisLabelSx: SxProps<Theme> = {
-  display: "flex",
-  alignItems: "center",
+  padding: "8px 4px",
   justifyContent: "center",
-  backgroundColor: "fill.normal",
-  borderRadius: "16px",
-  padding: "6px 16px",
-  border: "1px solid",
-  borderColor: "line.normal",
-};
-
-const axisLabelTextSx: SxProps<Theme> = {
-  fontSize: "18px",
-  fontWeight: 600,
-  color: "label.neutral",
-  whiteSpace: "nowrap",
-};
-
-const chartWrapperSx: SxProps<Theme> = {
-  flex: 1,
+  alignItems: "center",
+  flex: "1 0 0",
   borderRadius: "16px",
   backgroundColor: "background.paper",
-  overflow: "hidden",
-  minHeight: 0,
 };
 
-// ─── 컴포넌트 ─────────────────────────────────────────────
+const labelTextSx: SxProps<Theme> = {
+  color: "label.neutral",
+  fontSize: "16px",
+  fontWeight: 400,
+  lineHeight: "24px",
+  letterSpacing: "-0.336px",
+};
 
 const RecentPaperFullscreenPage = () => {
   const navigate = useNavigate();
@@ -171,9 +106,8 @@ const RecentPaperFullscreenPage = () => {
 
   const handleClose = () => {
     const params = new URLSearchParams(searchParams);
-    params.set("tab", "recent");
     params.set("view", "chart");
-    navigate(`/saved?${params.toString()}`, { replace: true });
+    navigate(`/saved/recent?${params.toString()}`, { replace: true });
   };
 
   const handlePaperClick = (paperId: string) => {
@@ -216,119 +150,319 @@ const RecentPaperFullscreenPage = () => {
   const chartData = data.chart_data;
 
   return (
-    <Box sx={pageWrapperSx}>
-      <RecentPaperHeader
-        variant="fullscreen"
-        periodMode={periodMode}
-        currentDate={currentDate}
-        viewMode="chart"
-        onPeriodModeChange={handlePeriodModeChange}
-        onDatePrev={handleDatePrev}
-        onDateNext={handleDateNext}
-        onDateSelect={handleDateSelect}
-        onViewModeChange={() => {}}
-        onClose={handleClose}
-      />
+    <Box
+      sx={{
+        display: "flex",
+        padding: "24px",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        gap: "10px",
+        minHeight: "100vh",
+        backgroundColor: "background.paper",
+        boxSizing: "border-box",
+      }}
+    >
+      {/* 콘텐츠 프레임 */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "flex-end",
+          alignItems: "center",
+          gap: "24px",
+          width: "100%",
+        }}
+      >
+        {/* 상단: 일/주 선택 + 날짜 + 축소 버튼 */}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            alignSelf: "stretch",
+          }}
+        >
+          {/* 일/주 + 날짜 */}
+          <RecentPaperHeader
+            periodMode={periodMode}
+            currentDate={currentDate}
+            viewMode="chart"
+            showViewToggle={false}
+            onPeriodModeChange={handlePeriodModeChange}
+            onDatePrev={handleDatePrev}
+            onDateNext={handleDateNext}
+            onDateSelect={handleDateSelect}
+            onViewModeChange={() => {}}
+          />
 
-      {/* 요약카드 */}
-      <Box sx={summarySx}>
-        <Box sx={summaryItemSx}>
-          <Typography sx={summaryLabelSx}>총 탐색 논문</Typography>
-          <Typography sx={summaryValueSx}>{data.total_papers}건</Typography>
+          {/* 축소 버튼 */}
+          <IconButton
+            onClick={handleClose}
+            sx={{
+              display: "flex",
+              width: "36px",
+              height: "36px",
+              padding: "4px",
+              justifyContent: "center",
+              alignItems: "center",
+              borderRadius: "8px",
+              backgroundColor: "label.normal",
+              flexShrink: 0,
+              "&:hover": { backgroundColor: "label.strong" },
+            }}
+          >
+            <CloseFullscreenIcon
+              sx={{ width: "28px", height: "28px", color: "static.white" }}
+            />
+          </IconButton>
         </Box>
-        <Box sx={summaryDividerSx} />
-        <Box sx={summaryItemSx}>
-          <Typography sx={summaryLabelSx}>키워드 수</Typography>
-          <Typography sx={summaryValueSx}>{data.keyword_count}개</Typography>
-        </Box>
-        <Box sx={summaryDividerSx} />
-        <Box sx={summaryItemSx}>
-          <Typography sx={summaryLabelSx}>가장 많이 탐색한 키워드</Typography>
-          <Typography sx={summaryValueSx}>{data.top_keyword}</Typography>
-        </Box>
-      </Box>
 
-      {/* 차트 영역 */}
-      <Box sx={chartAreaSx}>
+        {/* 상단 제외한 프레임 */}
         <Box
           sx={{
             display: "flex",
             flexDirection: "column",
-            flex: 1,
-            minHeight: 0,
-            gap: "5px",
+            alignItems: "flex-start",
+            alignSelf: "stretch",
           }}
         >
-          <Box sx={{ display: "flex", flex: 1, minHeight: 0, gap: "10px" }}>
+          {/* 상단 정보 (요약) */}
+          <Box
+            sx={{
+              display: "flex",
+              padding: "24px 24px 16px 24px",
+              alignItems: "flex-end",
+              alignContent: "flex-end",
+              gap: "12px 32px",
+              alignSelf: "stretch",
+              flexWrap: "wrap",
+              borderRadius: "8px 8px 0 0",
+              backgroundColor: "background.default",
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "flex-end", gap: "12px" }}>
+              <Typography
+                sx={{
+                  color: "label.alternative",
+                  fontSize: "16px",
+                  fontWeight: 400,
+                  lineHeight: "24px",
+                  letterSpacing: "-0.336px",
+                }}
+              >
+                총 탐색 논문
+              </Typography>
+              <Typography
+                sx={{
+                  color: "primary.dark",
+                  fontSize: "28px",
+                  fontWeight: 600,
+                  lineHeight: "42px",
+                  letterSpacing: "-0.784px",
+                }}
+              >
+                {data.total_papers}건
+              </Typography>
+            </Box>
+            <Box sx={{ display: "flex", alignItems: "flex-end", gap: "12px" }}>
+              <Typography
+                sx={{
+                  color: "label.alternative",
+                  fontSize: "16px",
+                  fontWeight: 400,
+                  lineHeight: "24px",
+                  letterSpacing: "-0.336px",
+                }}
+              >
+                키워드 수
+              </Typography>
+              <Typography
+                sx={{
+                  color: "primary.dark",
+                  fontSize: "28px",
+                  fontWeight: 600,
+                  lineHeight: "42px",
+                  letterSpacing: "-0.784px",
+                }}
+              >
+                {data.keyword_count}개
+              </Typography>
+            </Box>
+            <Box sx={{ display: "flex", alignItems: "flex-end", gap: "12px" }}>
+              <Typography
+                sx={{
+                  color: "label.alternative",
+                  fontSize: "16px",
+                  fontWeight: 400,
+                  lineHeight: "24px",
+                  letterSpacing: "-0.336px",
+                }}
+              >
+                가장 많이 탐색한 키워드
+              </Typography>
+              <Typography
+                sx={{
+                  color: "primary.dark",
+                  fontSize: "28px",
+                  fontWeight: 600,
+                  lineHeight: "42px",
+                  letterSpacing: "-0.784px",
+                }}
+              >
+                {data.top_keyword}
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* 하단 프레임: 차트 + 우측 패널 */}
+          <Box
+            sx={{
+              display: "flex",
+              padding: "16px",
+              alignItems: "stretch",
+              gap: "12px",
+              alignSelf: "stretch",
+              borderRadius: "0 0 12px 12px",
+              backgroundColor: "static.white",
+              backdropFilter: "blur(2.9px)",
+            }}
+          >
+            {/* 좌측 차트 영역 */}
             <Box
               sx={{
                 display: "flex",
-                flexDirection: "column",
-                flex: 1,
-                minHeight: 0,
-                gap: "10px",
+                height: "794px",
+                alignItems: "flex-start",
+                gap: "8px",
+                flex: "1 0 0",
               }}
             >
-              <Box sx={{ display: "flex", gap: "5px", flexShrink: 0 }}>
-                <Box sx={{ ...axisLabelSx, flex: 1 }}>
-                  <Typography sx={axisLabelTextSx}>오래된 논문</Typography>
+              <Box
+                sx={{
+                  display: "flex",
+                  height: "794px",
+                  flexDirection: "column",
+                  alignItems: "flex-start",
+                  gap: "8px",
+                  flex: "1 0 0",
+                }}
+              >
+                {/* 오래된 논문 / 최신 논문 라벨 */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: "8px",
+                    alignSelf: "stretch",
+                  }}
+                >
+                  <Box sx={labelBoxSx}>
+                    <Typography sx={labelTextSx}>오래된 논문</Typography>
+                  </Box>
+                  <Box sx={labelBoxSx}>
+                    <Typography sx={labelTextSx}>최신 논문</Typography>
+                  </Box>
                 </Box>
-                <Box sx={{ ...axisLabelSx, flex: 1 }}>
-                  <Typography sx={axisLabelTextSx}>최신 논문</Typography>
+
+                {/* 차트 */}
+                <Box
+                  sx={{
+                    flex: 1,
+                    alignSelf: "stretch",
+                    borderRadius: "8px",
+                    background:
+                      "linear-gradient(180deg, #F7F8FA 0%, #E6F9F0 100%)",
+                    position: "relative",
+                    padding: "24px",
+                    boxSizing: "border-box",
+                    minHeight: 0,
+                  }}
+                >
+                  <ChartAxisOverlay />
+                  <Box
+                    sx={{
+                      position: "relative",
+                      width: "100%",
+                      height: "100%",
+                      zIndex: 2,
+                    }}
+                  >
+                    <BubbleChart
+                      papers={chartData}
+                      selectedPaperIds={selectedPaperIds}
+                      onDotClick={setSelectedPaperIds}
+                      onBackgroundClick={() => setSelectedPaperIds(null)}
+                    />
+                  </Box>
                 </Box>
               </Box>
-              <Box sx={chartWrapperSx}>
-                <BubbleChart
-                  variant="fullscreen"
-                  papers={chartData}
-                  selectedPaperIds={selectedPaperIds}
-                  onDotClick={setSelectedPaperIds}
-                  onBackgroundClick={() => setSelectedPaperIds(null)}
-                />
+
+              {/* 세로 라벨 (인용 높음 / 인용 낮음) */}
+              <Box
+                sx={{
+                  display: "flex",
+                  width: "40px",
+                  flexDirection: "column",
+                  alignItems: "flex-start",
+                  gap: "8px",
+                  alignSelf: "stretch",
+                  paddingTop: "40px",
+                }}
+              >
+                <Box
+                  sx={{
+                    ...labelBoxSx,
+                    flex: 1,
+                    writingMode: "vertical-rl",
+                    transform: "rotate(0deg)",
+                  }}
+                >
+                  <Typography sx={labelTextSx}>인용 높음</Typography>
+                </Box>
+                <Box
+                  sx={{
+                    ...labelBoxSx,
+                    flex: 1,
+                    writingMode: "vertical-rl",
+                    transform: "rotate(0deg)",
+                  }}
+                >
+                  <Typography sx={labelTextSx}>인용 낮음</Typography>
+                </Box>
               </Box>
             </Box>
+
+            {/* 우측 패널 */}
             <Box
               sx={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "5px",
+                width: "455px",
+                position: "relative",
                 flexShrink: 0,
+                alignSelf: "stretch",
               }}
             >
-              <Box sx={{ height: "40px", flexShrink: 0 }} />
               <Box
                 sx={{
-                  ...axisLabelSx,
-                  writingMode: "vertical-rl",
-                  transform: "rotate(0deg)",
-                  padding: "16px 6px",
-                  flex: 1,
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
                 }}
               >
-                <Typography sx={axisLabelTextSx}>인용 높음</Typography>
-              </Box>
-              <Box
-                sx={{
-                  ...axisLabelSx,
-                  writingMode: "vertical-rl",
-                  transform: "rotate(0deg)",
-                  padding: "16px 6px",
-                  flex: 1,
-                }}
-              >
-                <Typography sx={axisLabelTextSx}>인용 낮음</Typography>
+                <ChartRightPanel
+                  papers={chartData}
+                  filter={filter}
+                  selectedPaperIds={selectedPaperIds}
+                  onFilterChange={handleFilterChange}
+                  onBack={() => setSelectedPaperIds(null)}
+                  onPaperClick={handlePaperClick}
+                />
               </Box>
             </Box>
           </Box>
         </Box>
-        <ChartRightPanel
-          papers={chartData}
-          filter={filter}
-          selectedPaperIds={selectedPaperIds}
-          onFilterChange={handleFilterChange}
-          onBack={() => setSelectedPaperIds(null)}
-          onPaperClick={handlePaperClick}
-        />
       </Box>
     </Box>
   );

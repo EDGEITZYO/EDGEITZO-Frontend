@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import { Box } from "@mui/material";
 import {
   ScatterChart,
@@ -13,7 +13,6 @@ import { type RecentPaperChartItem } from "../../types/saved";
 // ─── 타입 ─────────────────────────────────────────────────
 
 interface BubbleChartProps {
-  variant: "normal" | "fullscreen";
   papers: RecentPaperChartItem[];
   selectedPaperIds: string[] | null;
   onDotClick: (paperIds: string[]) => void;
@@ -31,7 +30,7 @@ interface ChartDot {
 // ─── 상수 ─────────────────────────────────────────────────
 
 const DOT_RADIUS = 16;
-const DOT_COLOR = "#35CE89";
+const DOT_COLOR = "#92E268";
 const DOT_CLUSTER_COLOR = "#03C26C";
 const DOT_SELECTED_COLOR = "#029B56";
 const DOT_DIMMED_COLOR = "#D1D5DB";
@@ -127,126 +126,15 @@ const CustomDot = (props: {
   );
 };
 
-// ─── 축 오버레이 (normal variant) ────────────────────────
-
-const NormalAxisOverlay = ({
-  width,
-  height,
-}: {
-  width: number;
-  height: number;
-}) => (
-  <svg
-    style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none" }}
-    width={width}
-    height={height}
-  >
-    <defs>
-      <marker
-        id="arrowhead"
-        markerWidth="6"
-        markerHeight="4"
-        refX="6"
-        refY="2"
-        orient="auto"
-      >
-        <polygon points="0 0, 6 2, 0 4" fill="#9CA3AF" />
-      </marker>
-    </defs>
-    {/* X축 */}
-    <line
-      x1={0}
-      y1={height / 2}
-      x2={width}
-      y2={height / 2}
-      stroke="#9CA3AF"
-      strokeWidth={1}
-      markerEnd="url(#arrowhead)"
-    />
-    {/* Y축 */}
-    <line
-      x1={width / 2}
-      y1={height}
-      x2={width / 2}
-      y2={0}
-      stroke="#9CA3AF"
-      strokeWidth={1}
-      markerEnd="url(#arrowhead)"
-    />
-    {/* 라벨 */}
-    <text x={8} y={height / 2 - 8} fill="#9CA3AF" fontSize={12}>
-      오래된 논문
-    </text>
-    <text x={width - 60} y={height / 2 - 8} fill="#9CA3AF" fontSize={12}>
-      최신 논문
-    </text>
-    <text x={width / 2 + 8} y={16} fill="#9CA3AF" fontSize={12}>
-      인용 높음
-    </text>
-    <text x={width / 2 + 8} y={height - 8} fill="#9CA3AF" fontSize={12}>
-      인용 낮음
-    </text>
-  </svg>
-);
-
-const FullscreenAxisOverlay = ({
-  width,
-  height,
-}: {
-  width: number;
-  height: number;
-}) => {
-  const margin = { top: 20, right: 20, bottom: 20, left: 20 };
-  const innerWidth = width - margin.left - margin.right;
-  const innerHeight = height - margin.top - margin.bottom;
-  const cx = margin.left + innerWidth / 2;
-  const cy = margin.top + innerHeight / 2;
-
-  return (
-    <svg
-      style={{
-        position: "absolute",
-        top: 0,
-        left: 0,
-        pointerEvents: "none",
-        zIndex: 0,
-      }}
-      width={width}
-      height={height}
-    >
-      {/* X축 — 단순 선 */}
-      <line
-        x1={margin.left}
-        y1={cy}
-        x2={width - margin.right}
-        y2={cy}
-        stroke="#9CA3AF"
-        strokeWidth={1}
-      />
-      {/* Y축 — 단순 선 */}
-      <line
-        x1={cx}
-        y1={margin.top}
-        x2={cx}
-        y2={height - margin.bottom}
-        stroke="#9CA3AF"
-        strokeWidth={1}
-      />
-    </svg>
-  );
-};
-
 // ─── 컴포넌트 ─────────────────────────────────────────────
 
 const BubbleChart = ({
-  variant,
   papers,
   selectedPaperIds,
   onDotClick,
   onBackgroundClick,
 }: BubbleChartProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [chartSize, setChartSize] = useState({ width: 600, height: 400 });
 
   const dots = useMemo(() => clusterPapers(papers), [papers]);
 
@@ -262,19 +150,9 @@ const BubbleChart = ({
       }}
       onClick={onBackgroundClick}
     >
-      {variant === "fullscreen" && (
-        <FullscreenAxisOverlay
-          width={chartSize.width}
-          height={chartSize.height}
-        />
-      )}
-      {variant === "normal" && (
-        <NormalAxisOverlay width={chartSize.width} height={chartSize.height} />
-      )}
       <ResponsiveContainer
         width="100%"
         height="100%"
-        onResize={(w, h) => setChartSize({ width: w, height: h })}
       >
         <ScatterChart margin={{ top: 85, right: 85, bottom: 85, left: 85 }}>
           <XAxis
@@ -304,10 +182,6 @@ const BubbleChart = ({
       </ResponsiveContainer>
     </Box>
   );
-
-  if (variant === "fullscreen") {
-    return chartContent;
-  }
 
   return chartContent;
 };

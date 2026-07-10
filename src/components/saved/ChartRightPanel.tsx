@@ -1,9 +1,8 @@
-import { Box, Typography } from "@mui/material";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import { Box, Typography, useMediaQuery } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import ChartPaperCard from "../common/ChartPaperCard";
-import { type RecentPaperChartItem } from "../../types/saved";
-import { type ChartFilter } from "../../types/saved";
+import { type RecentPaperChartItem, type ChartFilter } from "../../types/saved";
 
 interface ChartRightPanelProps {
   papers: RecentPaperChartItem[];
@@ -14,90 +13,63 @@ interface ChartRightPanelProps {
   onPaperClick: (paperId: string) => void;
 }
 
-const panelSx: SxProps<Theme> = {
-  width: "308px",
-  flexShrink: 0,
-  display: "flex",
-  flexDirection: "column",
-  borderRadius: "16px",
-  border: "1px solid",
-  borderColor: "line.normal",
-  backgroundColor: "background.default",
-  overflow: "hidden",
-  minHeight: 0,
-};
-
-const filterSx: SxProps<Theme> = {
-  display: "flex",
-  flexDirection: "column",
-  gap: "8px",
-  padding: "16px 16px 0 16px",
-  flexShrink: 0,
-};
-
-const filterRowSx: SxProps<Theme> = {
-  display: "flex",
-  alignItems: "center",
-  gap: "8px",
-};
-
 const filterLabelSx: SxProps<Theme> = {
+  color: "label.assistive",
   fontSize: "16px",
   fontWeight: 400,
-  color: "label.alternative",
-  whiteSpace: "nowrap",
+  lineHeight: "27px",
+  letterSpacing: "-0.336px",
 };
 
-const filterChipSx = (isActive: boolean): SxProps<Theme> => ({
-  display: "inline-flex",
-  padding: "4px 12px",
-  borderRadius: "6px",
-  backgroundColor: isActive ? "static.black" : "background.paper",
-  cursor: "pointer",
-  "&:hover": { opacity: 0.8 },
-});
-
-const filterChipTextSx = (isActive: boolean): SxProps<Theme> => ({
-  fontSize: "16px",
-  fontWeight: isActive ? 600 : 400,
-  color: isActive ? "static.white" : "label.normal",
-});
-
-const paperListSx: SxProps<Theme> = {
-  flex: 1,
-  minHeight: 0,
-  overflowY: "auto",
+const chipSx = (isActive: boolean): SxProps<Theme> => ({
   display: "flex",
-  flexDirection: "column",
-  gap: "12px",
-  padding: "16px",
-};
-
-const backButtonSx: SxProps<Theme> = {
-  display: "flex",
+  padding: "8px 13px",
+  justifyContent: "center",
   alignItems: "center",
-  gap: "4px",
+  borderRadius: "24px",
   cursor: "pointer",
-  padding: "8px 16px",
-  flexShrink: 0,
-  borderBottom: "1px solid",
-  borderColor: "line.normal",
-};
+  backgroundColor: isActive ? "primary.main" : "fill.normal",
+  background: isActive
+    ? "linear-gradient(0deg, rgba(0,0,0,0.20) 0%, rgba(0,0,0,0.20) 100%), #03C26C"
+    : undefined,
+  "&:hover": { opacity: 0.85 },
+});
+
+const chipTextSx = (isActive: boolean): SxProps<Theme> => ({
+  display: "-webkit-box",
+  WebkitBoxOrient: "vertical",
+  WebkitLineClamp: 1,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  color: isActive ? "#FAFAFC" : "label.alternative",
+  fontSize: "16px",
+  fontWeight: 400,
+  lineHeight: "24px",
+  letterSpacing: "-0.336px",
+});
 
 const ChartRightPanel = ({
   papers,
   filter,
   selectedPaperIds,
   onFilterChange,
-  onBack,
   onPaperClick,
 }: ChartRightPanelProps) => {
-  const displayPapers = (() => {
-    let result = selectedPaperIds
-      ? papers.filter((p) => selectedPaperIds.includes(p.paper_id))
-      : [...papers];
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
 
-    // 필터 없을 때 기본: 최근 읽은 순 (viewed_at 내림차순)
+  const displayPapers = (() => {
+    const seen = new Set<string>();
+    let result = (
+      selectedPaperIds
+        ? papers.filter((p) => selectedPaperIds.includes(p.paper_id))
+        : [...papers]
+    ).filter((p) => {
+      if (seen.has(p.paper_id)) return false;
+      seen.add(p.paper_id);
+      return true;
+    });
+
     if (!filter.publish && !filter.citation) {
       return result.sort(
         (a, b) =>
@@ -105,15 +77,12 @@ const ChartRightPanel = ({
       );
     }
 
-    // 인용수 필터가 있으면 인용수 기준 정렬
     if (filter.citation) {
       result = result.sort((a, b) =>
         filter.citation === "high"
           ? (b.citation_count ?? 0) - (a.citation_count ?? 0)
           : (a.citation_count ?? 0) - (b.citation_count ?? 0),
       );
-
-      // 인용수 동일한 경우 출판시기 기준 보조 정렬
       if (filter.publish) {
         result = result.sort((a, b) => {
           if ((a.citation_count ?? 0) !== (b.citation_count ?? 0)) return 0;
@@ -122,11 +91,9 @@ const ChartRightPanel = ({
           return filter.publish === "recent" ? dateB - dateA : dateA - dateB;
         });
       }
-
       return result;
     }
 
-    // 출판시기만 있을 때
     if (filter.publish) {
       return result.sort((a, b) => {
         const dateA = new Date(a.published_at ?? "").getTime();
@@ -153,58 +120,95 @@ const ChartRightPanel = ({
   };
 
   return (
-    <Box sx={panelSx}>
-      {/* 뒤로가기 — 점/클러스터 선택 시에만 표시 */}
-      {selectedPaperIds && (
-        <Box sx={backButtonSx} onClick={onBack}>
-          <ChevronLeftIcon sx={{ fontSize: 20, color: "label.normal" }} />
-          <Typography sx={{ fontSize: "14px", color: "label.normal" }}>
-            뒤로 가기
-          </Typography>
-        </Box>
-      )}
-
+    <Box
+      sx={{
+        display: "flex",
+        width: "100%",
+        height: isDesktop ? "100%" : "auto",
+        boxSizing: "border-box",
+        padding: "16px 12px 12px 12px",
+        flexDirection: "column",
+        alignItems: "flex-start",
+        gap: "16px",
+        borderRadius: "8px",
+        border: "1px solid",
+        borderColor: "line.normal",
+        flexShrink: 0,
+        overflow: "hidden",
+      }}
+    >
       {/* 필터 */}
-      <Box sx={filterSx}>
-        <Box sx={filterRowSx}>
+      <Box
+        sx={{
+          display: "flex",
+          padding: "0 16px",
+          flexDirection: "column",
+          alignItems: "flex-start",
+          gap: "8px",
+          alignSelf: "stretch",
+        }}
+      >
+        {/* 출판 시기 */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: "16px" }}>
           <Typography sx={filterLabelSx}>출판 시기</Typography>
-          {(["old", "recent"] as const).map((val) => (
-            <Box
-              key={val}
-              sx={filterChipSx(filter.publish === val)}
-              onClick={() => handlePublishFilter(val)}
-            >
-              <Typography sx={filterChipTextSx(filter.publish === val)}>
-                {val === "old" ? "오래된 논문" : "최신 논문"}
-              </Typography>
-            </Box>
-          ))}
+          <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            {(["old", "recent"] as const).map((val) => (
+              <Box
+                key={val}
+                sx={chipSx(filter.publish === val)}
+                onClick={() => handlePublishFilter(val)}
+              >
+                <Typography sx={chipTextSx(filter.publish === val)}>
+                  {val === "old" ? "오래된 논문" : "최신 논문"}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
         </Box>
-        <Box sx={filterRowSx}>
+
+        {/* 인용 수 */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: "16px" }}>
           <Typography sx={filterLabelSx}>인용 수</Typography>
-          {(["low", "high"] as const).map((val) => (
-            <Box
-              key={val}
-              sx={filterChipSx(filter.citation === val)}
-              onClick={() => handleCitationFilter(val)}
-            >
-              <Typography sx={filterChipTextSx(filter.citation === val)}>
-                {val === "low" ? "인용 낮음" : "인용 높음"}
-              </Typography>
-            </Box>
-          ))}
+          <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            {(["low", "high"] as const).map((val) => (
+              <Box
+                key={val}
+                sx={chipSx(filter.citation === val)}
+                onClick={() => handleCitationFilter(val)}
+              >
+                <Typography sx={chipTextSx(filter.citation === val)}>
+                  {val === "low" ? "인용 낮음" : "인용 높음"}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
         </Box>
       </Box>
 
-      {/* 논문 리스트 */}
-      <Box sx={paperListSx}>
+      {/* 논문 카드 목록 */}
+      <Box
+        sx={{
+          display: "flex",
+          flex: 1,
+          minHeight: 0,
+          width: "100%",
+          padding: "8px",
+          flexDirection: "column",
+          alignItems: "stretch",
+          gap: "8px",
+          borderRadius: "8px",
+          backgroundColor: "fill.normal",
+          overflowY: "auto",
+        }}
+      >
         {displayPapers.length === 0 ? (
           <Box
             sx={{
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              flex: 1,
+              width: "100%",
+              height: "100%",
             }}
           >
             <Typography sx={{ fontSize: "14px", color: "label.assistive" }}>

@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, IconButton } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import { type RecentPaperChartItem } from "../../types/saved";
+import PaperTypeBadge from "./PaperTypeBadge";
 
 interface ChartPaperCardProps {
   paper: RecentPaperChartItem;
@@ -12,65 +13,81 @@ interface ChartPaperCardProps {
 
 const containerSx: SxProps<Theme> = {
   width: "100%",
-  padding: "13.72px",
-  borderRadius: "10px",
-  border: "0.86px solid",
-  borderColor: "line.normal",
+  padding: "16px",
+  flexDirection: "column",
+  alignItems: "flex-start",
+  gap: "12px",
+  borderRadius: "8px",
+  border: "1px solid",
+  borderColor: "line.neutral",
   backgroundColor: "background.default",
   display: "flex",
-  flexDirection: "column",
-  gap: "8px",
   cursor: "pointer",
   "&:hover": { backgroundColor: "background.paper" },
-};
-
-const metaSx: SxProps<Theme> = {
-  fontSize: "12px",
-  fontWeight: 400,
-  color: "label.assistive",
-  lineHeight: "normal",
+  boxSizing: "border-box",
+  minWidth: 0,
 };
 
 const titleSx: SxProps<Theme> = {
-  fontSize: "14px",
-  fontWeight: 600,
-  color: "static.black",
-  lineHeight: "150%",
-};
-
-const authorSx: SxProps<Theme> = {
-  fontSize: "12px",
-  fontWeight: 400,
+  alignSelf: "stretch",
   color: "label.normal",
-  lineHeight: "normal",
+  fontSize: "18px",
+  fontWeight: 600,
+  lineHeight: "29px",
+  letterSpacing: "-0.378px",
+  display: "-webkit-box",
+  WebkitBoxOrient: "vertical",
+  WebkitLineClamp: 2,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
 };
 
-const keywordTagSx: SxProps<Theme> = {
-  display: "inline-flex",
-  padding: "0 6px",
-  borderRadius: "7px",
-  backgroundColor: "fill.normal",
-  fontSize: "12px",
+const authorTextSx: SxProps<Theme> = {
+  color: "#1B1C23",
+  fontSize: "13px",
   fontWeight: 400,
+  lineHeight: "22px",
+  letterSpacing: "-0.26px",
+};
+
+const journalSx: SxProps<Theme> = {
+  display: "-webkit-box",
+  WebkitBoxOrient: "vertical",
+  WebkitLineClamp: 2,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
   color: "label.alternative",
+  fontSize: "16px",
+  fontWeight: 400,
+  lineHeight: "24px",
+  letterSpacing: "-0.336px",
 };
 
-const badgeSx: SxProps<Theme> = {
-  display: "inline-flex",
-  padding: "4px 12px",
-  borderRadius: "6px",
-  backgroundColor: "static.black",
-  fontSize: "12px",
-  fontWeight: 400,
-  color: "static.white",
-  lineHeight: "normal",
-  cursor: "pointer",
-  gap: "2px",
+const keywordSx: SxProps<Theme> = {
+  display: "flex",
+  padding: "3px 8px 4px 8px",
   alignItems: "center",
+  borderRadius: "6px",
+  backgroundColor: "background.paper",
+  maxWidth: "100%",
+  boxSizing: "border-box",
+  overflow: "hidden",
+  minWidth: 0,
+};
+
+const keywordTextSx: SxProps<Theme> = {
+  color: "label.normal",
+  fontSize: "16px",
+  fontWeight: 400,
+  lineHeight: "24px",
+  letterSpacing: "-0.336px",
+  wordBreak: "break-word",
+  overflowWrap: "break-word",
 };
 
 const ChartPaperCard = ({ paper, onClick }: ChartPaperCardProps) => {
   const [authorExpanded, setAuthorExpanded] = useState(false);
+
   const {
     paper_id,
     journal_name,
@@ -78,20 +95,114 @@ const ChartPaperCard = ({ paper, onClick }: ChartPaperCardProps) => {
     title,
     authors,
     keywords,
-    doi,
+    paper_type,
     trust_badge,
   } = paper;
 
   return (
     <Box sx={containerSx} onClick={() => onClick(paper_id)}>
-      {/* 출처/날짜 */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: "6px" }}>
-        {journal_name && <Typography sx={metaSx}>{journal_name}</Typography>}
-        {published_at && <Typography sx={metaSx}>{published_at}</Typography>}
-      </Box>
+      {/* 배지들 + 제목 + 저자 묶음 */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-start",
+          gap: "4px",
+          alignSelf: "stretch",
+        }}
+      >
+        {/* 배지들 */}
+        <Box
+          sx={{
+            display: "flex",
+            height: "36px",
+            alignItems: "flex-start",
+            gap: "8px",
+            alignSelf: "stretch",
+          }}
+        >
+          {paper_type && <PaperTypeBadge paperType={paper_type} />}
+          {trust_badge?.citation_count !== null &&
+            trust_badge?.citation_count !== undefined && (
+              <Box
+                sx={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "3px 8px 4px 8px",
+                  borderRadius: "6px",
+                  border: "1px solid",
+                  borderColor: "label.normal",
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: "16px",
+                    fontWeight: 600,
+                    lineHeight: "24px",
+                    letterSpacing: "-0.336px",
+                    color: "label.normal",
+                  }}
+                >
+                  인용수 {trust_badge.citation_count}
+                </Typography>
+              </Box>
+            )}
+          {trust_badge?.kci && (
+            <Box
+              sx={{
+                display: "flex",
+                padding: "3px 8px 4px 8px",
+                justifyContent: "center",
+                alignItems: "center",
+                borderRadius: "6px",
+                border: "1px solid",
+                borderColor: "secondary.dark",
+              }}
+            >
+              <Typography
+                sx={{
+                  color: "secondary.dark",
+                  fontSize: "16px",
+                  fontWeight: 500,
+                  lineHeight: "24px",
+                  letterSpacing: "-0.336px",
+                }}
+              >
+                KCI
+              </Typography>
+            </Box>
+          )}
+          {trust_badge?.sci && (
+            <Box
+              sx={{
+                display: "flex",
+                padding: "3px 8px 4px 8px",
+                justifyContent: "center",
+                alignItems: "center",
+                borderRadius: "6px",
+                border: "1px solid",
+                borderColor: "secondary.dark",
+              }}
+            >
+              <Typography
+                sx={{
+                  color: "secondary.dark",
+                  fontSize: "16px",
+                  fontWeight: 500,
+                  lineHeight: "24px",
+                  letterSpacing: "-0.336px",
+                }}
+              >
+                SCI
+              </Typography>
+            </Box>
+          )}
+        </Box>
 
-      {/* 제목 */}
-      <Typography sx={titleSx}>{title}</Typography>
+        {/* 제목 */}
+        <Typography sx={titleSx}>{title}</Typography>
+      </Box>
 
       {/* 저자 */}
       <Box>
@@ -99,7 +210,6 @@ const ChartPaperCard = ({ paper, onClick }: ChartPaperCardProps) => {
           sx={{
             display: "flex",
             alignItems: "center",
-            gap: "4px",
             cursor: authors.length > 1 ? "pointer" : "default",
           }}
           onClick={(e: React.MouseEvent<HTMLDivElement>) => {
@@ -107,71 +217,66 @@ const ChartPaperCard = ({ paper, onClick }: ChartPaperCardProps) => {
             if (authors.length > 1) setAuthorExpanded((prev) => !prev);
           }}
         >
-          <Typography sx={authorSx}>
+          <Typography sx={authorTextSx}>
             {authors.length > 1
               ? `${authors[0]} 외 ${authors.length - 1}인`
               : authors[0]}
           </Typography>
-          {authors.length > 1 &&
-            (authorExpanded ? (
-              <KeyboardArrowUpIcon
-                sx={{ fontSize: 12, color: "label.normal" }}
-              />
-            ) : (
-              <KeyboardArrowDownIcon
-                sx={{ fontSize: 12, color: "label.normal" }}
-              />
-            ))}
+          {authors.length > 1 && (
+            <IconButton
+              sx={{
+                display: "flex",
+                width: "20px",
+                height: "20px",
+                padding: "5px",
+                justifyContent: "center",
+                alignItems: "center",
+                flexShrink: 0,
+                borderRadius: "12px",
+              }}
+            >
+              {authorExpanded ? (
+                <KeyboardArrowUpIcon sx={{ fontSize: 10 }} />
+              ) : (
+                <KeyboardArrowDownIcon sx={{ fontSize: 10 }} />
+              )}
+            </IconButton>
+          )}
         </Box>
         {authorExpanded && (
-          <Typography sx={{ ...authorSx, color: "label.assistive", mt: "4px" }}>
+          <Typography
+            sx={{ ...authorTextSx, color: "label.assistive", mt: "4px" }}
+          >
             {authors.join(", ")}
           </Typography>
         )}
       </Box>
 
-      {/* 키워드 태그 */}
-      <Box sx={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-        {keywords.map((kw, index) => (
-          <Typography key={`${kw}-${index}`} sx={keywordTagSx}>
-            {kw}
-          </Typography>
-        ))}
-      </Box>
+      {/* 저널 정보 */}
+      {(journal_name || published_at) && (
+        <Typography sx={journalSx}>
+          {[published_at, journal_name].filter(Boolean).join(" ")}
+        </Typography>
+      )}
 
-      {/* 배지 */}
-      <Box sx={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
-        {doi && (
-          <Box
-            sx={badgeSx}
-            onClick={(e: React.MouseEvent<HTMLDivElement>) => {
-              e.stopPropagation();
-              window.open(doi, "_blank");
-            }}
-          >
-            <Typography sx={{ fontSize: "12px", color: "static.white" }}>
-              DOI
-            </Typography>
-            <Typography sx={{ fontSize: "10px", color: "static.white" }}>
-              ↗
-            </Typography>
-          </Box>
-        )}
-        {trust_badge.kci && (
-          <Box sx={badgeSx}>
-            <Typography sx={{ fontSize: "12px", color: "static.white" }}>
-              KCI
-            </Typography>
-          </Box>
-        )}
-        {trust_badge.sci && (
-          <Box sx={badgeSx}>
-            <Typography sx={{ fontSize: "12px", color: "static.white" }}>
-              SCI
-            </Typography>
-          </Box>
-        )}
-      </Box>
+      {/* 키워드 */}
+      {keywords && keywords.length > 0 && (
+        <Box
+          sx={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "8px",
+            width: "100%",
+            minWidth: 0,
+          }}
+        >
+          {keywords.map((kw, index) => (
+            <Box key={`${kw}-${index}`} sx={keywordSx}>
+              <Typography sx={keywordTextSx}>{kw}</Typography>
+            </Box>
+          ))}
+        </Box>
+      )}
     </Box>
   );
 };

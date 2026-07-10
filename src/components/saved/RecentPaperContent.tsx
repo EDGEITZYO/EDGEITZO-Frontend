@@ -1,5 +1,7 @@
+import { useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, useMediaQuery } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import RecentPaperHeader from "./RecentPaperHeader";
 import RecentPaperListView from "./RecentPaperListView";
@@ -17,47 +19,25 @@ import {
 } from "../../utils/savedUtils";
 
 const titleSx: SxProps<Theme> = {
+  display: "-webkit-box",
+  WebkitBoxOrient: "vertical",
+  WebkitLineClamp: 1,
+  overflow: "hidden",
+  color: "label.normal",
+  textOverflow: "ellipsis",
   fontSize: "24px",
   fontWeight: 600,
-  color: "static.black",
-  mb: "14px",
+  lineHeight: "36px",
+  letterSpacing: "-0.528px",
 };
-
-const baseContainerSx: SxProps<Theme> = {
-  display: "flex",
-  flexDirection: "column",
-  flex: 1,
-  padding: "24px 40px",
-  gap: "13px",
-};
-
-const listContainerSx: SxProps<Theme> = {
-  ...baseContainerSx,
-  overflow: "visible",
-};
-
-const chartContainerSx: SxProps<Theme> = {
-  ...baseContainerSx,
-  height: "calc(100vh - 65px)",
-  minHeight: 0,
-  overflow: "hidden",
-};
-
-const chartViewWrapperSx: SxProps<Theme> = {
-  flex: 1,
-  minHeight: 0,
-  overflow: "hidden",
-  display: "flex",
-  flexDirection: "column",
-};
-
-// ─── 컴포넌트 ─────────────────────────────────────────────
 
 const RecentPaperContent = () => {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // 중복 호출 제거 — 변수로 먼저 받기
   const modeParam = searchParams.get("mode");
   const viewParam = searchParams.get("view");
 
@@ -65,15 +45,23 @@ const RecentPaperContent = () => {
   const viewMode: ViewMode = isViewMode(viewParam) ? viewParam : "list";
   const currentDate: Date = parseDateParam(searchParams.get("date"));
 
-  // 기존 query를 보존하면서 필요한 값만 업데이트
-  const updateParams = (updates: Record<string, string | null>) => {
-    const next = new URLSearchParams(searchParams);
-    Object.entries(updates).forEach(([key, value]) => {
-      if (value === null || value === "") next.delete(key);
-      else next.set(key, value);
-    });
-    setSearchParams(next, { replace: true });
-  };
+  const updateParams = useCallback(
+    (updates: Record<string, string | null>) => {
+      const next = new URLSearchParams(searchParams);
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value === null || value === "") next.delete(key);
+        else next.set(key, value);
+      });
+      setSearchParams(next, { replace: true });
+    },
+    [searchParams, setSearchParams],
+  );
+
+  useEffect(() => {
+    if (isMobile && viewMode === "chart") {
+      updateParams({ view: "list" });
+    }
+  }, [isMobile, viewMode, updateParams]);
 
   const handlePeriodModeChange = (mode: PeriodMode) => {
     updateParams({ view: viewMode, mode, date: formatDateParam(new Date()) });
@@ -132,36 +120,145 @@ const RecentPaperContent = () => {
     navigate(`/papers/${paperId}?returnTo=${encodeURIComponent(returnTo)}`);
   };
 
-  return (
-    <Box sx={viewMode === "chart" ? chartContainerSx : listContainerSx}>
-      <Typography sx={titleSx}>최근 읽은 논문</Typography>
-      <RecentPaperHeader
-        periodMode={periodMode}
-        currentDate={currentDate}
-        viewMode={viewMode}
-        onPeriodModeChange={handlePeriodModeChange}
-        onDatePrev={handleDatePrev}
-        onDateNext={handleDateNext}
-        onDateSelect={handleDateSelect}
-        onViewModeChange={handleViewModeChange}
-      />
-      {viewMode === "list" && (
-        <RecentPaperListView
-          periodMode={periodMode}
-          currentDate={currentDate}
-          onPaperClick={handlePaperClick}
-        />
-      )}
-      {viewMode === "chart" && (
-        <Box sx={chartViewWrapperSx}>
-          <RecentPaperChartView
+  // 모바일: 헤더/필터 없이 논문 목록만
+  if (isMobile) {
+    return (
+      <Box
+        sx={{
+          pb: "64px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "24px",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            padding: "16px",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            gap: "16px",
+            backgroundColor: "static.white",
+          }}
+        >
+          <RecentPaperListView
             periodMode={periodMode}
             currentDate={currentDate}
             onPaperClick={handlePaperClick}
-            onFilterChange={handleFilterChange}
           />
         </Box>
-      )}
+      </Box>
+    );
+  }
+
+  const paddingTop = isDesktop ? "170px" : "0px";
+
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "flex-start",
+        alignItems: isDesktop ? "center" : "stretch",
+        gap: "24px",
+        pt: paddingTop,
+        pb: "64px",
+        boxSizing: "border-box",
+        width: "100%",
+        maxWidth: isDesktop ? "1200px" : "none",
+      }}
+    >
+      {/* 최근 읽은 논문 타이틀 + 헤더 묶음 */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "flex-start",
+          gap: "16px",
+          alignSelf: "stretch",
+        }}
+      >
+        {/* 타이틀 */}
+        <Box
+          sx={{
+            display: "flex",
+            padding: "0 4px",
+            alignItems: "center",
+            gap: "8px",
+            alignSelf: "stretch",
+          }}
+        >
+          <Typography sx={titleSx}>최근 읽은 논문</Typography>
+        </Box>
+
+        {/* 헤더 (일/주 선택 + 날짜 + 뷰모드 토글) */}
+        <RecentPaperHeader
+          periodMode={periodMode}
+          currentDate={currentDate}
+          viewMode={viewMode}
+          onPeriodModeChange={handlePeriodModeChange}
+          onDatePrev={handleDatePrev}
+          onDateNext={handleDateNext}
+          onDateSelect={handleDateSelect}
+          onViewModeChange={handleViewModeChange}
+        />
+      </Box>
+
+      {/* 뷰 콘텐츠 */}
+      <Box
+        sx={{
+          width: "100%",
+        }}
+      >
+        {viewMode === "list" && (
+          <Box
+            sx={{
+              display: "flex",
+              padding: "16px",
+              alignItems: "flex-start",
+              alignContent: "flex-start",
+              gap: "8px",
+              flexWrap: "wrap",
+              borderRadius: "12px",
+              border: "1px solid #FAFAFC",
+              backgroundColor: "static.white",
+              backdropFilter: "blur(2.9px)",
+              boxSizing: "border-box",
+              width: "100%",
+            }}
+          >
+            <RecentPaperListView
+              periodMode={periodMode}
+              currentDate={currentDate}
+              onPaperClick={handlePaperClick}
+            />
+          </Box>
+        )}
+        {viewMode === "chart" && (
+          <Box
+            sx={{
+              display: "flex",
+              padding: "16px",
+              alignItems: isDesktop ? "flex-start" : "stretch",
+              gap: "8px",
+              width: "100%",
+              boxSizing: "border-box",
+              alignSelf: "stretch",
+              borderRadius: "12px",
+              backgroundColor: "static.white",
+              backdropFilter: "blur(2.9px)",
+            }}
+          >
+            <RecentPaperChartView
+              periodMode={periodMode}
+              currentDate={currentDate}
+              onPaperClick={handlePaperClick}
+              onFilterChange={handleFilterChange}
+            />
+          </Box>
+        )}
+      </Box>
     </Box>
   );
 };
