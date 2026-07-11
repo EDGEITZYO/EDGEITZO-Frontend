@@ -1,21 +1,17 @@
 import { useNavigate, useSearchParams, useParams } from "react-router-dom";
 import { Box, Typography, IconButton } from "@mui/material";
-import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
-import { type SxProps, type Theme } from "@mui/material/styles";
-import Header from "../components/layout/Header";
+import CloseIcon from "@mui/icons-material/Close";
+import { useMediaQuery } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
+import TopNavBar from "../components/layout/TopNavBar";
 import PaperDetailContent from "../components/common/PaperDetailContent";
-
-const containerSx: SxProps<Theme> = {
-  display: "flex",
-  flexDirection: "column",
-  minHeight: "100vh",
-  backgroundColor: "background.paper",
-};
 
 const PaperDetailPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { id } = useParams<{ id: string }>();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const handleBack = () => {
     const returnTo = searchParams.get("returnTo");
@@ -23,35 +19,91 @@ const PaperDetailPage = () => {
       navigate(returnTo);
       return;
     }
-    navigate("/saved");
+    navigate(-1);
   };
 
   const handleRelatedPaperClick = (paperId: string) => {
     navigate(`/papers/${paperId}`);
   };
 
-  if (!id) {
-    return null;
-  }
+  if (!id) return null;
 
   return (
-    <Box sx={containerSx}>
-      <Header isLoggedIn />
-      <Box sx={{ padding: "29px 63px 0 63px" }}>
+    <Box
+      sx={{
+        display: "flex",
+        padding: "12px",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "10px",
+        minHeight: "100vh",
+        backgroundColor: "background.paper",
+        boxSizing: "border-box",
+      }}
+    >
+      {/* 데스크탑/태블릿: TopNavBar */}
+      {!isMobile && <TopNavBar onBack={handleBack} title="논문 상세보기" />}
+
+      {/* 모바일: 별도 헤더 */}
+      {isMobile && (
         <Box
-          sx={{ display: "flex", alignItems: "center", gap: "5px", pb: "30px" }}
+          sx={{
+            display: "flex",
+            padding: "16px",
+            alignItems: "center",
+            gap: "8px",
+            alignSelf: "stretch",
+          }}
         >
-          <IconButton onClick={handleBack} sx={{ width: 32, height: 32, p: 0 }}>
-            <ArrowBackIosNewIcon sx={{ fontSize: 16, color: "static.black" }} />
-          </IconButton>
+          <Box
+            sx={{
+              display: "flex",
+              width: "28px",
+              height: "28px",
+              justifyContent: "center",
+              alignItems: "center",
+              flexShrink: 0,
+            }}
+          >
+            <IconButton onClick={handleBack} sx={{ p: 0 }}>
+              <CloseIcon sx={{ width: "23.188px", height: "23.188px" }} />
+            </IconButton>
+          </Box>
           <Typography
-            sx={{ fontSize: "24px", fontWeight: 600, color: "static.black" }}
+            sx={{
+              display: "-webkit-box",
+              WebkitBoxOrient: "vertical",
+              WebkitLineClamp: 1,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              color: "label.normal",
+              fontSize: "18px",
+              fontWeight: 600,
+              lineHeight: "29px",
+              letterSpacing: "-0.378px",
+            }}
           >
             논문 상세보기
           </Typography>
         </Box>
-      </Box>
-      <Box sx={{ padding: "0 63px 80px 63px" }}>
+      )}
+
+      {/* 콘텐츠 박스 */}
+      <Box
+        sx={{
+          display: "flex",
+          padding: "32px",
+          flexDirection: "column",
+          alignItems: "flex-start",
+          gap: "32px",
+          flex: "1 0 0",
+          alignSelf: "stretch",
+          borderRadius: "8px",
+          backgroundColor: "background.default",
+          // TopNavBar가 fixed이므로 데스크탑/태블릿에서 상단 여백 필요
+          ...(!isMobile && { mt: "78px" }),
+        }}
+      >
         <PaperDetailContent
           paperId={id}
           onRelatedPaperClick={handleRelatedPaperClick}

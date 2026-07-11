@@ -16,6 +16,7 @@ const PaperTypeBadge = ({ paperType }: PaperTypeBadgeProps) => (
       border: "1px solid",
       borderColor: "label.normal",
       alignSelf: "flex-start",
+      whiteSpace: "nowrap",
     }}
   >
     <Typography

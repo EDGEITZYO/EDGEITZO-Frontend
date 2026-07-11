@@ -15,7 +15,7 @@ import AddIcon from "@mui/icons-material/Add";
 import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { bookmarkApi } from "../../api/bookmark";
-import { type BookmarkFolder } from "../../types/saved";
+import { type BookmarkFolder, type FolderDialogMode } from "../../types/saved";
 import FolderDialog from "../saved/FolderDialog";
 
 interface BookmarkFolderSelectDialogProps {
@@ -81,7 +81,7 @@ const BookmarkFolderSelectDialog = ({
   };
 
   const handleCreateFolderConfirm = (
-    mode: "create" | "edit" | "delete",
+    mode: FolderDialogMode,
     name?: string,
   ) => {
     if (mode === "create" && name) {

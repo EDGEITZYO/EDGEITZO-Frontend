@@ -1,91 +1,27 @@
-import { Box, Typography, IconButton, Select, MenuItem } from "@mui/material";
-import { type SelectChangeEvent } from "@mui/material/Select";
+import { useState, useRef, useEffect } from "react";
+import { Box, Typography, IconButton } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import SearchIcon from "@mui/icons-material/Search";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import ViewListIcon from "@mui/icons-material/ViewList";
 import ShowChartIcon from "@mui/icons-material/ShowChart";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import { type SxProps, type Theme } from "@mui/material/styles";
-import { type PeriodMode, type ViewMode } from "../../types/saved";
-import { useState } from "react";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
-import CloseFullscreenIcon from "@mui/icons-material/CloseFullscreen";
+import { type PeriodMode, type ViewMode } from "../../types/saved";
 
 interface RecentPaperHeaderProps {
   periodMode: PeriodMode;
   currentDate: Date;
   viewMode: ViewMode;
-  variant?: "normal" | "fullscreen";
+  showViewToggle?: boolean;
   onPeriodModeChange: (mode: PeriodMode) => void;
   onDatePrev: () => void;
   onDateNext: () => void;
   onDateSelect: (date: Date) => void;
   onViewModeChange: (mode: ViewMode) => void;
-  onClose?: () => void;
 }
-
-const headerSx: SxProps<Theme> = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  flexShrink: 0,
-};
-
-const leftSx: SxProps<Theme> = {
-  display: "flex",
-  alignItems: "center",
-  gap: "10px",
-};
-
-const periodSelectSx: SxProps<Theme> = {
-  height: "40px",
-  borderRadius: "12px",
-  backgroundColor: "line.neutral",
-  fontSize: "18px",
-  fontWeight: 600,
-  color: "static.black",
-  "& .MuiOutlinedInput-notchedOutline": { border: "none" },
-  "& .MuiSelect-select": { padding: "8px 14px" },
-};
-
-const dateNavSx: SxProps<Theme> = {
-  display: "inline-flex",
-  alignItems: "center",
-  gap: "5px",
-  padding: "0px 7px",
-  borderRadius: "12px",
-  backgroundColor: "line.neutral",
-  height: "40px",
-};
-
-const dateTextSx: SxProps<Theme> = {
-  fontSize: "18px",
-  fontWeight: 600,
-  color: "static.black",
-  textAlign: "center",
-};
-
-const rightSx: SxProps<Theme> = {
-  display: "inline-flex",
-  alignItems: "center",
-  padding: "3px",
-  borderRadius: "12px",
-  backgroundColor: "line.neutral",
-};
-
-const iconButtonSx = (isActive: boolean): SxProps<Theme> => ({
-  width: 34,
-  height: 34,
-  borderRadius: "10px",
-  backgroundColor: isActive ? "background.default" : "transparent",
-  "&:hover": {
-    backgroundColor: isActive ? "background.default" : "fill.normal",
-  },
-});
 
 const formatDate = (date: Date, mode: PeriodMode): string => {
   if (mode === "day") {
@@ -96,18 +32,39 @@ const formatDate = (date: Date, mode: PeriodMode): string => {
   return `${month}월 ${weekNumber}주`;
 };
 
+const options: { value: PeriodMode; label: string }[] = [
+  { value: "day", label: "일" },
+  { value: "week", label: "주" },
+];
+
 const RecentPaperHeader = ({
   periodMode,
   currentDate,
   viewMode,
-  variant = "normal",
+  showViewToggle = true,
   onPeriodModeChange,
   onDatePrev,
   onDateNext,
   onDateSelect,
   onViewModeChange,
-  onClose,
 }: RecentPaperHeaderProps) => {
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const isToday = new Date().toDateString() === currentDate.toDateString();
   const isFutureWeek =
     periodMode === "week" &&
@@ -116,31 +73,160 @@ const RecentPaperHeader = ({
     currentDate.getMonth() >= new Date().getMonth() &&
     currentDate.getFullYear() >= new Date().getFullYear();
 
-  const handlePeriodChange = (e: SelectChangeEvent) => {
-    onPeriodModeChange(e.target.value as PeriodMode);
-  };
+  const isNextDisabled = periodMode === "day" ? isToday : isFutureWeek;
 
-  const [calendarOpen, setCalendarOpen] = useState(false);
+  const selectedLabel =
+    options.find((o) => o.value === periodMode)?.label ?? "일";
 
   return (
-    <Box sx={headerSx}>
-      <Box sx={leftSx}>
-        {/* 일/주 드롭다운 */}
-        <Select
-          value={periodMode}
-          onChange={handlePeriodChange}
-          sx={periodSelectSx}
-          IconComponent={KeyboardArrowDownIcon}
-        >
-          <MenuItem value="day">일</MenuItem>
-          <MenuItem value="week">주</MenuItem>
-        </Select>
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "flex-start",
+        alignSelf: "stretch",
+      }}
+    >
+      {/* 좌측: 일/주 선택 + 날짜 선택 */}
+      <Box sx={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        {/* 일/주 커스텀 드롭다운 */}
+        <Box ref={dropdownRef} sx={{ position: "relative" }}>
+          <Box
+            onClick={() => setDropdownOpen((prev) => !prev)}
+            sx={{
+              display: "flex",
+              width: "164px",
+              height: "42px",
+              padding: "0 8px 0 16px",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "4px",
+              borderRadius: "216px",
+              backgroundColor: "background.default",
+              cursor: "pointer",
+            }}
+          >
+            <Typography
+              sx={{
+                color: "label.neutral",
+                fontSize: "16px",
+                fontWeight: 400,
+                lineHeight: "24px",
+                letterSpacing: "-0.336px",
+              }}
+            >
+              {selectedLabel}
+            </Typography>
+            <Box
+              sx={{
+                display: "flex",
+                padding: "7px 8px 9px 8px",
+                justifyContent: "center",
+                alignItems: "center",
+                borderRadius: "24px",
+              }}
+            >
+              <KeyboardArrowDownIcon
+                sx={{
+                  width: "20px",
+                  height: "20px",
+                  transition: "transform 0.2s",
+                  transform: dropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
+                }}
+              />
+            </Box>
+          </Box>
 
-        {/* 날짜 네비게이션 */}
-        <Box sx={dateNavSx} data-date-nav>
-          <IconButton size="small" sx={{ p: "4px" }} onClick={onDatePrev}>
-            <ChevronLeftIcon sx={{ fontSize: 24, color: "static.black" }} />
-          </IconButton>
+          {dropdownOpen && (
+            <Box
+              sx={{
+                position: "absolute",
+                top: "calc(100% + 4px)",
+                left: 0,
+                zIndex: 100,
+                display: "flex",
+                width: "164px",
+                padding: "4px",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "3px",
+                borderRadius: "20px",
+                border: "1px solid",
+                borderColor: "label.alternative",
+                backgroundColor: "background.default",
+              }}
+            >
+              {options.map((option) => (
+                <Box
+                  key={option.value}
+                  onClick={() => {
+                    onPeriodModeChange(option.value);
+                    setDropdownOpen(false);
+                  }}
+                  sx={{
+                    display: "flex",
+                    height: "36px",
+                    padding: "0 8px 0 16px",
+                    alignItems: "center",
+                    gap: "4px",
+                    alignSelf: "stretch",
+                    borderRadius: "216px",
+                    backgroundColor:
+                      periodMode === option.value
+                        ? "background.paper"
+                        : "transparent",
+                    cursor: "pointer",
+                    "&:hover": { backgroundColor: "background.paper" },
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      color: "label.neutral",
+                      fontSize: "16px",
+                      fontWeight: 400,
+                      lineHeight: "24px",
+                      letterSpacing: "-0.336px",
+                    }}
+                  >
+                    {option.label}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          )}
+        </Box>
+
+        {/* 날짜 선택 */}
+        <Box
+          data-date-nav
+          sx={{
+            display: "flex",
+            width: "164px",
+            height: "42px",
+            padding: "8px 0",
+            justifyContent: "space-between",
+            alignItems: "center",
+            borderRadius: "216px",
+            backgroundColor: "background.default",
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              width: "40px",
+              height: "40px",
+              padding: "9px 10px 11px 10px",
+              justifyContent: "center",
+              alignItems: "center",
+              cursor: "pointer",
+            }}
+            onClick={onDatePrev}
+          >
+            <ChevronLeftIcon
+              sx={{ width: "20px", height: "20px", flexShrink: 0 }}
+            />
+          </Box>
+
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker
               open={calendarOpen}
@@ -148,17 +234,24 @@ const RecentPaperHeader = ({
               onClose={() => setCalendarOpen(false)}
               value={dayjs(currentDate)}
               onChange={(newValue) => {
-                if (newValue) {
-                  onDateSelect(newValue.toDate());
-                }
+                if (newValue) onDateSelect(newValue.toDate());
                 setCalendarOpen(false);
               }}
               maxDate={dayjs()}
               slots={{
                 field: () => (
                   <Typography
-                    sx={{ ...dateTextSx, cursor: "pointer" }}
                     onClick={() => setCalendarOpen(true)}
+                    sx={{
+                      fontSize: "16px",
+                      fontWeight: 400,
+                      color: "label.neutral",
+                      letterSpacing: "-0.336px",
+                      lineHeight: "24px",
+                      cursor: "pointer",
+                      userSelect: "none",
+                      whiteSpace: "nowrap",
+                    }}
                   >
                     {formatDate(currentDate, periodMode)}
                   </Typography>
@@ -173,93 +266,101 @@ const RecentPaperHeader = ({
               }}
             />
           </LocalizationProvider>
-          <IconButton
-            size="small"
-            sx={{ p: "4px" }}
-            onClick={onDateNext}
-            disabled={periodMode === "day" ? isToday : isFutureWeek}
+
+          <Box
+            sx={{
+              display: "flex",
+              width: "40px",
+              height: "40px",
+              padding: "9px 10px 11px 10px",
+              justifyContent: "center",
+              alignItems: "center",
+              cursor: isNextDisabled ? "default" : "pointer",
+            }}
+            onClick={() => !isNextDisabled && onDateNext()}
           >
             <ChevronRightIcon
               sx={{
-                fontSize: 24,
-                color: (periodMode === "day" ? isToday : isFutureWeek)
-                  ? "label.disable"
-                  : "static.black",
+                width: "20px",
+                height: "20px",
+                flexShrink: 0,
+                color: isNextDisabled ? "label.disable" : "inherit",
+              }}
+            />
+          </Box>
+        </Box>
+      </Box>
+
+      {/* 우측: 리스트/차트 토글 */}
+      {showViewToggle && (
+        <Box
+          sx={{
+            display: "flex",
+            height: "44px",
+            padding: "4px",
+            alignItems: "center",
+            borderRadius: "34px",
+            backgroundColor: "fill.strong",
+          }}
+        >
+          <IconButton
+            onClick={() => onViewModeChange("list")}
+            sx={{
+              display: "flex",
+              width: "44px",
+              height: "36px",
+              padding: "8px 13px",
+              justifyContent: "center",
+              alignItems: "center",
+              borderRadius: "24px",
+              backgroundColor:
+                viewMode === "list" ? "label.normal" : "transparent",
+              "&:hover": {
+                backgroundColor:
+                  viewMode === "list" ? "label.normal" : "fill.normal",
+              },
+            }}
+          >
+            <ViewListIcon
+              sx={{
+                width: "24px",
+                height: "24px",
+                flexShrink: 0,
+                color:
+                  viewMode === "list" ? "static.white" : "label.alternative",
+              }}
+            />
+          </IconButton>
+          <IconButton
+            onClick={() => onViewModeChange("chart")}
+            sx={{
+              display: "flex",
+              width: "44px",
+              height: "36px",
+              padding: "8px 12px",
+              justifyContent: "center",
+              alignItems: "center",
+              borderRadius: "24px",
+              backgroundColor:
+                viewMode === "chart" ? "label.normal" : "transparent",
+              "&:hover": {
+                backgroundColor:
+                  viewMode === "chart" ? "label.normal" : "fill.normal",
+              },
+            }}
+          >
+            <ShowChartIcon
+              sx={{
+                width: "24px",
+                height: "24px",
+                flexShrink: 0,
+                color:
+                  viewMode === "chart" ? "static.white" : "label.alternative",
               }}
             />
           </IconButton>
         </Box>
-      </Box>
-
-      {/* 우측 아이콘 */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
-        {/* 돋보기 - normal에서만 표시 */}
-        {variant === "normal" && (
-          <IconButton
-            size="small"
-            sx={{
-              width: 40,
-              height: 40,
-              padding: "8px",
-              borderRadius: "12px",
-              border: "1px solid",
-              borderColor: "line.normal",
-              backgroundColor: "background.default",
-              "&:hover": { backgroundColor: "fill.normal" },
-            }}
-          >
-            <SearchIcon sx={{ fontSize: 24, color: "label.assistive" }} />
-          </IconButton>
-        )}
-
-        {/* normal: 리스트/차트 토글, fullscreen: 축소 버튼 */}
-        {variant === "normal" ? (
-          <Box sx={rightSx}>
-            <IconButton
-              size="small"
-              sx={iconButtonSx(viewMode === "list")}
-              onClick={() => onViewModeChange("list")}
-            >
-              <ViewListIcon
-                sx={{
-                  fontSize: 24,
-                  color:
-                    viewMode === "list" ? "static.black" : "label.assistive",
-                }}
-              />
-            </IconButton>
-            <IconButton
-              size="small"
-              sx={iconButtonSx(viewMode === "chart")}
-              onClick={() => onViewModeChange("chart")}
-            >
-              <ShowChartIcon
-                sx={{
-                  fontSize: 24,
-                  color:
-                    viewMode === "chart" ? "static.black" : "label.assistive",
-                }}
-              />
-            </IconButton>
-          </Box>
-        ) : (
-          <IconButton
-            size="small"
-            sx={{
-              width: 34,
-              height: 34,
-              borderRadius: "10px",
-              backgroundColor: "background.default",
-              "&:hover": { backgroundColor: "fill.normal" },
-            }}
-            onClick={onClose}
-          >
-            <CloseFullscreenIcon
-              sx={{ fontSize: 24, color: "label.alternative" }}
-            />
-          </IconButton>
-        )}
-      </Box>
+      )}
     </Box>
   );
 };
