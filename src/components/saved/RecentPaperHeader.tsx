@@ -1,6 +1,5 @@
-import { useState } from "react";
-import { Box, Typography, IconButton, Select, MenuItem } from "@mui/material";
-import { type SelectChangeEvent } from "@mui/material/Select";
+import { useState, useRef, useEffect } from "react";
+import { Box, Typography, IconButton } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
@@ -33,6 +32,11 @@ const formatDate = (date: Date, mode: PeriodMode): string => {
   return `${month}월 ${weekNumber}주`;
 };
 
+const options: { value: PeriodMode; label: string }[] = [
+  { value: "day", label: "일" },
+  { value: "week", label: "주" },
+];
+
 const RecentPaperHeader = ({
   periodMode,
   currentDate,
@@ -45,6 +49,21 @@ const RecentPaperHeader = ({
   onViewModeChange,
 }: RecentPaperHeaderProps) => {
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const isToday = new Date().toDateString() === currentDate.toDateString();
   const isFutureWeek =
@@ -56,9 +75,8 @@ const RecentPaperHeader = ({
 
   const isNextDisabled = periodMode === "day" ? isToday : isFutureWeek;
 
-  const handlePeriodChange = (e: SelectChangeEvent) => {
-    onPeriodModeChange(e.target.value as PeriodMode);
-  };
+  const selectedLabel =
+    options.find((o) => o.value === periodMode)?.label ?? "일";
 
   return (
     <Box
@@ -71,34 +89,112 @@ const RecentPaperHeader = ({
     >
       {/* 좌측: 일/주 선택 + 날짜 선택 */}
       <Box sx={{ display: "flex", alignItems: "center", gap: "12px" }}>
-        {/* 일/주 선택 */}
-        <Select
-          value={periodMode}
-          onChange={handlePeriodChange}
-          IconComponent={KeyboardArrowDownIcon}
-          sx={{
-            width: "164px",
-            height: "42px",
-            borderRadius: "216px",
-            backgroundColor: "background.default",
-            fontSize: "16px",
-            fontWeight: 400,
-            color: "label.neutral",
-            letterSpacing: "-0.336px",
-            "& .MuiOutlinedInput-notchedOutline": { border: "none" },
-            "& .MuiSelect-select": { padding: "8px 8px 8px 16px" },
-            "& .MuiSelect-icon": {
-              width: "20px",
-              height: "20px",
-              top: "50%",
-              transform: "translateY(-50%)",
-              right: "10px",
-            },
-          }}
-        >
-          <MenuItem value="day">일</MenuItem>
-          <MenuItem value="week">주</MenuItem>
-        </Select>
+        {/* 일/주 커스텀 드롭다운 */}
+        <Box ref={dropdownRef} sx={{ position: "relative" }}>
+          <Box
+            onClick={() => setDropdownOpen((prev) => !prev)}
+            sx={{
+              display: "flex",
+              width: "164px",
+              height: "42px",
+              padding: "0 8px 0 16px",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "4px",
+              borderRadius: "216px",
+              backgroundColor: "background.default",
+              cursor: "pointer",
+            }}
+          >
+            <Typography
+              sx={{
+                color: "label.neutral",
+                fontSize: "16px",
+                fontWeight: 400,
+                lineHeight: "24px",
+                letterSpacing: "-0.336px",
+              }}
+            >
+              {selectedLabel}
+            </Typography>
+            <Box
+              sx={{
+                display: "flex",
+                padding: "7px 8px 9px 8px",
+                justifyContent: "center",
+                alignItems: "center",
+                borderRadius: "24px",
+              }}
+            >
+              <KeyboardArrowDownIcon
+                sx={{
+                  width: "20px",
+                  height: "20px",
+                  transition: "transform 0.2s",
+                  transform: dropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
+                }}
+              />
+            </Box>
+          </Box>
+
+          {dropdownOpen && (
+            <Box
+              sx={{
+                position: "absolute",
+                top: "calc(100% + 4px)",
+                left: 0,
+                zIndex: 100,
+                display: "flex",
+                width: "164px",
+                padding: "4px",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "3px",
+                borderRadius: "20px",
+                border: "1px solid",
+                borderColor: "label.alternative",
+                backgroundColor: "background.default",
+              }}
+            >
+              {options.map((option) => (
+                <Box
+                  key={option.value}
+                  onClick={() => {
+                    onPeriodModeChange(option.value);
+                    setDropdownOpen(false);
+                  }}
+                  sx={{
+                    display: "flex",
+                    height: "36px",
+                    padding: "0 8px 0 16px",
+                    alignItems: "center",
+                    gap: "4px",
+                    alignSelf: "stretch",
+                    borderRadius: "216px",
+                    backgroundColor:
+                      periodMode === option.value
+                        ? "background.paper"
+                        : "transparent",
+                    cursor: "pointer",
+                    "&:hover": { backgroundColor: "background.paper" },
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      color: "label.neutral",
+                      fontSize: "16px",
+                      fontWeight: 400,
+                      lineHeight: "24px",
+                      letterSpacing: "-0.336px",
+                    }}
+                  >
+                    {option.label}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          )}
+        </Box>
 
         {/* 날짜 선택 */}
         <Box
