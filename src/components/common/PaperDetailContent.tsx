@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef } from "react";
-import { Box, Typography, CircularProgress } from "@mui/material";
+import { Box, Typography, IconButton } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
+import { useMediaQuery } from "@mui/material";
+import CircularProgress from "@mui/material/CircularProgress";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
@@ -8,9 +11,9 @@ import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { paperApi } from "../../api/paper";
 import { bookmarkApi } from "../../api/bookmark";
-import { type PaperType } from "../../types/paper";
-import { type SimilarPaper } from "../../types/paper";
 import BookmarkFolderSelectDialog from "./BookmarkFolderSelectDialog";
+import SimilarPaperCard from "../paper/SimilarPaperCard";
+import PaperTypeBadge from "./PaperTypeBadge";
 
 interface PaperDetailContentProps {
   paperId: string;
@@ -20,257 +23,89 @@ interface PaperDetailContentProps {
 
 // ─── 배지 ────────────────────────────────────────────────
 
-const PaperTypeBadge = ({ paperType }: { paperType: PaperType }) => (
+const CitationBadge = ({ count }: { count: number }) => (
   <Box
     sx={{
-      display: "inline-flex",
+      display: "flex",
+      padding: "3px 8px 4px 8px",
+      justifyContent: "center",
       alignItems: "center",
-      px: "6px",
-      borderRadius: "7px",
-      height: "28px",
-      backgroundColor:
-        paperType === "학술 저널" ? "status.negative" : "primary.dark",
+      gap: "10px",
+      borderRadius: "6px",
+      border: "1px solid",
+      borderColor: "label.normal",
     }}
   >
     <Typography
-      sx={{ fontSize: "14px", fontWeight: 700, color: "static.white" }}
+      sx={{
+        fontSize: "16px",
+        fontWeight: 600,
+        lineHeight: "24px",
+        letterSpacing: "-0.336px",
+        color: "label.normal",
+      }}
     >
-      {paperType}
+      인용수 {count}
     </Typography>
   </Box>
 );
 
-const DarkBadge = ({ label }: { label: string }) => (
+const TrustBadge = ({ label }: { label: "KCI" | "SCI" }) => (
   <Box
     sx={{
-      display: "inline-flex",
-      alignItems: "center",
+      display: "flex",
+      padding: "3px 8px 4px 8px",
       justifyContent: "center",
-      px: "8px",
-      py: "3px",
-      borderRadius: "12px",
-      backgroundColor: "static.black",
+      alignItems: "center",
+      gap: "10px",
+      borderRadius: "6px",
+      border: "1px solid",
+      borderColor: "secondary.dark",
     }}
   >
     <Typography
-      sx={{ fontSize: "12px", fontWeight: 600, color: "static.white" }}
+      sx={{
+        fontSize: "16px",
+        fontWeight: 600,
+        lineHeight: "24px",
+        letterSpacing: "-0.336px",
+        color: "secondary.dark",
+      }}
     >
       {label}
     </Typography>
   </Box>
 );
 
-// ─── 유사 논문 카드 ───────────────────────────────────────
+// ─── 섹션 헤더 (초록, 연관된 논문 공통) ────────────────────
 
-const SimilarPaperCard = ({
-  paper,
-  onClick,
-}: {
-  paper: SimilarPaper;
-  onClick?: (paperId: string) => void;
-}) => {
-  const [authorExpanded, setAuthorExpanded] = useState(false);
-  const isClickable = paper.in_service && paper.paper_id !== null;
-  const authors = paper.author
-    ? paper.author.split(",").map((a) => a.trim())
-    : [];
-
-  return (
-    <Box
-      onClick={() => isClickable && paper.paper_id && onClick?.(paper.paper_id)}
+const SectionHeader = ({ title }: { title: string }) => (
+  <Box
+    sx={{
+      display: "flex",
+      padding: "10px 12px",
+      flexDirection: "column",
+      alignItems: "flex-start",
+      gap: "2px",
+      alignSelf: "stretch",
+      borderRadius: "6px",
+      backgroundColor: "background.paper",
+    }}
+  >
+    <Typography
       sx={{
-        width: "276px",
-        padding: "13.72px",
-        borderRadius: "10px",
-        border: "0.86px solid",
-        borderColor: "line.normal",
-        backgroundColor: isClickable ? "background.default" : "fill.normal",
-        display: "flex",
-        flexDirection: "column",
-        gap: "8px",
-        cursor: isClickable ? "pointer" : "default",
-        flexShrink: 0,
-        "&:hover": isClickable ? { backgroundColor: "background.paper" } : {},
+        alignSelf: "stretch",
+        color: "label.normal",
+        fontSize: "18px",
+        fontWeight: 600,
+        lineHeight: "29px",
+        letterSpacing: "-0.378px",
       }}
     >
-      {/* 연도 */}
-      <Typography
-        sx={{
-          fontSize: "12px",
-          fontWeight: 400,
-          color: "label.assistive",
-          lineHeight: "normal",
-        }}
-      >
-        {paper.pubyear}
-      </Typography>
-
-      {/* 제목 */}
-      <Typography
-        sx={{
-          fontSize: "14px",
-          fontWeight: 600,
-          color: "static.black",
-          lineHeight: "150%",
-        }}
-      >
-        {paper.title}
-      </Typography>
-
-      {/* 저자 */}
-      {authors.length > 0 && (
-        <Box>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: "4px",
-              cursor: authors.length > 1 ? "pointer" : "default",
-            }}
-            onClick={(e: React.MouseEvent<HTMLDivElement>) => {
-              e.stopPropagation();
-              if (authors.length > 1) setAuthorExpanded((prev) => !prev);
-            }}
-          >
-            <Typography
-              sx={{
-                fontSize: "12px",
-                fontWeight: 400,
-                color: "label.normal",
-                lineHeight: "normal",
-              }}
-            >
-              {authors.length > 1
-                ? `${authors[0]} 외 ${authors.length - 1}인`
-                : authors[0]}
-            </Typography>
-            {authors.length > 1 &&
-              (authorExpanded ? (
-                <KeyboardArrowUpIcon
-                  sx={{ fontSize: 12, color: "label.normal" }}
-                />
-              ) : (
-                <KeyboardArrowDownIcon
-                  sx={{ fontSize: 12, color: "label.normal" }}
-                />
-              ))}
-          </Box>
-          {authorExpanded && (
-            <Typography
-              sx={{
-                fontSize: "12px",
-                fontWeight: 400,
-                color: "label.assistive",
-                lineHeight: "normal",
-                mt: "4px",
-              }}
-            >
-              {authors.join(", ")}
-            </Typography>
-          )}
-        </Box>
-      )}
-
-      {/* 논문 유형 */}
-      {paper.material_type && (
-        <Typography
-          sx={{
-            fontSize: "12px",
-            fontWeight: 400,
-            color: "label.assistive",
-            lineHeight: "normal",
-          }}
-        >
-          {paper.material_type}
-        </Typography>
-      )}
-
-      {/* 키워드 태그 */}
-      {paper.keywords && paper.keywords.length > 0 && (
-        <Box sx={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-          {paper.keywords.map((kw, index) => (
-            <Typography
-              key={`${kw}-${index}`}
-              sx={{
-                display: "inline-flex",
-                padding: "0 6px",
-                borderRadius: "7px",
-                backgroundColor: "fill.normal",
-                fontSize: "12px",
-                fontWeight: 400,
-                color: "label.alternative",
-              }}
-            >
-              {kw}
-            </Typography>
-          ))}
-        </Box>
-      )}
-
-      {/* 신뢰도 배지 + DOI */}
-      <Box sx={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
-        {paper.doi && (
-          <Box
-            sx={{
-              display: "inline-flex",
-              padding: "4px 12px",
-              borderRadius: "6px",
-              backgroundColor: "static.black",
-              fontSize: "12px",
-              fontWeight: 400,
-              color: "static.white",
-              lineHeight: "normal",
-              cursor: "pointer",
-              gap: "2px",
-              alignItems: "center",
-            }}
-            onClick={(e: React.MouseEvent<HTMLDivElement>) => {
-              e.stopPropagation();
-              window.open(paper.doi!, "_blank");
-            }}
-          >
-            <Typography sx={{ fontSize: "12px", color: "static.white" }}>
-              DOI
-            </Typography>
-            <Typography sx={{ fontSize: "10px", color: "static.white" }}>
-              ↗
-            </Typography>
-          </Box>
-        )}
-        {paper.trust_badge?.kci && (
-          <Box
-            sx={{
-              display: "inline-flex",
-              padding: "4px 12px",
-              borderRadius: "6px",
-              backgroundColor: "static.black",
-              alignItems: "center",
-            }}
-          >
-            <Typography sx={{ fontSize: "12px", color: "static.white" }}>
-              KCI
-            </Typography>
-          </Box>
-        )}
-        {paper.trust_badge?.sci && (
-          <Box
-            sx={{
-              display: "inline-flex",
-              padding: "4px 12px",
-              borderRadius: "6px",
-              backgroundColor: "static.black",
-              alignItems: "center",
-            }}
-          >
-            <Typography sx={{ fontSize: "12px", color: "static.white" }}>
-              SCI
-            </Typography>
-          </Box>
-        )}
-      </Box>
-    </Box>
-  );
-};
+      {title}
+    </Typography>
+  </Box>
+);
 
 // ─── 메인 컴포넌트 ────────────────────────────────────────
 
@@ -280,6 +115,8 @@ const PaperDetailContent = ({
   onRelatedPaperClick,
 }: PaperDetailContentProps) => {
   const queryClient = useQueryClient();
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
   const [authorsExpanded, setAuthorsExpanded] = useState(false);
   const [bookmarkDialogOpen, setBookmarkDialogOpen] = useState(false);
   const recentReadCalled = useRef(false);
@@ -315,7 +152,6 @@ const PaperDetailContent = ({
     staleTime: 0,
   });
 
-  // recent-reads 호출 (마운트 시 1회)
   useEffect(() => {
     if (recentReadCalled.current) return;
     recentReadCalled.current = true;
@@ -329,13 +165,10 @@ const PaperDetailContent = ({
       .catch(() => {});
   }, [paperId, searchId, queryClient]);
 
-  // 북마크 낙관적 업데이트
   const { mutate: toggleBookmark } = useMutation({
     mutationFn: async () => {
       if (bookmarkData?.bookmarked) {
         await bookmarkApi.removeBookmark(paperId);
-      } else {
-        // 북마크 추가는 폴더 선택 다이얼로그에서 처리
       }
     },
     onMutate: async () => {
@@ -373,12 +206,6 @@ const PaperDetailContent = ({
     queryClient.invalidateQueries({ queryKey: ["bookmark", paperId] });
   };
 
-  const handleOriginalLink = () => {
-    if (paperData?.doi) {
-      window.open(paperData.doi, "_blank");
-    }
-  };
-
   if (isPaperPending) {
     return (
       <Box
@@ -387,6 +214,7 @@ const PaperDetailContent = ({
           justifyContent: "center",
           alignItems: "center",
           py: "80px",
+          width: "100%",
         }}
       >
         <CircularProgress />
@@ -402,6 +230,7 @@ const PaperDetailContent = ({
           justifyContent: "center",
           alignItems: "center",
           py: "80px",
+          width: "100%",
         }}
       >
         <Typography>
@@ -414,150 +243,237 @@ const PaperDetailContent = ({
   const isBookmarked = bookmarkData?.bookmarked ?? false;
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-      {/* 논문 정보 영역 */}
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "32px",
+        alignSelf: "stretch",
+      }}
+    >
+      {/* 논문 기본 정보 영역 */}
       <Box
         sx={{
-          padding: "20px 0 26px 0",
           display: "flex",
           flexDirection: "column",
-          gap: "17px",
+          alignItems: "flex-start",
+          gap: "12px",
+          alignSelf: "stretch",
         }}
       >
-        {/* 배지 행 + 원문보기 + 북마크 */}
+        {/* doi, 배지들, 북마크, 제목, 저널정보, 저자 묶음 */}
         <Box
           sx={{
             display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            gap: "4px",
+            alignSelf: "stretch",
           }}
         >
-          <Box sx={{ display: "flex", gap: "6px", alignItems: "center" }}>
-            {paperData.paper_type && (
-              <PaperTypeBadge paperType={paperData.paper_type} />
-            )}
-            {paperData.trust_badge.kci && <DarkBadge label="KCI" />}
-            <DarkBadge label={`인용수 ${paperData.citation_count}`} />
-          </Box>
-          <Box sx={{ display: "flex", alignItems: "center", gap: "9px" }}>
-            {paperData.doi && (
-              <Box
-                onClick={handleOriginalLink}
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "4px",
-                  cursor: "pointer",
-                }}
-              >
-                <Typography
+          {/* doi, 배지들, 북마크, 제목, 저널정보 묶음 */}
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "flex-start",
+              gap: "12px",
+              alignSelf: "stretch",
+            }}
+          >
+            {/* doi, 배지들, 북마크 행 */}
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                alignContent: "center",
+                rowGap: "12px",
+                alignSelf: "stretch",
+                flexWrap: "wrap",
+              }}
+            >
+              {/* 배지들 */}
+              <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                {paperData.paper_type && (
+                  <PaperTypeBadge paperType={paperData.paper_type} />
+                )}
+                <CitationBadge count={paperData.citation_count} />
+                {paperData.trust_badge.kci && <TrustBadge label="KCI" />}
+                {paperData.trust_badge.sci && <TrustBadge label="SCI" />}
+              </Box>
+
+              {/* doi + 북마크 */}
+              <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                {paperData.doi && (
+                  <Box
+                    onClick={() => window.open(paperData.doi!, "_blank")}
+                    sx={{
+                      display: "flex",
+                      padding: "6px 12px",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      gap: "2px",
+                      borderRadius: "24px",
+                      backgroundColor: "label.normal",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        display: "-webkit-box",
+                        WebkitBoxOrient: "vertical",
+                        WebkitLineClamp: 1,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        color: "#FAFAFC",
+                        fontSize: "16px",
+                        fontWeight: 600,
+                        lineHeight: "24px",
+                        letterSpacing: "-0.336px",
+                      }}
+                    >
+                      논문 원문 보기
+                    </Typography>
+                    <OpenInNewIcon
+                      sx={{ width: "20px", height: "20px", color: "#FAFAFC" }}
+                    />
+                  </Box>
+                )}
+                <Box
+                  onClick={handleBookmarkClick}
                   sx={{
-                    fontSize: "17px",
-                    fontWeight: 600,
-                    color: "label.strong",
-                    letterSpacing: "-0.34px",
+                    display: "flex",
+                    height: "36px",
+                    padding: "6px 8px",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: "2px",
+                    borderRadius: "24px",
+                    backgroundColor: "background.paper",
+                    cursor: "pointer",
                   }}
                 >
-                  논문 원문 보기
-                </Typography>
-                <OpenInNewIcon
-                  sx={{ fontSize: "20px", color: "label.strong" }}
-                />
+                  {isBookmarked ? (
+                    <BookmarkIcon
+                      sx={{
+                        width: "20px",
+                        height: "20px",
+                        color: "primary.dark",
+                      }}
+                    />
+                  ) : (
+                    <BookmarkBorderIcon
+                      sx={{
+                        width: "20px",
+                        height: "20px",
+                        color: "label.assistive",
+                      }}
+                    />
+                  )}
+                </Box>
               </Box>
-            )}
-            {isBookmarked ? (
-              <BookmarkIcon
-                onClick={handleBookmarkClick}
+            </Box>
+
+            {/* 제목 + 저널정보 */}
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-start",
+                alignSelf: "stretch",
+              }}
+            >
+              <Typography
                 sx={{
-                  fontSize: "24px",
-                  color: "primary.main",
-                  cursor: "pointer",
+                  alignSelf: "stretch",
+                  color: "label.normal",
+                  fontSize: "20px",
+                  fontWeight: 600,
+                  lineHeight: "30px",
+                  letterSpacing: "-0.42px",
                 }}
-              />
-            ) : (
-              <BookmarkBorderIcon
-                onClick={handleBookmarkClick}
+              >
+                {paperData.title}
+              </Typography>
+              <Typography
                 sx={{
-                  fontSize: "24px",
-                  color: "label.assistive",
-                  cursor: "pointer",
+                  display: "-webkit-box",
+                  WebkitBoxOrient: "vertical",
+                  WebkitLineClamp: 2,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  color: "label.alternative",
+                  fontSize: "16px",
+                  fontWeight: 400,
+                  lineHeight: "24px",
+                  letterSpacing: "-0.336px",
                 }}
-              />
-            )}
+              >
+                {[paperData.published_at, paperData.journal_name]
+                  .filter(Boolean)
+                  .join(" ")}
+              </Typography>
+            </Box>
           </Box>
         </Box>
-
-        {/* 제목 */}
-        <Typography
-          sx={{
-            fontSize: "24px",
-            fontWeight: 600,
-            color: "static.black",
-            letterSpacing: "-0.48px",
-            lineHeight: "36px",
-          }}
-        >
-          {paperData.title}
-        </Typography>
-
-        {/* 저널명 + 날짜 */}
-        <Typography
-          sx={{
-            fontSize: "17px",
-            fontWeight: 400,
-            color: "label.alternative",
-            letterSpacing: "-0.34px",
-          }}
-        >
-          {paperData.journal_name}
-          {"  "}
-          {paperData.published_at}
-        </Typography>
 
         {/* 저자 */}
         <Box>
           <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              cursor: paperData.authors.length > 1 ? "pointer" : "default",
+            }}
             onClick={() =>
               paperData.authors.length > 1 &&
               setAuthorsExpanded((prev) => !prev)
             }
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: "4px",
-              cursor: paperData.authors.length > 1 ? "pointer" : "default",
-            }}
           >
             <Typography
               sx={{
-                fontSize: "17px",
+                color: "#1B1C23",
+                fontSize: "13px",
                 fontWeight: 400,
-                color: "label.alternative",
-                letterSpacing: "-0.34px",
+                lineHeight: "22px",
+                letterSpacing: "-0.26px",
               }}
             >
               {paperData.authors.length > 1
                 ? `${paperData.authors[0]} 외 ${paperData.authors.length - 1}인`
                 : paperData.authors[0]}
             </Typography>
-            {paperData.authors.length > 1 &&
-              (authorsExpanded ? (
-                <KeyboardArrowUpIcon
-                  sx={{ fontSize: 12, color: "label.alternative" }}
-                />
-              ) : (
-                <KeyboardArrowDownIcon
-                  sx={{ fontSize: 12, color: "label.alternative" }}
-                />
-              ))}
+            {paperData.authors.length > 1 && (
+              <IconButton
+                sx={{
+                  display: "flex",
+                  width: "20px",
+                  height: "20px",
+                  padding: "5px",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  flexShrink: 0,
+                  borderRadius: "12px",
+                }}
+              >
+                {authorsExpanded ? (
+                  <KeyboardArrowUpIcon sx={{ fontSize: 10 }} />
+                ) : (
+                  <KeyboardArrowDownIcon sx={{ fontSize: 10 }} />
+                )}
+              </IconButton>
+            )}
           </Box>
           {authorsExpanded && (
             <Typography
               sx={{
-                fontSize: "17px",
-                fontWeight: 400,
                 color: "label.assistive",
-                letterSpacing: "-0.34px",
+                fontSize: "13px",
+                fontWeight: 400,
+                lineHeight: "22px",
+                letterSpacing: "-0.26px",
                 mt: "4px",
               }}
             >
@@ -566,121 +482,142 @@ const PaperDetailContent = ({
           )}
         </Box>
 
-        {/* 핵심 키워드 */}
-        <Box sx={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-          <Typography
-            sx={{ fontSize: "17px", fontWeight: 400, color: "label.normal" }}
+        {/* 키워드 */}
+        {paperData.keywords_ko.length > 0 && (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              alignSelf: "stretch",
+            }}
           >
-            핵심 키워드
-          </Typography>
-          <Box sx={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-            {paperData.keywords_ko.map((keyword, index) => (
-              <Box
-                key={index}
-                sx={{
-                  px: "6px",
-                  py: 0,
-                  borderRadius: "7px",
-                  backgroundColor: "background.default",
-                  border: "1px solid",
-                  borderColor: "line.normal",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-                <Typography
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "8px",
+                flexWrap: "wrap",
+              }}
+            >
+              {paperData.keywords_ko.map((keyword, index) => (
+                <Box
+                  key={index}
                   sx={{
-                    fontSize: "14px",
-                    fontWeight: 400,
-                    color: "label.strong",
-                    lineHeight: "27px",
-                    letterSpacing: "-0.28px",
+                    display: "flex",
+                    padding: "3px 8px 4px 8px",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: "10px",
+                    borderRadius: "6px",
+                    backgroundColor: "background.paper",
                   }}
                 >
-                  {keyword}
-                </Typography>
-              </Box>
-            ))}
+                  <Typography
+                    sx={{
+                      display: "-webkit-box",
+                      WebkitBoxOrient: "vertical",
+                      WebkitLineClamp: 2,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      color: "label.normal",
+                      fontSize: "16px",
+                      fontWeight: 400,
+                      lineHeight: "24px",
+                      letterSpacing: "-0.336px",
+                    }}
+                  >
+                    {keyword}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
           </Box>
-        </Box>
+        )}
       </Box>
 
       {/* 초록 */}
       {paperData.abstract && (
         <Box
           sx={{
-            padding: "18px 38px 18px 30px",
             display: "flex",
             flexDirection: "column",
-            gap: "10px",
-            borderRadius: "14px",
-            backgroundColor: "static.white",
-            mb: "50px",
+            alignItems: "flex-start",
+            gap: "12px",
+            alignSelf: "stretch",
           }}
         >
-          <Box
-            sx={{
-              px: "9px",
-              py: "6px",
-              borderRadius: "7px",
-              backgroundColor: "background.paper",
-              alignSelf: "flex-start",
-            }}
-          >
-            <Typography
-              sx={{ fontSize: "17px", fontWeight: 600, color: "label.strong" }}
-            >
-              초록
-            </Typography>
-          </Box>
-          <Typography
-            sx={{
-              pl: "8px",
-              fontSize: "17px",
-              fontWeight: 400,
-              color: "static.black",
-              lineHeight: "29px",
-              letterSpacing: "-0.34px",
-            }}
-          >
-            {paperData.abstract}
-          </Typography>
-        </Box>
-      )}
-
-      {/* 유사 논문 */}
-      {similarData && similarData.length > 0 && (
-        <Box sx={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-          <Typography
-            sx={{
-              fontSize: "24px",
-              fontWeight: 600,
-              color: "static.black",
-              letterSpacing: "-0.48px",
-            }}
-          >
-            연관된 논문
-          </Typography>
+          <SectionHeader title="초록" />
           <Box
             sx={{
               display: "flex",
-              gap: "15px",
-              flexWrap: "wrap",
-              alignItems: "flex-start",
+              padding: "0 12px",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: "10px",
+              alignSelf: "stretch",
             }}
+          >
+            <Typography
+              sx={{
+                flex: "1 0 0",
+                color: "label.normal",
+                fontSize: "16px",
+                fontWeight: 400,
+                lineHeight: "27px",
+                letterSpacing: "-0.336px",
+              }}
+            >
+              {paperData.abstract}
+            </Typography>
+          </Box>
+        </Box>
+      )}
+
+      {/* 연관된 논문 */}
+      {similarData && similarData.length > 0 && (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            gap: "12px",
+            alignSelf: "stretch",
+          }}
+        >
+          <SectionHeader title="연관된 논문" />
+          <Box
+            sx={
+              isDesktop
+                ? {
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: "12px",
+                    overflowX: "auto",
+                    alignSelf: "stretch",
+                    pb: "4px",
+                  }
+                : {
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-start",
+                    gap: "12px",
+                    alignSelf: "stretch",
+                  }
+            }
           >
             {similarData.map((paper, index) => (
               <SimilarPaperCard
                 key={paper.paper_id ?? index}
                 paper={paper}
                 onClick={onRelatedPaperClick}
+                isDesktop={isDesktop}
               />
             ))}
           </Box>
         </Box>
       )}
 
-      {/* 북마크 폴더 선택 다이얼로그 */}
       <BookmarkFolderSelectDialog
         open={bookmarkDialogOpen}
         onClose={() => setBookmarkDialogOpen(false)}
