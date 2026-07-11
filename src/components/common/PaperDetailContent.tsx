@@ -286,16 +286,22 @@ const PaperDetailContent = ({
             <Box
               sx={{
                 display: "flex",
+                flexDirection: { xs: "column", sm: "row" },
                 justifyContent: "space-between",
-                alignItems: "center",
-                alignContent: "center",
+                alignItems: { xs: "flex-start", sm: "center" },
                 rowGap: "12px",
                 alignSelf: "stretch",
-                flexWrap: "wrap",
               }}
             >
-              {/* 배지들 */}
-              <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              {/* 배지들 — 데스크탑/태블릿 좌측, 모바일 아래 */}
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  order: { xs: 2, sm: 1 },
+                }}
+              >
                 {paperData.paper_type && (
                   <PaperTypeBadge paperType={paperData.paper_type} />
                 )}
@@ -304,8 +310,17 @@ const PaperDetailContent = ({
                 {paperData.trust_badge.sci && <TrustBadge label="SCI" />}
               </Box>
 
-              {/* doi + 북마크 */}
-              <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              {/* doi + 북마크 — 데스크탑/태블릿 우측, 모바일 위 */}
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  order: { xs: 1, sm: 2 },
+                  width: { xs: "100%", sm: "auto" },
+                  justifyContent: { xs: "space-between", sm: "flex-end" },
+                }}
+              >
                 {paperData.doi && (
                   <Box
                     onClick={() => window.open(paperData.doi!, "_blank")}
