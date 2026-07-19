@@ -1,93 +1,112 @@
-import { Box, InputBase, Typography } from '@mui/material';
-import { type SxProps, type Theme } from '@mui/material/styles';
+import { useState } from "react";
+import { Box, IconButton } from "@mui/material";
+import { type SxProps, type Theme } from "@mui/material/styles";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import StopIcon from "@mui/icons-material/Stop";
 
 interface ChatInputBarProps {
-  value: string;
-  onChange: (value: string) => void;
-  onSubmit: (value: string) => void;
+  isStreaming: boolean;
+  onSend: (message: string) => void;
+  onStop: () => void;
 }
 
 const containerSx: SxProps<Theme> = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-  px: '20px',
-  py: '15px',
-  borderTop: '1px solid',
-  borderColor: 'line.normal',
-  backgroundColor: 'background.default',
+  display: "flex",
+  height: "121px",
+  padding: "20px",
+  justifyContent: "space-between",
+  alignItems: "flex-end",
+  alignSelf: "stretch",
+  borderRadius: "8px",
+  border: "1px solid",
+  borderColor: "line.normal",
+  backgroundColor: "background.default",
 };
 
-const inputWrapperSx: SxProps<Theme> = {
+const textareaSx: React.CSSProperties = {
   flex: 1,
-  height: 62,
-  display: 'flex',
-  alignItems: 'center',
-  px: '20px',
-  borderRadius: '50px',
-  border: '1px solid',
-  borderColor: '#DADBE2',
-  backgroundColor: '#F6F7F8',
+  alignSelf: "stretch",
+  border: "none",
+  outline: "none",
+  resize: "none",
+  background: "transparent",
+  fontFamily: "Pretendard Variable, sans-serif",
+  fontSize: "16px",
+  fontWeight: 400,
+  lineHeight: "24px",
+  letterSpacing: "-0.336px",
+  color: "#1E2026",
+  overflowY: "auto",
 };
 
-const sendButtonSx: SxProps<Theme> = {
-  width: 66,
-  height: 62,
-  borderRadius: '40px',
-  backgroundColor: '#9195AB',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  cursor: 'pointer',
-  flexShrink: 0,
-  transition: 'background-color 0.2s',
-  '&:hover': {
-    backgroundColor: '#31333F',
-  },
-};
+const ChatInputBar = ({ isStreaming, onSend, onStop }: ChatInputBarProps) => {
+  const [value, setValue] = useState("");
 
-const ChatInputBar = ({ value, onChange, onSubmit }: ChatInputBarProps) => {
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && value.trim() !== '') {
-      onSubmit(value.trim());
+  const handleSubmit = () => {
+    if (!value.trim() || isStreaming) return;
+    onSend(value.trim());
+    setValue("");
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
     }
   };
 
-  const handleClick = () => {
-    if (value.trim() !== '') {
-      onSubmit(value.trim());
-    }
-  };
+  const hasValue = value.trim().length > 0;
 
   return (
     <Box sx={containerSx}>
-      <Box sx={inputWrapperSx}>
-        <InputBase
-          value={value}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder=""
-          fullWidth
-          sx={{
-            fontSize: '18px',
-            fontWeight: 400,
-            color: 'label.normal',
-            lineHeight: '150%',
-          }}
-        />
-      </Box>
-      <Box sx={sendButtonSx} onClick={handleClick}>
-        <Typography
-          sx={{
-            fontSize: '18px',
-            fontWeight: 700,
-            color: '#FFF',
-            lineHeight: 'normal',
-          }}
-        >
-          전송
-        </Typography>
-      </Box>
+      <textarea
+        value={value}
+        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+          setValue(e.target.value)
+        }
+        onKeyDown={handleKeyDown}
+        placeholder="바이옴에게 물어보세요"
+        style={{
+          ...textareaSx,
+          color: hasValue ? "#1E2026" : "#73757F",
+        }}
+      />
+      <IconButton
+        onClick={isStreaming ? onStop : handleSubmit}
+        sx={{
+          display: "flex",
+          width: "36px",
+          height: "36px",
+          justifyContent: "center",
+          alignItems: "center",
+          borderRadius: "100px",
+          backgroundColor: isStreaming
+            ? "#1E2026"
+            : hasValue
+              ? "#1E2026"
+              : "#D8DAE5",
+          "&:hover": {
+            backgroundColor: isStreaming
+              ? "#1E2026"
+              : hasValue
+                ? "#1E2026"
+                : "#D8DAE5",
+          },
+          p: 0,
+        }}
+      >
+        {isStreaming ? (
+          <StopIcon sx={{ width: 24, height: 24, color: "#FFF" }} />
+        ) : (
+          <ArrowForwardIcon
+            sx={{
+              width: 24,
+              height: 24,
+              color: hasValue ? "#FFF" : "#73757F",
+            }}
+          />
+        )}
+      </IconButton>
     </Box>
   );
 };

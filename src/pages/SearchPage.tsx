@@ -1,70 +1,50 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { Box, CircularProgress, Typography } from "@mui/material";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { Box } from "@mui/material";
+import { type SxProps, type Theme } from "@mui/material/styles";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { type SxProps, type Theme } from "@mui/material/styles";
-import SearchHeader from "../components/search/SearchHeader";
+import TopNavBar from "../components/layout/TopNavBar";
 import ExitConfirmDialog from "../components/search/ExitConfirmDialog";
-import SearchChatPanel from "../components/search/SearchChatPanel";
-import SearchProgressPanel from "../components/search/SearchProgressPanel";
-import PaperListPanel from "../components/search/PaperListPanel";
+import SearchChatArea from "../components/search/SearchChatArea";
+import SearchResultPanel from "../components/search/SearchResultPanel";
 import PaperDetailContent from "../components/common/PaperDetailContent";
-import {
-  searchChatStream,
-  searchExecute,
-  searchPapers,
-  postFeedback,
-} from "../api/search";
-import { useMypageQuery } from "../queries/useMypageQuery";
+import { searchChatStream, postFeedback } from "../api/search";
 import {
   type SearchView,
   type ChatMessage,
-  type ChatOption,
-  type SearchStage,
-  type FinalSearchParams,
-  type SearchPaper,
-  type SearchExecuteResult,
+  type ChatResponse,
+  type SortOrder,
   type FeedbackType,
+  type ChipType,
 } from "../types/search";
-import { type PaperType } from "../types/paper";
 
 // ─── Location State ───────────────────────────────────────
 
 interface LocationState {
   query: string;
-  title: string;
-  directSearch?: boolean;
 }
 
 // ─── Styles ───────────────────────────────────────────────
 
-const pageContainerSx: SxProps<Theme> = {
+const pageSx: SxProps<Theme> = {
   display: "flex",
+  padding: "12px",
   flexDirection: "column",
+  alignItems: "center",
+  gap: "12px",
   height: "100vh",
-  backgroundColor: "background.default",
-  minWidth: 1200,
+  overflow: "hidden",
+  backgroundColor: "#F7F8FA",
 };
 
 const contentAreaSx: SxProps<Theme> = {
   display: "flex",
+  justifyContent: "center",
+  alignItems: "flex-start",
+  gap: "12px",
+  alignSelf: "stretch",
+  mt: "92px",
   flex: 1,
-  overflow: "hidden",
-};
-
-const chatPanelSx: SxProps<Theme> = {
-  width: "50%",
-  borderRight: "1px solid",
-  borderColor: "line.normal",
-  display: "flex",
-  flexDirection: "column",
-  overflow: "hidden",
-};
-
-const progressPanelSx: SxProps<Theme> = {
-  width: "50%",
-  display: "flex",
-  flexDirection: "column",
   overflow: "hidden",
 };
 
@@ -73,110 +53,53 @@ const progressPanelSx: SxProps<Theme> = {
 const SearchPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const state = location.state as LocationState | null;
-
-  const query = state?.query ?? "";
-  const title = state?.title ?? "검색";
-  const directSearch = state?.directSearch ?? false;
   const queryClient = useQueryClient();
-  const { data: mypageData } = useMypageQuery();
-  const userId = mypageData?.profile.id;
+  const state = location.state as LocationState | null;
+  const query = state?.query ?? "";
 
   // ─── 뷰 상태 ───────────────────────────────────────────
-  const [view, setView] = useState<SearchView>(directSearch ? "list" : "chat");
+  const [view, setView] = useState<SearchView>("chat");
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [exitDialogOpen, setExitDialogOpen] = useState(false);
-  const [isExecuting, setIsExecuting] = useState(false);
   const [selectedPaperId, setSelectedPaperId] = useState<string | null>(null);
 
-  // ─── 세션/스트리밍 상태 ────────────────────────────────
+  // ─── 대화 상태 ─────────────────────────────────────────
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const initSentRef = useRef(false);
 
-  // ─── 대화 상태 ─────────────────────────────────────────
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [options, setOptions] = useState<ChatOption[]>([]);
-  const [allowMultiple, setAllowMultiple] = useState(false);
-
-  // ─── 우측 패널 상태 ────────────────────────────────────
-  const [completenessPct, setCompletenessPct] = useState(0);
-  const [searchStage, setSearchStage] = useState<SearchStage>("none");
-  const [interimPapers, setInterimPapers] = useState<SearchPaper[]>([]);
-
-  // ─── 검색 실행 상태 ────────────────────────────────────
-  const [finalSearchParams, setFinalSearchParams] =
-    useState<FinalSearchParams | null>(null);
-  const [executeResult, setExecuteResult] =
-    useState<SearchExecuteResult | null>(null);
+  // ─── 검색 결과 상태 ────────────────────────────────────
+  const [chatResponse, setChatResponse] = useState<ChatResponse | null>(null);
+  const [sortOrder, setSortOrder] = useState<SortOrder>("relevance");
   const [feedbacks, setFeedbacks] = useState<Record<string, FeedbackType>>({});
-  const [bookmarks, setBookmarks] = useState<Record<string, boolean>>({});
 
-  // ─── 필터 상태 ─────────────────────────────────────────
-  const [filterPaperType, setFilterPaperType] = useState<PaperType | null>(
-    null,
-  );
-  const [filterYear, setFilterYear] = useState<number | null>(null);
-  const [filterKci, setFilterKci] = useState<boolean | null>(null);
-  const [filterSci, setFilterSci] = useState<boolean | null>(null);
-
-  // ─── 검색 실행 ─────────────────────────────────────────
-
-  const handleExecute = useCallback(
-    async (
-      currentSessionId: string,
-      params: FinalSearchParams,
-      paperType: PaperType | null,
-      year: number | null,
-      kci: boolean | null,
-      sci: boolean | null,
-    ) => {
-      if (!userId) return;
-      setIsExecuting(true);
-      try {
-        const result = await searchExecute(
-          {
-            session_id: currentSessionId,
-            search_params: params,
-            filter_paper_type: paperType,
-            filter_year: year,
-            filter_kci: kci,
-            filter_sci: sci,
-            sort_order: "relevance",
-          },
-          userId,
-        );
-        setExecuteResult(result);
-        queryClient.invalidateQueries({ queryKey: ["home"] });
-        setView("list");
-      } catch {
-        // 에러 처리
-      } finally {
-        setIsExecuting(false);
-      }
-    },
-    [queryClient, userId],
-  );
-
-  // ─── SSE 스트리밍 핸들러 ───────────────────────────────
+  // ─── SSE 핸들러 ────────────────────────────────────────
 
   const handleSend = useCallback(
-    async (message: string, selectedOptions: string[], forceStart = false) => {
+    async (
+      message: string,
+      chipId: string | null = null,
+      chipType: ChipType | null = null,
+    ) => {
       abortControllerRef.current?.abort();
       const controller = new AbortController();
       abortControllerRef.current = controller;
 
+      const userMessageId = Date.now().toString();
+      const aiMessageId = (Date.now() + 1).toString();
+
       if (message) {
         setMessages((prev) => [
           ...prev,
-          { id: Date.now().toString(), role: "user", content: message },
+          { id: userMessageId, role: "user", content: message },
         ]);
       }
 
-      const loadingId = (Date.now() + 1).toString();
       setMessages((prev) => [
         ...prev,
-        { id: loadingId, role: "ai", content: "", isLoading: true },
+        { id: aiMessageId, role: "ai", content: "", isLoading: true },
       ]);
 
       setIsStreaming(true);
@@ -187,76 +110,117 @@ const SearchPage = () => {
           body: {
             session_id: sessionId,
             message,
-            selected_options: selectedOptions,
-            force_start: forceStart,
+            chip_id: chipId,
+            chip_type: chipType,
+            sort_order: sortOrder,
           },
           callbacks: {
-            onSlotUpdate: () => {},
-            onCompleteness: (pct, stage) => {
-              setCompletenessPct(pct);
-              setSearchStage(stage);
-            },
-            onKeywordProgress: (stage, keywords) => {
-              if (stage === "completed" && keywords) {
-                setInterimPapers([]);
-              }
-            },
-            onToken: (text) => {
-              streamingText += text;
+            onSearchStarted: () => {
               setMessages((prev) =>
                 prev.map((m) =>
-                  m.id === loadingId
-                    ? { ...m, content: streamingText, isLoading: false }
+                  m.id === aiMessageId
+                    ? { ...m, content: "탐색 시작할게요.", isLoading: false }
                     : m,
                 ),
               );
             },
-            onDone: async (event) => {
-              setSessionId(event.session_id);
-              setOptions(event.options);
-              setAllowMultiple(event.allow_multiple);
-              setCompletenessPct(event.completeness_pct);
-              setSearchStage(event.search_stage);
-
-              if (event.interim_papers && event.interim_papers.length > 0) {
-                setInterimPapers(event.interim_papers);
-              }
-
+            onSearching: () => {
               setMessages((prev) =>
                 prev.map((m) =>
-                  m.id === loadingId
+                  m.id === aiMessageId
                     ? {
                         ...m,
-                        content: event.ai_message,
-                        isLoading: false,
-                        options: event.options,
-                        allowMultiple: event.allow_multiple,
+                        blocks: [{ type: "status", status: "searching" }],
                       }
                     : m,
                 ),
               );
-
-              setFinalSearchParams(event.final_search_params);
-
-              if (
-                event.search_ready &&
-                event.final_search_params &&
-                selectedOptions.includes("start_search")
-              ) {
-                await handleExecute(
-                  event.session_id,
-                  event.final_search_params,
-                  filterPaperType,
-                  filterYear,
-                  filterKci,
-                  filterSci,
-                );
+            },
+            onPapersFound: (count) => {
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === aiMessageId
+                    ? {
+                        ...m,
+                        blocks: [
+                          {
+                            type: "status",
+                            status: "searching",
+                            paperCount: count,
+                          },
+                        ],
+                      }
+                    : m,
+                ),
+              );
+            },
+            onFetching: () => {},
+            onToken: (text) => {
+              streamingText += text;
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === aiMessageId
+                    ? {
+                        ...m,
+                        content: streamingText,
+                        blocks: [{ type: "status", status: "complete" }],
+                      }
+                    : m,
+                ),
+              );
+            },
+            onDone: (response) => {
+              setSessionId(response.session_id);
+              setChatResponse(response);
+              queryClient.invalidateQueries({ queryKey: ["home"] });
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === aiMessageId
+                    ? {
+                        ...m,
+                        content: streamingText,
+                        blocks: [
+                          { type: "status", status: "complete" },
+                          { type: "text", content: streamingText },
+                          ...(response.result_items.length > 0
+                            ? [
+                                {
+                                  type: "result_summary" as const,
+                                  total_count: response.total_count,
+                                  keywords: response.filters.keywords,
+                                },
+                              ]
+                            : []),
+                          ...(response.narrow_chips.length > 0
+                            ? [
+                                {
+                                  type: "narrow_chips" as const,
+                                  chips: response.narrow_chips,
+                                },
+                              ]
+                            : []),
+                          ...(response.expand_chips.length > 0
+                            ? [
+                                {
+                                  type: "expand_chips" as const,
+                                  chips: response.expand_chips,
+                                },
+                              ]
+                            : []),
+                        ],
+                      }
+                    : m,
+                ),
+              );
+              if (response.result_items.length > 0) {
+                setView("result");
+                setIsPanelOpen(true);
               }
             },
             onError: (errorMessage) => {
               setMessages((prev) =>
                 prev.map((m) =>
-                  m.id === loadingId
+                  m.id === aiMessageId
                     ? { ...m, content: errorMessage, isLoading: false }
                     : m,
                 ),
@@ -269,142 +233,33 @@ const SearchPage = () => {
         setIsStreaming(false);
       }
     },
-    [
-      sessionId,
-      filterPaperType,
-      filterYear,
-      filterKci,
-      filterSci,
-      handleExecute,
-    ],
+    [sessionId, sortOrder, queryClient],
   );
 
-  // ─── 필터 변경 시 재검색 ───────────────────────────────
-
-  const handleFilterPaperTypeChange = useCallback(
-    async (paperType: PaperType | null) => {
-      setFilterPaperType(paperType);
-      if (finalSearchParams && sessionId) {
-        await handleExecute(
-          sessionId,
-          finalSearchParams,
-          paperType,
-          filterYear,
-          filterKci,
-          filterSci,
-        );
-      }
-    },
-    [
-      finalSearchParams,
-      sessionId,
-      filterYear,
-      filterKci,
-      filterSci,
-      handleExecute,
-    ],
-  );
-
-  const handleFilterYearChange = useCallback(
-    async (year: number | null) => {
-      setFilterYear(year);
-      if (finalSearchParams && sessionId) {
-        await handleExecute(
-          sessionId,
-          finalSearchParams,
-          filterPaperType,
-          year,
-          filterKci,
-          filterSci,
-        );
-      }
-    },
-    [
-      finalSearchParams,
-      sessionId,
-      filterPaperType,
-      filterKci,
-      filterSci,
-      handleExecute,
-    ],
-  );
-
-  const handleFilterKciChange = useCallback(
-    async (kci: boolean | null) => {
-      setFilterKci(kci);
-      if (finalSearchParams && sessionId) {
-        await handleExecute(
-          sessionId,
-          finalSearchParams,
-          filterPaperType,
-          filterYear,
-          kci,
-          filterSci,
-        );
-      }
-    },
-    [
-      finalSearchParams,
-      sessionId,
-      filterPaperType,
-      filterYear,
-      filterSci,
-      handleExecute,
-    ],
-  );
-
-  const handleFilterSciChange = useCallback(
-    async (sci: boolean | null) => {
-      setFilterSci(sci);
-      if (finalSearchParams && sessionId) {
-        await handleExecute(
-          sessionId,
-          finalSearchParams,
-          filterPaperType,
-          filterYear,
-          filterKci,
-          sci,
-        );
-      }
-    },
-    [
-      finalSearchParams,
-      sessionId,
-      filterPaperType,
-      filterYear,
-      filterKci,
-      handleExecute,
-    ],
-  );
-
-  // ─── directSearch 진입 처리 ────────────────────────────
-
-  useEffect(() => {
-    if (!directSearch || !query) return;
-    const fetchDirectSearch = async () => {
-      try {
-        const papers = await searchPapers({
-          query,
-          paper_scope: "ANY",
-          time_range: "SKIP",
-          keywords: [],
-          page: 1,
-          size: 20,
-        });
-        setExecuteResult({ papers, total: papers.length, search_id: "" });
-      } catch {
-        // 에러 처리
-      }
-    };
-    fetchDirectSearch();
+  const handleStop = useCallback(() => {
+    abortControllerRef.current?.abort();
+    setMessages((prev) => {
+      const withoutLastAi = prev.filter((m, i) => {
+        const isLastAi = m.role === "ai" && i === prev.length - 1;
+        return !isLastAi;
+      });
+      const lastUserIndex = [...withoutLastAi]
+        .reverse()
+        .findIndex((m) => m.role === "user");
+      if (lastUserIndex === -1) return withoutLastAi;
+      const actualIndex = withoutLastAi.length - 1 - lastUserIndex;
+      return withoutLastAi.map((m, i) =>
+        i === actualIndex ? { ...m, isStopped: true } : m,
+      );
+    });
   }, []);
 
-  // ─── AI 탐색 첫 턴 자동 전송 ──────────────────────────
+  // ─── 첫 진입 자동 전송 ─────────────────────────────────
 
   useEffect(() => {
-    if (directSearch || !query || initSentRef.current) return;
+    if (!query || initSentRef.current) return;
     initSentRef.current = true;
-    handleSend(query, []);
+    handleSend(query);
   }, []);
 
   // ─── 언마운트 시 스트림 정리 ───────────────────────────
@@ -414,6 +269,42 @@ const SearchPage = () => {
       abortControllerRef.current?.abort();
     };
   }, []);
+
+  // ─── 재검색 ────────────────────────────────────────────
+
+  const handleRetry = useCallback(
+    (messageId: string) => {
+      const messageIndex = messages.findIndex((m) => m.id === messageId);
+      if (messageIndex === -1) return;
+      const targetMessage = messages[messageIndex];
+      // 해당 메시지 이후(AI 답변 포함) 전부 제거
+      setMessages((prev) => prev.slice(0, messageIndex));
+      handleSend(targetMessage.content);
+    },
+    [messages, handleSend],
+  );
+
+  // ─── 수정 ──────────────────────────────────────────────
+
+  const handleEdit = useCallback(
+    (messageId: string, newContent: string) => {
+      const messageIndex = messages.findIndex((m) => m.id === messageId);
+      if (messageIndex === -1) return;
+      // 해당 메시지 이후 전부 제거하고 수정된 내용으로 재전송
+      setMessages((prev) => prev.slice(0, messageIndex));
+      handleSend(newContent);
+    },
+    [messages, handleSend],
+  );
+
+  // ─── 칩 클릭 ───────────────────────────────────────────
+
+  const handleChipClick = useCallback(
+    (chipId: string, chipType: ChipType, label: string) => {
+      handleSend(label, chipId, chipType);
+    },
+    [handleSend],
+  );
 
   // ─── 피드백 ────────────────────────────────────────────
 
@@ -430,136 +321,75 @@ const SearchPage = () => {
     [sessionId],
   );
 
-  // ─── 북마크 ────────────────────────────────────────────
-
-  const handleBookmark = useCallback((paperId: string) => {
-    setBookmarks((prev) => ({ ...prev, [paperId]: !prev[paperId] }));
-  }, []);
-
   // ─── 네비게이션 ────────────────────────────────────────
 
   const handleBackClick = () => {
     if (view === "detail") {
-      setView("list");
+      setView("result");
+      setSelectedPaperId(null);
       return;
     }
     setExitDialogOpen(true);
   };
+
   const handleExitConfirm = () => {
     setExitDialogOpen(false);
     navigate("/home", { replace: true });
   };
+
   const handleExitCancel = () => setExitDialogOpen(false);
-  const handleSearchStart = async () => {
-    if (finalSearchParams && sessionId) {
-      await handleExecute(
-        sessionId,
-        finalSearchParams,
-        filterPaperType,
-        filterYear,
-        filterKci,
-        filterSci,
-      );
-    }
-  };
-  const handleResetCondition = () => setView("chat");
+
+  const handlePaperClick = useCallback((paperId: string) => {
+    setSelectedPaperId(paperId);
+    setView("detail");
+  }, []);
+
+  const handlePanelOpen = useCallback(() => setIsPanelOpen(true), []);
+  const handlePanelClose = useCallback(() => setIsPanelOpen(false), []);
 
   // ─── Render ────────────────────────────────────────────
 
   return (
-    <Box sx={pageContainerSx}>
-      <SearchHeader title={title} onBack={handleBackClick} />
+    <Box sx={pageSx}>
+      <TopNavBar
+        onBack={handleBackClick}
+        onLogoClick={() => setExitDialogOpen(true)}
+        searchConfig={{ query }}
+      />
       <Box sx={contentAreaSx}>
-        {view === "chat" ? (
-          <>
-            <Box sx={chatPanelSx}>
-              <SearchChatPanel
-                messages={messages}
-                options={options}
-                allowMultiple={allowMultiple}
-                isStreaming={isStreaming}
-                onSend={handleSend}
-              />
-            </Box>
-            <Box sx={progressPanelSx}>
-              <SearchProgressPanel
-                completenessPct={completenessPct}
-                searchStage={searchStage}
-                interimPapers={interimPapers}
-                isStreaming={isStreaming}
-                onSearchStart={handleSearchStart}
-                onFeedback={handleFeedback}
-                feedbacks={feedbacks}
-              />
-            </Box>
-          </>
-        ) : view === "list" ? (
-          <Box sx={{ flex: 1, overflow: "hidden" }}>
-            <PaperListPanel
-              papers={executeResult?.papers ?? []}
-              totalCount={executeResult?.total ?? 0}
-              filterPaperType={filterPaperType}
-              filterYear={filterYear}
-              filterKci={filterKci}
-              filterSci={filterSci}
-              bookmarks={bookmarks}
-              onFilterPaperTypeChange={handleFilterPaperTypeChange}
-              onFilterYearChange={handleFilterYearChange}
-              onFilterKciChange={handleFilterKciChange}
-              onFilterSciChange={handleFilterSciChange}
-              onResetCondition={handleResetCondition}
-              onBookmark={handleBookmark}
-              onPaperClick={(paperId) => {
-                setSelectedPaperId(paperId);
-                setView("detail");
-              }}
-            />
-          </Box>
-        ) : view === "detail" && selectedPaperId ? (
-          <Box
-            sx={{
-              flex: 1,
-              overflow: "auto",
-              px: "63px",
-              py: "29px",
-              backgroundColor: "background.paper",
-            }}
-          >
+        {view !== "detail" && (
+          <SearchChatArea
+            messages={messages}
+            isStreaming={isStreaming}
+            isPanelOpen={isPanelOpen}
+            onSend={(message) => handleSend(message)}
+            onChipClick={handleChipClick}
+            onPanelOpen={handlePanelOpen}
+            onRetry={handleRetry}
+            onEdit={handleEdit}
+            onStop={handleStop}
+          />
+        )}
+        {view === "result" && isPanelOpen && (
+          <SearchResultPanel
+            chatResponse={chatResponse}
+            feedbacks={feedbacks}
+            onClose={handlePanelClose}
+            onPaperClick={handlePaperClick}
+            onFeedback={handleFeedback}
+            onSortChange={setSortOrder}
+            sortOrder={sortOrder}
+          />
+        )}
+        {view === "detail" && selectedPaperId && (
+          <Box sx={{ flex: 1, overflow: "auto" }}>
             <PaperDetailContent
               paperId={selectedPaperId}
-              searchId={executeResult?.search_id || undefined}
-              onRelatedPaperClick={(paperId) => {
-                setSelectedPaperId(paperId);
-              }}
+              onRelatedPaperClick={handlePaperClick}
             />
           </Box>
-        ) : null}
+        )}
       </Box>
-      {isExecuting && (
-        <Box
-          sx={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(255,255,255,0.8)",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "16px",
-            zIndex: 9999,
-          }}
-        >
-          <CircularProgress />
-          <Typography
-            sx={{ fontSize: "18px", fontWeight: 500, color: "label.normal" }}
-          >
-            논문을 탐색중입니다
-          </Typography>
-        </Box>
-      )}
       <ExitConfirmDialog
         open={exitDialogOpen}
         onConfirm={handleExitConfirm}
