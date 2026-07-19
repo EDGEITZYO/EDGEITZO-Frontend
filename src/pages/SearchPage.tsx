@@ -382,10 +382,27 @@ const SearchPage = () => {
           />
         )}
         {view === "detail" && selectedPaperId && (
-          <Box sx={{ flex: 1, overflow: "auto" }}>
+          <Box
+            sx={{
+              flex: 1,
+              overflow: "auto",
+              display: "flex",
+              padding: "32px",
+              flexDirection: "column",
+              alignItems: "flex-start",
+              gap: "32px",
+              alignSelf: "stretch",
+              borderRadius: "8px",
+              backgroundColor: "background.default",
+            }}
+          >
             <PaperDetailContent
               paperId={selectedPaperId}
               onRelatedPaperClick={handlePaperClick}
+              onClose={() => {
+                setView("result");
+                setSelectedPaperId(null);
+              }}
             />
           </Box>
         )}

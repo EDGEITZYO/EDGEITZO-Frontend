@@ -14,11 +14,13 @@ import { bookmarkApi } from "../../api/bookmark";
 import BookmarkFolderSelectDialog from "./BookmarkFolderSelectDialog";
 import SimilarPaperCard from "../paper/SimilarPaperCard";
 import PaperTypeBadge from "./PaperTypeBadge";
+import CloseIcon from "@mui/icons-material/Close";
 
 interface PaperDetailContentProps {
   paperId: string;
   searchId?: string;
   onRelatedPaperClick?: (paperId: string) => void;
+  onClose?: () => void;
 }
 
 // ─── 배지 ────────────────────────────────────────────────
@@ -113,6 +115,7 @@ const PaperDetailContent = ({
   paperId,
   searchId,
   onRelatedPaperClick,
+  onClose,
 }: PaperDetailContentProps) => {
   const queryClient = useQueryClient();
   const theme = useTheme();
@@ -388,6 +391,31 @@ const PaperDetailContent = ({
                     />
                   )}
                 </Box>
+
+                {/* 닫기 버튼 — onClose 있을 때만 */}
+                {onClose && (
+                  <Box
+                    onClick={onClose}
+                    sx={{
+                      display: "flex",
+                      height: "36px",
+                      padding: "6px 8px",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      borderRadius: "24px",
+                      backgroundColor: "background.paper",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <CloseIcon
+                      sx={{
+                        width: "20px",
+                        height: "20px",
+                        color: "label.assistive",
+                      }}
+                    />
+                  </Box>
+                )}
               </Box>
             </Box>
 
