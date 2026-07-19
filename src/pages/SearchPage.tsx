@@ -43,7 +43,7 @@ const contentAreaSx: SxProps<Theme> = {
   alignItems: "flex-start",
   gap: "12px",
   alignSelf: "stretch",
-  mt: "92px",
+  mt: "80px",
   flex: 1,
   overflow: "hidden",
 };

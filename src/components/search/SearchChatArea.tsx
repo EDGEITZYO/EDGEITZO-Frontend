@@ -20,7 +20,7 @@ interface SearchChatAreaProps {
   onStop: () => void;
 }
 
-const chatAreaSx = (isPanelOpen: boolean): SxProps<Theme> => ({
+const chatAreaSx: SxProps<Theme> = {
   display: "flex",
   flexDirection: "column",
   justifyContent: "space-between",
@@ -28,19 +28,18 @@ const chatAreaSx = (isPanelOpen: boolean): SxProps<Theme> => ({
   flex: 1,
   alignSelf: "stretch",
   overflow: "hidden",
-  ...(!isPanelOpen && { maxWidth: "912px" }),
-});
+};
 
-const messagesWrapperSx: SxProps<Theme> = {
+const messagesWrapperSx = (isPanelOpen: boolean): SxProps<Theme> => ({
   display: "flex",
   flexDirection: "column",
   alignItems: "flex-end",
   gap: "24px",
   alignSelf: "stretch",
-  flex: 1,
-  overflowY: "auto",
   pb: "24px",
-};
+  width: "100%",
+  ...(!isPanelOpen && { maxWidth: "912px", mx: "auto" }),
+});
 
 const SearchChatArea = ({
   messages,
@@ -62,24 +61,49 @@ const SearchChatArea = ({
   }, [messages]);
 
   return (
-    <Box sx={chatAreaSx(isPanelOpen)}>
-      <Box ref={scrollRef} sx={messagesWrapperSx}>
-        {messages.map((message) => (
-          <ChatMessage
-            key={message.id}
-            message={message}
-            onChipClick={onChipClick}
-            onPanelOpen={onPanelOpen}
-            onRetry={onRetry}
-            onEdit={onEdit}
-          />
-        ))}
+    <Box sx={chatAreaSx}>
+      <Box
+        ref={scrollRef}
+        sx={{
+          flex: 1,
+          overflowY: "auto",
+          alignSelf: "stretch",
+        }}
+      >
+        <Box sx={messagesWrapperSx(isPanelOpen)}>
+          {messages.map((message) => (
+            <ChatMessage
+              key={message.id}
+              message={message}
+              onChipClick={onChipClick}
+              onPanelOpen={onPanelOpen}
+              onRetry={onRetry}
+              onEdit={onEdit}
+            />
+          ))}
+        </Box>
       </Box>
-      <ChatInputBar
-        isStreaming={isStreaming}
-        onSend={onSend}
-        onStop={onStop}
-      />
+      <Box
+        sx={{
+          alignSelf: "stretch",
+          display: "flex",
+          justifyContent: "center",
+        }}
+      >
+        <Box
+          sx={{
+            alignSelf: "stretch",
+            width: "100%",
+            ...(!isPanelOpen && { maxWidth: "912px", mx: "auto" }),
+          }}
+        >
+          <ChatInputBar
+            isStreaming={isStreaming}
+            onSend={onSend}
+            onStop={onStop}
+          />
+        </Box>
+      </Box>
     </Box>
   );
 };

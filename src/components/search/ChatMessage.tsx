@@ -345,7 +345,7 @@ const AiMessage = ({
           )}
 
         {/* 탐색 완료 후 답변 영역 */}
-        {isComplete && isExpanded && (
+        {isComplete && (
           <Box
             sx={{
               display: "flex",
@@ -356,7 +356,7 @@ const AiMessage = ({
             }}
           >
             {/* AI 요약 텍스트 */}
-            {(textBlock?.type === "text" || message.content) && (
+            {isExpanded && (textBlock?.type === "text" || message.content) && (
               <Typography
                 sx={{
                   color: "label.alternative",
