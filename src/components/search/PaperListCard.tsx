@@ -31,7 +31,6 @@ const PaperListCard = ({
     .filter(Boolean)
     .join(" · ");
   const authors = paper.authors.map((a) => a.name);
-  const displayAuthors = isAuthorExpanded ? authors : authors.slice(0, 3);
 
   if (isMobile) {
     return (
@@ -70,6 +69,27 @@ const PaperListCard = ({
           >
             {paper.paper_type && (
               <PaperTypeBadge paperType={paper.paper_type} />
+            )}
+            {paper.credibility.citation_count !== null && (
+              <Box
+                sx={{
+                  display: "inline-flex",
+                  padding: "3px 8px 4px 8px",
+                  borderRadius: "6px",
+                  border: "1px solid",
+                  borderColor: "label.normal",
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: "16px",
+                    fontWeight: 600,
+                    color: "label.normal",
+                  }}
+                >
+                  인용수 {paper.credibility.citation_count}
+                </Typography>
+              </Box>
             )}
             {paper.credibility.kci_registered && (
               <Box
@@ -154,39 +174,61 @@ const PaperListCard = ({
         {/* 저자 */}
         <Box
           onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}
-          sx={{ display: "flex", alignItems: "center" }}
         >
-          <Typography
+          <Box
             sx={{
-              color: "#1B1C23",
-              fontSize: "13px",
-              fontWeight: 400,
-              lineHeight: "22px",
-              letterSpacing: "-0.26px",
+              display: "flex",
+              alignItems: "center",
+              cursor: authors.length > 1 ? "pointer" : "default",
+            }}
+            onClick={(e: React.MouseEvent<HTMLDivElement>) => {
+              e.stopPropagation();
+              if (authors.length > 1) setIsAuthorExpanded((prev) => !prev);
             }}
           >
-            {displayAuthors.join(", ")}
-            {!isAuthorExpanded && authors.length > 3 && " ..."}
-          </Typography>
-          {authors.length > 1 && (
-            <IconButton
-              onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-                e.stopPropagation();
-                setIsAuthorExpanded((prev) => !prev);
-              }}
+            <Typography
               sx={{
-                width: "20px",
-                height: "20px",
-                p: "5px",
-                borderRadius: "12px",
+                color: "#1B1C23",
+                fontSize: "13px",
+                fontWeight: 400,
+                lineHeight: "22px",
+                letterSpacing: "-0.26px",
               }}
             >
-              {isAuthorExpanded ? (
-                <KeyboardArrowUpIcon sx={{ fontSize: 10 }} />
-              ) : (
-                <KeyboardArrowDownIcon sx={{ fontSize: 10 }} />
-              )}
-            </IconButton>
+              {authors.length > 1
+                ? `${authors[0]} 외 ${authors.length - 1}인`
+                : authors[0]}
+            </Typography>
+            {authors.length > 1 && (
+              <IconButton
+                sx={{
+                  width: "20px",
+                  height: "20px",
+                  p: "5px",
+                  borderRadius: "12px",
+                }}
+              >
+                {isAuthorExpanded ? (
+                  <KeyboardArrowUpIcon sx={{ fontSize: 10 }} />
+                ) : (
+                  <KeyboardArrowDownIcon sx={{ fontSize: 10 }} />
+                )}
+              </IconButton>
+            )}
+          </Box>
+          {isAuthorExpanded && (
+            <Typography
+              sx={{
+                color: "label.assistive",
+                fontSize: "13px",
+                fontWeight: 400,
+                lineHeight: "22px",
+                letterSpacing: "-0.26px",
+                mt: "4px",
+              }}
+            >
+              {authors.join(", ")}
+            </Typography>
           )}
         </Box>
 
@@ -345,6 +387,70 @@ const PaperListCard = ({
                 {paper.paper_type && (
                   <PaperTypeBadge paperType={paper.paper_type} />
                 )}
+                {paper.credibility.citation_count !== null && (
+                  <Box
+                    sx={{
+                      display: "inline-flex",
+                      padding: "3px 8px 4px 8px",
+                      borderRadius: "6px",
+                      border: "1px solid",
+                      borderColor: "label.normal",
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontSize: "16px",
+                        fontWeight: 600,
+                        color: "label.normal",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      인용수 {paper.credibility.citation_count}
+                    </Typography>
+                  </Box>
+                )}
+                {paper.credibility.kci_registered && (
+                  <Box
+                    sx={{
+                      display: "inline-flex",
+                      padding: "3px 8px 4px 8px",
+                      borderRadius: "6px",
+                      border: "1px solid",
+                      borderColor: "secondary.dark",
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontSize: "16px",
+                        fontWeight: 600,
+                        color: "secondary.dark",
+                      }}
+                    >
+                      KCI
+                    </Typography>
+                  </Box>
+                )}
+                {paper.credibility.sci_indexed && (
+                  <Box
+                    sx={{
+                      display: "inline-flex",
+                      padding: "3px 8px 4px 8px",
+                      borderRadius: "6px",
+                      border: "1px solid",
+                      borderColor: "secondary.dark",
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontSize: "16px",
+                        fontWeight: 600,
+                        color: "secondary.dark",
+                      }}
+                    >
+                      SCI
+                    </Typography>
+                  </Box>
+                )}
               </Box>
               {journalInfo && (
                 <Typography
@@ -403,39 +509,61 @@ const PaperListCard = ({
 
         <Box
           onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}
-          sx={{ display: "flex", alignItems: "center" }}
         >
-          <Typography
+          <Box
             sx={{
-              color: "#1B1C23",
-              fontSize: "13px",
-              fontWeight: 400,
-              lineHeight: "22px",
-              letterSpacing: "-0.26px",
+              display: "flex",
+              alignItems: "center",
+              cursor: authors.length > 1 ? "pointer" : "default",
+            }}
+            onClick={(e: React.MouseEvent<HTMLDivElement>) => {
+              e.stopPropagation();
+              if (authors.length > 1) setIsAuthorExpanded((prev) => !prev);
             }}
           >
-            {displayAuthors.join(", ")}
-            {!isAuthorExpanded && authors.length > 3 && " ..."}
-          </Typography>
-          {authors.length > 1 && (
-            <IconButton
-              onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-                e.stopPropagation();
-                setIsAuthorExpanded((prev) => !prev);
-              }}
+            <Typography
               sx={{
-                width: "20px",
-                height: "20px",
-                p: "5px",
-                borderRadius: "12px",
+                color: "#1B1C23",
+                fontSize: "13px",
+                fontWeight: 400,
+                lineHeight: "22px",
+                letterSpacing: "-0.26px",
               }}
             >
-              {isAuthorExpanded ? (
-                <KeyboardArrowUpIcon sx={{ fontSize: 10 }} />
-              ) : (
-                <KeyboardArrowDownIcon sx={{ fontSize: 10 }} />
-              )}
-            </IconButton>
+              {authors.length > 1
+                ? `${authors[0]} 외 ${authors.length - 1}인`
+                : authors[0]}
+            </Typography>
+            {authors.length > 1 && (
+              <IconButton
+                sx={{
+                  width: "20px",
+                  height: "20px",
+                  p: "5px",
+                  borderRadius: "12px",
+                }}
+              >
+                {isAuthorExpanded ? (
+                  <KeyboardArrowUpIcon sx={{ fontSize: 10 }} />
+                ) : (
+                  <KeyboardArrowDownIcon sx={{ fontSize: 10 }} />
+                )}
+              </IconButton>
+            )}
+          </Box>
+          {isAuthorExpanded && (
+            <Typography
+              sx={{
+                color: "label.assistive",
+                fontSize: "13px",
+                fontWeight: 400,
+                lineHeight: "22px",
+                letterSpacing: "-0.26px",
+                mt: "4px",
+              }}
+            >
+              {authors.join(", ")}
+            </Typography>
           )}
         </Box>
       </Box>
