@@ -285,6 +285,8 @@ const AiMessage = ({
           alignItems: "flex-start",
           gap: isMobile ? "12px" : "24px",
           flex: "1 0 0",
+          alignSelf: "stretch",
+          minWidth: 0,
         }}
       >
         {/* 탐색 상태 */}
