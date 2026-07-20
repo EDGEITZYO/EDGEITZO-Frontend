@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Box, useMediaQuery } from "@mui/material";
+import { Box, Typography, IconButton, useMediaQuery } from "@mui/material";
 import { type SxProps, type Theme, useTheme } from "@mui/material/styles";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
@@ -7,7 +7,6 @@ import TopNavBar from "../components/layout/TopNavBar";
 import ExitConfirmDialog from "../components/search/ExitConfirmDialog";
 import SearchChatArea from "../components/search/SearchChatArea";
 import SearchResultPanel from "../components/search/SearchResultPanel";
-import PaperDetailContent from "../components/common/PaperDetailContent";
 import { searchChatStream, postFeedback } from "../api/search";
 import {
   type SearchView,
@@ -17,6 +16,8 @@ import {
   type FeedbackType,
   type ChipType,
 } from "../types/search";
+import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
+import CloseIcon from "@mui/icons-material/Close";
 
 // ─── Location State ───────────────────────────────────────
 
@@ -26,15 +27,15 @@ interface LocationState {
 
 // ─── Styles ───────────────────────────────────────────────
 
-const pageSx: SxProps<Theme> = {
+const pageSx = (isMobile: boolean): SxProps<Theme> => ({
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
   gap: "12px",
   height: "100vh",
   overflow: "hidden",
-  backgroundColor: "#F7F8FA",
-};
+  backgroundColor: isMobile ? "background.default" : "background.paper",
+});
 
 const contentAreaSx: SxProps<Theme> = {
   display: "flex",
@@ -42,7 +43,7 @@ const contentAreaSx: SxProps<Theme> = {
   alignItems: "flex-start",
   gap: "12px",
   alignSelf: "stretch",
-  mt: "80px",
+  mt: { xs: 0, sm: "80px" },
   flex: 1,
   overflow: "hidden",
   px: { xs: "16px", sm: "64px", lg: "12px" },
@@ -60,12 +61,13 @@ const SearchPage = () => {
   const query = state?.query ?? "";
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   // ─── 뷰 상태 ───────────────────────────────────────────
   const [view, setView] = useState<SearchView>("chat");
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [exitDialogOpen, setExitDialogOpen] = useState(false);
-  const [selectedPaperId, setSelectedPaperId] = useState<string | null>(null);
+  const [isPanelDetail, setIsPanelDetail] = useState(false);
 
   // ─── 대화 상태 ─────────────────────────────────────────
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -328,11 +330,6 @@ const SearchPage = () => {
   // ─── 네비게이션 ────────────────────────────────────────
 
   const handleBackClick = () => {
-    if (view === "detail") {
-      setView("result");
-      setSelectedPaperId(null);
-      return;
-    }
     setExitDialogOpen(true);
   };
 
@@ -343,25 +340,127 @@ const SearchPage = () => {
 
   const handleExitCancel = () => setExitDialogOpen(false);
 
-  const handlePaperClick = useCallback((paperId: string) => {
-    setSelectedPaperId(paperId);
-    setView("detail");
-  }, []);
-
   const handlePanelOpen = useCallback(() => setIsPanelOpen(true), []);
-  const handlePanelClose = useCallback(() => setIsPanelOpen(false), []);
+  const handlePanelClose = useCallback(() => {
+    setIsPanelOpen(false);
+    setIsPanelDetail(false);
+  }, []);
 
   // ─── Render ────────────────────────────────────────────
 
   return (
-    <Box sx={pageSx}>
-      <TopNavBar
-        onBack={handleBackClick}
-        onLogoClick={() => setExitDialogOpen(true)}
-        searchConfig={{ query }}
-      />
+    <Box sx={pageSx(isMobile)}>
+      {!isMobile && (
+        <TopNavBar
+          onBack={handleBackClick}
+          onLogoClick={() => setExitDialogOpen(true)}
+          searchConfig={{ query }}
+        />
+      )}
+      {/* 모바일: 별도 헤더 */}
+      {isMobile && (
+        <Box
+          sx={{
+            display: "flex",
+            padding: "16px 0",
+            alignItems: "center",
+            gap: "8px",
+            px: "16px",
+            alignSelf: "stretch",
+          }}
+        >
+          <IconButton
+            onClick={
+              isPanelOpen && view === "result"
+                ? handlePanelClose
+                : handleBackClick
+            }
+            sx={{ p: 0, width: "28px", height: "28px", flexShrink: 0 }}
+          >
+            {isPanelOpen && view === "result" ? (
+              <CloseIcon sx={{ fontSize: 24, color: "label.normal" }} />
+            ) : (
+              <ArrowBackIosNewIcon
+                sx={{ fontSize: 16, color: "label.normal" }}
+              />
+            )}
+          </IconButton>
+          {isPanelOpen && view === "result" ? (
+            <Typography
+              sx={{
+                display: "-webkit-box",
+                WebkitBoxOrient: "vertical",
+                WebkitLineClamp: 1,
+                overflow: "hidden",
+                fontSize: "18px",
+                fontWeight: 600,
+                lineHeight: "29px",
+                letterSpacing: "-0.378px",
+              }}
+            >
+              <Box component="span" sx={{ color: "#03C26C" }}>
+                {chatResponse?.filters.keywords[0] ?? ""}
+              </Box>
+              <Box component="span" sx={{ color: "label.normal" }}>
+                {" "}
+                검색 결과
+              </Box>
+            </Typography>
+          ) : (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                flex: 1,
+                overflow: "hidden",
+              }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  padding: "3px 8px 4px 8px",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  borderRadius: "6px",
+                  backgroundColor: "#E6F9F0",
+                  flexShrink: 0,
+                }}
+              >
+                <Typography
+                  sx={{
+                    color: "#029B56",
+                    fontSize: "16px",
+                    fontWeight: 600,
+                    lineHeight: "24px",
+                    letterSpacing: "-0.336px",
+                  }}
+                >
+                  AI 검색
+                </Typography>
+              </Box>
+              <Typography
+                sx={{
+                  display: "-webkit-box",
+                  WebkitBoxOrient: "vertical",
+                  WebkitLineClamp: 1,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  color: "label.normal",
+                  fontSize: "20px",
+                  fontWeight: 600,
+                  lineHeight: "30px",
+                  letterSpacing: "-0.42px",
+                }}
+              >
+                {query}
+              </Typography>
+            </Box>
+          )}
+        </Box>
+      )}
       <Box sx={contentAreaSx}>
-        {view !== "detail" && (
+        {(!isPanelDetail || !isDesktop) && (
           <SearchChatArea
             messages={messages}
             isStreaming={isStreaming}
@@ -382,11 +481,12 @@ const SearchPage = () => {
                 chatResponse={chatResponse}
                 feedbacks={feedbacks}
                 onClose={handlePanelClose}
-                onPaperClick={handlePaperClick}
                 onFeedback={handleFeedback}
                 onSortChange={setSortOrder}
                 sortOrder={sortOrder}
                 isDesktop={isDesktop}
+                onDetailOpen={() => setIsPanelDetail(true)}
+                onDetailClose={() => setIsPanelDetail(false)}
               />
             )}
           </>
@@ -395,12 +495,12 @@ const SearchPage = () => {
           <Box
             sx={{
               position: "absolute",
-              top: "12px",
-              left: { xs: "16px", sm: "64px" },
-              right: { xs: "16px", sm: "64px" },
-              bottom: "12px",
+              top: { xs: 0, sm: "12px" },
+              left: { xs: 0, sm: "64px" },
+              right: { xs: 0, sm: "64px" },
+              bottom: { xs: 0, sm: "12px" },
               display: "flex",
-              pointerEvents: (isPanelOpen && view !== "detail") ? "auto" : "none",
+              pointerEvents: isPanelOpen ? "auto" : "none",
               zIndex: 10,
             }}
           >
@@ -409,38 +509,14 @@ const SearchPage = () => {
                 chatResponse={chatResponse}
                 feedbacks={feedbacks}
                 onClose={handlePanelClose}
-                onPaperClick={handlePaperClick}
                 onFeedback={handleFeedback}
                 onSortChange={setSortOrder}
                 sortOrder={sortOrder}
                 isDesktop={isDesktop}
+                onDetailOpen={() => setIsPanelDetail(true)}
+                onDetailClose={() => setIsPanelDetail(false)}
               />
             )}
-          </Box>
-        )}
-        {view === "detail" && selectedPaperId && (
-          <Box
-            sx={{
-              flex: 1,
-              overflow: "auto",
-              display: "flex",
-              padding: "32px",
-              flexDirection: "column",
-              alignItems: "flex-start",
-              gap: "32px",
-              alignSelf: "stretch",
-              borderRadius: "8px",
-              backgroundColor: "background.default",
-            }}
-          >
-            <PaperDetailContent
-              paperId={selectedPaperId}
-              onRelatedPaperClick={handlePaperClick}
-              onClose={() => {
-                setView("result");
-                setSelectedPaperId(null);
-              }}
-            />
           </Box>
         )}
       </Box>

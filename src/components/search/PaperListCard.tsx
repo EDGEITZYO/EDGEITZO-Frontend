@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Box, Typography, IconButton } from "@mui/material";
+import { Box, Typography, IconButton, useMediaQuery } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
@@ -22,146 +23,133 @@ const PaperListCard = ({
   onClick,
   onBookmark,
 }: PaperListCardProps) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [isAuthorExpanded, setIsAuthorExpanded] = useState(false);
 
   const journalInfo = [paper.year, paper.journal_name]
     .filter(Boolean)
     .join(" · ");
-
   const authors = paper.authors.map((a) => a.name);
   const displayAuthors = isAuthorExpanded ? authors : authors.slice(0, 3);
 
-  return (
-    <Box
-      onClick={onClick}
-      sx={{
-        display: "flex",
-        padding: "16px",
-        flexDirection: "column",
-        alignItems: "flex-start",
-        gap: "12px",
-        alignSelf: "stretch",
-        borderRadius: "8px",
-        border: "1px solid",
-        borderColor: "line.neutral",
-        backgroundColor: "background.default",
-        cursor: "pointer",
-        "&:hover": {
-          backgroundColor: "fill.normal",
-        },
-      }}
-    >
-      {/* 배지~저자 */}
+  if (isMobile) {
+    return (
       <Box
+        onClick={onClick}
         sx={{
           display: "flex",
+          padding: "16px",
           flexDirection: "column",
-          justifyContent: "center",
           alignItems: "flex-start",
-          gap: "12px",
+          gap: "8px",
           alignSelf: "stretch",
+          borderRadius: "12px",
+          border: "1px solid",
+          borderColor: "line.neutral",
+          backgroundColor: "background.default",
+          cursor: "pointer",
         }}
       >
-        {/* 배지~제목 */}
+        {/* 배지 + 북마크 */}
         <Box
           sx={{
             display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "flex-start",
-            gap: "12px",
+            justifyContent: "space-between",
+            alignItems: "center",
             alignSelf: "stretch",
           }}
         >
-          {/* 배지, 저널, 북마크 */}
           <Box
             sx={{
               display: "flex",
-              justifyContent: "space-between",
               alignItems: "center",
-              alignSelf: "stretch",
+              gap: "6px",
+              flexWrap: "wrap",
             }}
           >
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                gap: "12px",
-              }}
-            >
-              {/* 배지들 */}
-              <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                {paper.paper_type && (
-                  <PaperTypeBadge paperType={paper.paper_type} />
-                )}
-                {paper.credibility.kci_registered && (
-                  <PaperTypeBadge paperType={"학술 저널"} />
-                )}
-              </Box>
-              {/* 저널 정보 */}
-              {journalInfo && (
+            {paper.paper_type && (
+              <PaperTypeBadge paperType={paper.paper_type} />
+            )}
+            {paper.credibility.kci_registered && (
+              <Box
+                sx={{
+                  display: "inline-flex",
+                  padding: "3px 8px 4px 8px",
+                  borderRadius: "6px",
+                  border: "1px solid",
+                  borderColor: "secondary.dark",
+                }}
+              >
                 <Typography
                   sx={{
-                    display: "-webkit-box",
-                    WebkitBoxOrient: "vertical",
-                    WebkitLineClamp: 2,
-                    overflow: "hidden",
-                    color: "label.alternative",
                     fontSize: "16px",
-                    fontWeight: 400,
-                    lineHeight: "24px",
-                    letterSpacing: "-0.336px",
+                    fontWeight: 600,
+                    color: "secondary.dark",
                   }}
                 >
-                  {journalInfo}
+                  KCI
                 </Typography>
-              )}
-            </Box>
-            {/* 북마크 */}
-            <IconButton
-              onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-                e.stopPropagation();
-                onBookmark();
-              }}
-              sx={{
-                display: "flex",
-                padding: "8px",
-                alignItems: "center",
-                gap: "10px",
-                borderRadius: "8px",
-              }}
-            >
-              {isBookmarked ? (
-                <BookmarkIcon
-                  sx={{ width: 20, height: 20, color: "primary.dark" }}
-                />
-              ) : (
-                <BookmarkBorderIcon
-                  sx={{ width: 20, height: 20, color: "label.alternative" }}
-                />
-              )}
-            </IconButton>
+              </Box>
+            )}
+            {paper.credibility.sci_indexed && (
+              <Box
+                sx={{
+                  display: "inline-flex",
+                  padding: "3px 8px 4px 8px",
+                  borderRadius: "6px",
+                  border: "1px solid",
+                  borderColor: "secondary.dark",
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: "16px",
+                    fontWeight: 600,
+                    color: "secondary.dark",
+                  }}
+                >
+                  SCI
+                </Typography>
+              </Box>
+            )}
           </Box>
-
-          {/* 제목 */}
-          <Typography
-            sx={{
-              display: "-webkit-box",
-              WebkitBoxOrient: "vertical",
-              WebkitLineClamp: 1,
-              alignSelf: "stretch",
-              overflow: "hidden",
-              color: "label.normal",
-              fontSize: "20px",
-              fontWeight: 600,
-              lineHeight: "30px",
-              letterSpacing: "-0.42px",
+          <IconButton
+            onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+              e.stopPropagation();
+              onBookmark();
             }}
+            sx={{ p: "4px" }}
           >
-            {paper.title}
-          </Typography>
+            {isBookmarked ? (
+              <BookmarkIcon
+                sx={{ width: 20, height: 20, color: "primary.dark" }}
+              />
+            ) : (
+              <BookmarkBorderIcon
+                sx={{ width: 20, height: 20, color: "label.assistive" }}
+              />
+            )}
+          </IconButton>
         </Box>
+
+        {/* 제목 */}
+        <Typography
+          sx={{
+            display: "-webkit-box",
+            WebkitBoxOrient: "vertical",
+            WebkitLineClamp: 2,
+            overflow: "hidden",
+            alignSelf: "stretch",
+            color: "label.normal",
+            fontSize: "15px",
+            fontWeight: 600,
+            lineHeight: "23px",
+            letterSpacing: "-0.315px",
+          }}
+        >
+          {paper.title}
+        </Typography>
 
         {/* 저자 */}
         <Box
@@ -187,27 +175,271 @@ const PaperListCard = ({
                 setIsAuthorExpanded((prev) => !prev);
               }}
               sx={{
-                display: "flex",
                 width: "20px",
                 height: "20px",
-                padding: "5px",
-                justifyContent: "center",
-                alignItems: "center",
-                flexShrink: 0,
+                p: "5px",
                 borderRadius: "12px",
               }}
             >
               {isAuthorExpanded ? (
-                <KeyboardArrowUpIcon sx={{ width: 10, height: 10 }} />
+                <KeyboardArrowUpIcon sx={{ fontSize: 10 }} />
               ) : (
-                <KeyboardArrowDownIcon sx={{ width: 10, height: 10 }} />
+                <KeyboardArrowDownIcon sx={{ fontSize: 10 }} />
+              )}
+            </IconButton>
+          )}
+        </Box>
+
+        {/* 저널 정보 */}
+        {journalInfo && (
+          <Typography
+            sx={{
+              display: "-webkit-box",
+              WebkitBoxOrient: "vertical",
+              WebkitLineClamp: 1,
+              overflow: "hidden",
+              color: "label.alternative",
+              fontSize: "13px",
+              fontWeight: 400,
+              lineHeight: "22px",
+              letterSpacing: "-0.26px",
+            }}
+          >
+            {journalInfo}
+          </Typography>
+        )}
+
+        {/* 초록 */}
+        {paper.abstract && (
+          <Box
+            sx={{
+              display: "flex",
+              padding: "8px 10px",
+              flexDirection: "column",
+              alignSelf: "stretch",
+              borderRadius: "6px",
+              backgroundColor: "background.paper",
+            }}
+          >
+            <Typography
+              sx={{
+                display: "-webkit-box",
+                WebkitBoxOrient: "vertical",
+                WebkitLineClamp: 3,
+                overflow: "hidden",
+                color: "label.alternative",
+                fontSize: "13px",
+                fontWeight: 400,
+                lineHeight: "22px",
+                letterSpacing: "-0.26px",
+              }}
+            >
+              {paper.abstract}
+            </Typography>
+          </Box>
+        )}
+
+        {/* 키워드 */}
+        {paper.keywords.length > 0 && (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: "8px",
+              flexWrap: "wrap",
+              alignSelf: "stretch",
+            }}
+          >
+            {paper.keywords.map((keyword) => (
+              <Box
+                key={keyword}
+                sx={{
+                  display: "flex",
+                  padding: "3px 8px 4px 8px",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  borderRadius: "6px",
+                  backgroundColor: "background.paper",
+                }}
+              >
+                <Typography
+                  sx={{
+                    display: "-webkit-box",
+                    WebkitBoxOrient: "vertical",
+                    WebkitLineClamp: 1,
+                    overflow: "hidden",
+                    color: "label.normal",
+                    fontSize: "13px",
+                    fontWeight: 400,
+                    lineHeight: "22px",
+                    letterSpacing: "-0.26px",
+                  }}
+                >
+                  {keyword}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        )}
+      </Box>
+    );
+  }
+
+  // 데스크탑/태블릿
+  return (
+    <Box
+      onClick={onClick}
+      sx={{
+        display: "flex",
+        padding: "16px",
+        flexDirection: "column",
+        alignItems: "flex-start",
+        gap: "12px",
+        alignSelf: "stretch",
+        borderRadius: "8px",
+        border: "1px solid",
+        borderColor: "line.neutral",
+        backgroundColor: "background.default",
+        cursor: "pointer",
+        "&:hover": { backgroundColor: "fill.normal" },
+      }}
+    >
+      {/* 배지, 저널, 북마크 */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "flex-start",
+          gap: "12px",
+          alignSelf: "stretch",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "flex-start",
+            gap: "12px",
+            alignSelf: "stretch",
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              alignSelf: "stretch",
+            }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: "12px",
+              }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                {paper.paper_type && (
+                  <PaperTypeBadge paperType={paper.paper_type} />
+                )}
+              </Box>
+              {journalInfo && (
+                <Typography
+                  sx={{
+                    display: "-webkit-box",
+                    WebkitBoxOrient: "vertical",
+                    WebkitLineClamp: 2,
+                    overflow: "hidden",
+                    color: "label.alternative",
+                    fontSize: "16px",
+                    fontWeight: 400,
+                    lineHeight: "24px",
+                    letterSpacing: "-0.336px",
+                  }}
+                >
+                  {journalInfo}
+                </Typography>
+              )}
+            </Box>
+            <IconButton
+              onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                e.stopPropagation();
+                onBookmark();
+              }}
+              sx={{ display: "flex", padding: "8px", borderRadius: "8px" }}
+            >
+              {isBookmarked ? (
+                <BookmarkIcon
+                  sx={{ width: 20, height: 20, color: "primary.dark" }}
+                />
+              ) : (
+                <BookmarkBorderIcon
+                  sx={{ width: 20, height: 20, color: "label.alternative" }}
+                />
+              )}
+            </IconButton>
+          </Box>
+
+          <Typography
+            sx={{
+              display: "-webkit-box",
+              WebkitBoxOrient: "vertical",
+              WebkitLineClamp: 1,
+              alignSelf: "stretch",
+              overflow: "hidden",
+              color: "label.normal",
+              fontSize: "20px",
+              fontWeight: 600,
+              lineHeight: "30px",
+              letterSpacing: "-0.42px",
+            }}
+          >
+            {paper.title}
+          </Typography>
+        </Box>
+
+        <Box
+          onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}
+          sx={{ display: "flex", alignItems: "center" }}
+        >
+          <Typography
+            sx={{
+              color: "#1B1C23",
+              fontSize: "13px",
+              fontWeight: 400,
+              lineHeight: "22px",
+              letterSpacing: "-0.26px",
+            }}
+          >
+            {displayAuthors.join(", ")}
+            {!isAuthorExpanded && authors.length > 3 && " ..."}
+          </Typography>
+          {authors.length > 1 && (
+            <IconButton
+              onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                e.stopPropagation();
+                setIsAuthorExpanded((prev) => !prev);
+              }}
+              sx={{
+                width: "20px",
+                height: "20px",
+                p: "5px",
+                borderRadius: "12px",
+              }}
+            >
+              {isAuthorExpanded ? (
+                <KeyboardArrowUpIcon sx={{ fontSize: 10 }} />
+              ) : (
+                <KeyboardArrowDownIcon sx={{ fontSize: 10 }} />
               )}
             </IconButton>
           )}
         </Box>
       </Box>
 
-      {/* 초록 */}
       {paper.abstract && (
         <Box
           sx={{
@@ -218,7 +450,7 @@ const PaperListCard = ({
             gap: "2px",
             alignSelf: "stretch",
             borderRadius: "6px",
-            backgroundColor: "#F7F8FA",
+            backgroundColor: "background.paper",
           }}
         >
           <Typography
@@ -240,7 +472,6 @@ const PaperListCard = ({
         </Box>
       )}
 
-      {/* 키워드 */}
       {paper.keywords.length > 0 && (
         <Box
           sx={{
@@ -266,9 +497,8 @@ const PaperListCard = ({
                   padding: "3px 8px 4px 8px",
                   justifyContent: "center",
                   alignItems: "center",
-                  gap: "10px",
                   borderRadius: "6px",
-                  backgroundColor: "#F7F8FA",
+                  backgroundColor: "background.paper",
                 }}
               >
                 <Typography

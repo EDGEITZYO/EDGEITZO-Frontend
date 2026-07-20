@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { Box, Typography, IconButton, Menu, MenuItem } from "@mui/material";
+import {
+  Box,
+  Typography,
+  IconButton,
+  Menu,
+  MenuItem,
+  useMediaQuery,
+} from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import CloseIcon from "@mui/icons-material/Close";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import {
@@ -8,17 +16,21 @@ import {
   type SortOrder,
 } from "../../types/search";
 import { type PaperType } from "../../types/paper";
-import SearchPaperCard from "./PaperListCard";
+import PaperListCard from "./PaperListCard";
+import PaperDetailContent from "../common/PaperDetailContent";
+
+type ResultPanelView = "list" | "detail";
 
 interface SearchResultPanelProps {
   chatResponse: ChatResponse | null;
   feedbacks: Record<string, FeedbackType>;
   sortOrder: SortOrder;
   onClose: () => void;
-  onPaperClick: (paperId: string) => void;
   onFeedback: (paperId: string, feedback: FeedbackType) => void;
   onSortChange: (sort: SortOrder) => void;
   isDesktop: boolean;
+  onDetailOpen: () => void;
+  onDetailClose: () => void;
 }
 
 const SORT_OPTIONS: { label: string; value: SortOrder }[] = [
@@ -50,6 +62,7 @@ interface DropdownFilterProps {
   options: { label: string; value: string | number }[];
   selectedValue: string | number | null;
   onSelect: (value: string | number) => void;
+  isMobile: boolean;
 }
 
 const DropdownFilter = ({
@@ -57,9 +70,9 @@ const DropdownFilter = ({
   options,
   selectedValue,
   onSelect,
+  isMobile,
 }: DropdownFilterProps) => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-
   const selectedLabel =
     options.find((o) => o.value === selectedValue)?.label ?? label;
 
@@ -71,13 +84,14 @@ const DropdownFilter = ({
         }
         sx={{
           display: "flex",
-          height: "42px",
-          padding: "8px 8px 8px 16px",
+          height: isMobile ? "36px" : "42px",
+          padding: isMobile ? "0 8px 0 16px" : "8px 8px 8px 16px",
           alignItems: "center",
-          gap: "16px",
+          gap: isMobile ? "4px" : "16px",
           borderRadius: "216px",
           backgroundColor: "fill.normal",
           cursor: "pointer",
+          flexShrink: 0,
         }}
       >
         <Typography
@@ -86,11 +100,15 @@ const DropdownFilter = ({
             WebkitBoxOrient: "vertical",
             WebkitLineClamp: 1,
             overflow: "hidden",
-            color: selectedValue ? "label.normal" : "label.alternative",
-            fontSize: "16px",
+            color: selectedValue
+              ? "label.normal"
+              : isMobile
+                ? "label.neutral"
+                : "label.alternative",
+            fontSize: isMobile ? "13px" : "16px",
             fontWeight: 400,
-            lineHeight: "24px",
-            letterSpacing: "-0.336px",
+            lineHeight: isMobile ? "22px" : "24px",
+            letterSpacing: isMobile ? "-0.26px" : "-0.336px",
           }}
         >
           {selectedLabel}
@@ -98,9 +116,7 @@ const DropdownFilter = ({
         <Box
           sx={{
             display: "flex",
-            width: "40px",
-            height: "40px",
-            padding: "9px 10px 11px 10px",
+            padding: isMobile ? "7px 8px 9px 8px" : "9px 10px 11px 10px",
             justifyContent: "center",
             alignItems: "center",
             borderRadius: "24px",
@@ -133,10 +149,10 @@ const DropdownFilter = ({
               setAnchorEl(null);
             }}
             sx={{
-              fontSize: "16px",
+              fontSize: isMobile ? "13px" : "16px",
               fontWeight: 400,
-              lineHeight: "24px",
-              letterSpacing: "-0.336px",
+              lineHeight: isMobile ? "22px" : "24px",
+              letterSpacing: isMobile ? "-0.26px" : "-0.336px",
               color: "label.normal",
             }}
           >
@@ -154,20 +170,32 @@ interface ToggleFilterProps {
   label: string;
   active: boolean;
   onToggle: () => void;
+  isMobile: boolean;
 }
 
-const ToggleFilter = ({ label, active, onToggle }: ToggleFilterProps) => (
+const ToggleFilter = ({
+  label,
+  active,
+  onToggle,
+  isMobile,
+}: ToggleFilterProps) => (
   <Box
     onClick={onToggle}
     sx={{
       display: "flex",
-      padding: "8px 13px",
+      height: isMobile ? "36px" : "auto",
+      padding: isMobile ? "0 16px" : "8px 13px",
       justifyContent: "center",
       alignItems: "center",
-      gap: "10px",
-      borderRadius: "24px",
-      backgroundColor: active ? "label.normal" : "fill.normal",
+      gap: isMobile ? "4px" : "10px",
+      borderRadius: isMobile ? "216px" : "24px",
+      backgroundColor: active
+        ? "label.normal"
+        : isMobile
+          ? "background.paper"
+          : "fill.normal",
       cursor: "pointer",
+      flexShrink: 0,
     }}
   >
     <Typography
@@ -176,11 +204,15 @@ const ToggleFilter = ({ label, active, onToggle }: ToggleFilterProps) => (
         WebkitBoxOrient: "vertical",
         WebkitLineClamp: 1,
         overflow: "hidden",
-        color: active ? "#FAFAFC" : "label.alternative",
-        fontSize: "16px",
+        color: active
+          ? "#FAFAFC"
+          : isMobile
+            ? "label.neutral"
+            : "label.alternative",
+        fontSize: isMobile ? "13px" : "16px",
         fontWeight: 400,
-        lineHeight: "24px",
-        letterSpacing: "-0.336px",
+        lineHeight: isMobile ? "22px" : "24px",
+        letterSpacing: isMobile ? "-0.26px" : "-0.336px",
       }}
     >
       {label}
@@ -195,11 +227,18 @@ const SearchResultPanel = ({
   feedbacks,
   sortOrder,
   onClose,
-  onPaperClick,
   onFeedback,
   onSortChange,
+  onDetailClose,
+  onDetailOpen,
   isDesktop,
 }: SearchResultPanelProps) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
+  const [resultPanelView, setResultPanelView] =
+    useState<ResultPanelView>("list");
+  const [selectedPaperId, setSelectedPaperId] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [selectedPaperType, setSelectedPaperType] = useState<PaperType | null>(
     null,
@@ -216,95 +255,184 @@ const SearchResultPanel = ({
     setBookmarks((prev) => ({ ...prev, [paperId]: !prev[paperId] }));
   };
 
+  const handlePaperClick = (paperId: string) => {
+    setSelectedPaperId(paperId);
+    setResultPanelView("detail");
+    onDetailOpen();
+  };
+
+  const handleClose = () => {
+    if (resultPanelView === "detail") {
+      setResultPanelView("list");
+      setSelectedPaperId(null);
+      onDetailClose();
+    } else {
+      onClose();
+    }
+  };
+
   return (
     <Box
       sx={{
         display: "flex",
-        padding: "16px",
+        padding: isMobile ? "0" : "16px",
         flexDirection: "column",
         alignItems: "flex-start",
-        gap: "12px",
+        gap: isMobile ? "16px" : "12px",
         alignSelf: "stretch",
-        borderRadius: "8px",
+        borderRadius: isMobile ? "0" : "8px",
         backgroundColor: "background.default",
-        overflowY: "auto",
-        // 데스크탑: 기존 좌우 분할
+        overflowY: isMobile ? "visible" : "auto",
         ...(isDesktop
-          ? {
-              minWidth: "640px",
-              flex: "0 0 auto",
-              width: "calc((100% - 12px) * 734 / (930 + 734))",
-            }
+          ? resultPanelView === "detail"
+            ? { flex: 1 }
+            : {
+                minWidth: "640px",
+                flex: "0 0 auto",
+                width: "calc((100% - 12px) * 734 / (930 + 734))",
+              }
           : {
-              // 태블릿: 오버레이
               flex: 1,
               alignSelf: "stretch",
             }),
       }}
     >
-      {/* 헤더 + 필터 */}
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "flex-start",
-          gap: "16px",
-          alignSelf: "stretch",
-        }}
-      >
-        {/* 제목 + 닫기 */}
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            alignSelf: "stretch",
-          }}
-        >
-          <Typography
-            sx={{
-              display: "-webkit-box",
-              WebkitBoxOrient: "vertical",
-              WebkitLineClamp: 1,
-              overflow: "hidden",
-              fontSize: "24px",
-              fontWeight: 600,
-              lineHeight: "36px",
-              letterSpacing: "-0.528px",
-            }}
-          >
-            <Box component="span" sx={{ color: "#03C26C" }}>
-              {keyword}
-            </Box>
-            <Box component="span" sx={{ color: "label.normal" }}>
-              {" "}
-              검색 결과
-            </Box>
-          </Typography>
-          <IconButton
-            onClick={onClose}
+      {/* 데스크탑/태블릿 list */}
+      {!isMobile && resultPanelView === "list" && (
+        <>
+          <Box
             sx={{
               display: "flex",
-              width: "36px",
-              height: "36px",
-              padding: "8px",
-              justifyContent: "center",
-              alignItems: "center",
+              flexDirection: "column",
+              alignItems: "flex-start",
+              gap: "16px",
+              alignSelf: "stretch",
             }}
           >
-            <CloseIcon sx={{ width: 20, height: 20 }} />
-          </IconButton>
-        </Box>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                alignSelf: "stretch",
+              }}
+            >
+              <Typography
+                sx={{
+                  display: "-webkit-box",
+                  WebkitBoxOrient: "vertical",
+                  WebkitLineClamp: 1,
+                  overflow: "hidden",
+                  fontSize: "24px",
+                  fontWeight: 600,
+                  lineHeight: "36px",
+                  letterSpacing: "-0.528px",
+                }}
+              >
+                <Box component="span" sx={{ color: "#03C26C" }}>
+                  {keyword}
+                </Box>
+                <Box component="span" sx={{ color: "label.normal" }}>
+                  {" "}
+                  검색 결과
+                </Box>
+              </Typography>
+              <IconButton
+                onClick={handleClose}
+                sx={{
+                  display: "flex",
+                  width: "36px",
+                  height: "36px",
+                  padding: "8px",
+                }}
+              >
+                <CloseIcon sx={{ width: 20, height: 20 }} />
+              </IconButton>
+            </Box>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                alignContent: "center",
+                gap: "8px",
+                alignSelf: "stretch",
+                flexWrap: "wrap",
+              }}
+            >
+              <DropdownFilter
+                label="관련도순"
+                options={SORT_OPTIONS}
+                selectedValue={sortOrder}
+                onSelect={(value) => onSortChange(value as SortOrder)}
+                isMobile={false}
+              />
+              <DropdownFilter
+                label="발행연도"
+                options={YEAR_OPTIONS}
+                selectedValue={selectedYear}
+                onSelect={(value) => setSelectedYear(value as number)}
+                isMobile={false}
+              />
+              <DropdownFilter
+                label="논문 유형"
+                options={PAPER_TYPE_OPTIONS}
+                selectedValue={selectedPaperType}
+                onSelect={(value) => setSelectedPaperType(value as PaperType)}
+                isMobile={false}
+              />
+              <ToggleFilter
+                label="KCI 등재"
+                active={kciActive}
+                onToggle={() => setKciActive((prev) => !prev)}
+                isMobile={false}
+              />
+              <ToggleFilter
+                label="SCI 등재"
+                active={sciActive}
+                onToggle={() => setSciActive((prev) => !prev)}
+                isMobile={false}
+              />
+            </Box>
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-start",
+              gap: "8px",
+              flex: "1 0 0",
+              alignSelf: "stretch",
+              borderRadius: "8px",
+              backgroundColor: "background.default",
+              overflowY: "auto",
+            }}
+          >
+            {papers.map((paper) => (
+              <PaperListCard
+                key={paper.paper_id}
+                paper={paper}
+                isBookmarked={bookmarks[paper.paper_id] ?? false}
+                feedback={feedbacks[paper.paper_id]}
+                onClick={() => handlePaperClick(paper.paper_id)}
+                onBookmark={() => handleBookmark(paper.paper_id)}
+                onFeedback={onFeedback}
+              />
+            ))}
+          </Box>
+        </>
+      )}
 
-        {/* 필터 바 */}
+      {/* 모바일 필터 */}
+      {isMobile && resultPanelView === "list" && (
         <Box
           sx={{
             display: "flex",
+            padding: "0 16px",
             alignItems: "center",
-            alignContent: "center",
-            gap: "8px",
+            gap: "4px",
             alignSelf: "stretch",
-            flexWrap: "wrap",
+            overflowX: "auto",
+            "&::-webkit-scrollbar": { display: "none" },
           }}
         >
           <DropdownFilter
@@ -312,58 +440,82 @@ const SearchResultPanel = ({
             options={SORT_OPTIONS}
             selectedValue={sortOrder}
             onSelect={(value) => onSortChange(value as SortOrder)}
+            isMobile={true}
           />
           <DropdownFilter
             label="발행연도"
             options={YEAR_OPTIONS}
             selectedValue={selectedYear}
             onSelect={(value) => setSelectedYear(value as number)}
+            isMobile={true}
           />
           <DropdownFilter
             label="논문 유형"
             options={PAPER_TYPE_OPTIONS}
             selectedValue={selectedPaperType}
             onSelect={(value) => setSelectedPaperType(value as PaperType)}
+            isMobile={true}
           />
           <ToggleFilter
             label="KCI 등재"
             active={kciActive}
             onToggle={() => setKciActive((prev) => !prev)}
+            isMobile={true}
           />
           <ToggleFilter
             label="SCI 등재"
             active={sciActive}
             onToggle={() => setSciActive((prev) => !prev)}
+            isMobile={true}
           />
         </Box>
-      </Box>
+      )}
 
-      {/* 논문 리스트 */}
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "flex-start",
-          gap: "8px",
-          flex: "1 0 0",
-          alignSelf: "stretch",
-          borderRadius: "8px",
-          backgroundColor: "background.paper",
-          overflowY: "auto",
-        }}
-      >
-        {papers.map((paper) => (
-          <SearchPaperCard
-            key={paper.paper_id}
-            paper={paper}
-            isBookmarked={bookmarks[paper.paper_id] ?? false}
-            feedback={feedbacks[paper.paper_id]}
-            onClick={() => onPaperClick(paper.paper_id)}
-            onBookmark={() => handleBookmark(paper.paper_id)}
-            onFeedback={onFeedback}
+      {/* 모바일 논문 리스트 */}
+      {isMobile && resultPanelView === "list" && (
+        <Box
+          sx={{
+            display: "flex",
+            padding: "0 16px 16px 16px",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            gap: "16px",
+            flex: "1 0 0",
+            alignSelf: "stretch",
+            borderRadius: "12px",
+            backgroundColor: "background.default",
+            overflowY: "auto",
+            backdropFilter: "blur(2.9px)",
+          }}
+        >
+          {papers.map((paper) => (
+            <PaperListCard
+              key={paper.paper_id}
+              paper={paper}
+              isBookmarked={bookmarks[paper.paper_id] ?? false}
+              feedback={feedbacks[paper.paper_id]}
+              onClick={() => handlePaperClick(paper.paper_id)}
+              onBookmark={() => handleBookmark(paper.paper_id)}
+              onFeedback={onFeedback}
+            />
+          ))}
+        </Box>
+      )}
+
+      {/* detail */}
+      {resultPanelView === "detail" && selectedPaperId && (
+        <Box sx={{ flex: 1, overflow: "auto", alignSelf: "stretch" }}>
+          <PaperDetailContent
+            paperId={selectedPaperId}
+            onRelatedPaperClick={(paperId) => setSelectedPaperId(paperId)}
+            onClose={() => {
+              setResultPanelView("list");
+              setSelectedPaperId(null);
+              onDetailClose();
+            }}
           />
-        ))}
-      </Box>
+        </Box>
+      )}
     </Box>
   );
 };
