@@ -321,7 +321,10 @@ const PaperDetailContent = ({
                   gap: "8px",
                   order: { xs: 1, sm: 2 },
                   width: { xs: "100%", sm: "auto" },
-                  justifyContent: { xs: "space-between", sm: "flex-end" },
+                  justifyContent: {
+                    xs: paperData.doi ? "space-between" : "flex-end",
+                    sm: "flex-end",
+                  },
                 }}
               >
                 {paperData.doi && (
@@ -360,62 +363,70 @@ const PaperDetailContent = ({
                   </Box>
                 )}
                 <Box
-                  onClick={handleBookmarkClick}
                   sx={{
                     display: "flex",
-                    height: "36px",
-                    padding: "6px 8px",
-                    justifyContent: "center",
                     alignItems: "center",
-                    gap: "2px",
-                    borderRadius: "24px",
-                    backgroundColor: "background.paper",
-                    cursor: "pointer",
+                    gap: "8px",
                   }}
                 >
-                  {isBookmarked ? (
-                    <BookmarkIcon
-                      sx={{
-                        width: "20px",
-                        height: "20px",
-                        color: "primary.dark",
-                      }}
-                    />
-                  ) : (
-                    <BookmarkBorderIcon
-                      sx={{
-                        width: "20px",
-                        height: "20px",
-                        color: "label.assistive",
-                      }}
-                    />
-                  )}
-                </Box>
-
-                {/* 닫기 버튼 — onClose 있을 때만 */}
-                {onClose && (
                   <Box
-                    onClick={onClose}
+                    onClick={handleBookmarkClick}
                     sx={{
                       display: "flex",
                       height: "36px",
                       padding: "6px 8px",
                       justifyContent: "center",
                       alignItems: "center",
+                      gap: "2px",
                       borderRadius: "24px",
                       backgroundColor: "background.paper",
                       cursor: "pointer",
                     }}
                   >
-                    <CloseIcon
-                      sx={{
-                        width: "20px",
-                        height: "20px",
-                        color: "label.assistive",
-                      }}
-                    />
+                    {isBookmarked ? (
+                      <BookmarkIcon
+                        sx={{
+                          width: "20px",
+                          height: "20px",
+                          color: "primary.dark",
+                        }}
+                      />
+                    ) : (
+                      <BookmarkBorderIcon
+                        sx={{
+                          width: "20px",
+                          height: "20px",
+                          color: "label.assistive",
+                        }}
+                      />
+                    )}
                   </Box>
-                )}
+
+                  {/* 닫기 버튼 — onClose 있을 때만 */}
+                  {onClose && (
+                    <Box
+                      onClick={onClose}
+                      sx={{
+                        display: "flex",
+                        height: "36px",
+                        padding: "6px 8px",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        borderRadius: "24px",
+                        backgroundColor: "background.paper",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <CloseIcon
+                        sx={{
+                          width: "20px",
+                          height: "20px",
+                          color: "label.assistive",
+                        }}
+                      />
+                    </Box>
+                  )}
+                </Box>
               </Box>
             </Box>
 

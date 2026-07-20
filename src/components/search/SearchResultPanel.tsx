@@ -275,7 +275,7 @@ const SearchResultPanel = ({
     <Box
       sx={{
         display: "flex",
-        padding: isMobile ? "0" : "16px",
+        padding: isMobile ? "16px" : resultPanelView === "detail" ? "32px" : "16px",
         flexDirection: "column",
         alignItems: "flex-start",
         gap: isMobile ? "16px" : "12px",
