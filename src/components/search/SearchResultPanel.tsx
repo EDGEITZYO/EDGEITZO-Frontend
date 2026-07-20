@@ -18,6 +18,7 @@ interface SearchResultPanelProps {
   onPaperClick: (paperId: string) => void;
   onFeedback: (paperId: string, feedback: FeedbackType) => void;
   onSortChange: (sort: SortOrder) => void;
+  isDesktop: boolean;
 }
 
 const SORT_OPTIONS: { label: string; value: SortOrder }[] = [
@@ -197,6 +198,7 @@ const SearchResultPanel = ({
   onPaperClick,
   onFeedback,
   onSortChange,
+  isDesktop,
 }: SearchResultPanelProps) => {
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [selectedPaperType, setSelectedPaperType] = useState<PaperType | null>(
@@ -225,10 +227,19 @@ const SearchResultPanel = ({
         alignSelf: "stretch",
         borderRadius: "8px",
         backgroundColor: "background.default",
-        minWidth: "640px",
-        flex: "0 0 auto",
-        width: "calc((100% - 12px) * 734 / (930 + 734))",
         overflowY: "auto",
+        // 데스크탑: 기존 좌우 분할
+        ...(isDesktop
+          ? {
+              minWidth: "640px",
+              flex: "0 0 auto",
+              width: "calc((100% - 12px) * 734 / (930 + 734))",
+            }
+          : {
+              // 태블릿: 오버레이
+              flex: 1,
+              alignSelf: "stretch",
+            }),
       }}
     >
       {/* 헤더 + 필터 */}

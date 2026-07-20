@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Box } from "@mui/material";
-import { type SxProps, type Theme } from "@mui/material/styles";
+import { Box, useMediaQuery } from "@mui/material";
+import { type SxProps, type Theme, useTheme } from "@mui/material/styles";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import TopNavBar from "../components/layout/TopNavBar";
@@ -28,7 +28,6 @@ interface LocationState {
 
 const pageSx: SxProps<Theme> = {
   display: "flex",
-  padding: "12px",
   flexDirection: "column",
   alignItems: "center",
   gap: "12px",
@@ -46,6 +45,9 @@ const contentAreaSx: SxProps<Theme> = {
   mt: "80px",
   flex: 1,
   overflow: "hidden",
+  px: { xs: "16px", sm: "64px", lg: "12px" },
+  py: "12px",
+  position: "relative",
 };
 
 // ─── Component ────────────────────────────────────────────
@@ -56,6 +58,8 @@ const SearchPage = () => {
   const queryClient = useQueryClient();
   const state = location.state as LocationState | null;
   const query = state?.query ?? "";
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
 
   // ─── 뷰 상태 ───────────────────────────────────────────
   const [view, setView] = useState<SearchView>("chat");
@@ -370,16 +374,49 @@ const SearchPage = () => {
             onStop={handleStop}
           />
         )}
-        {view === "result" && isPanelOpen && (
-          <SearchResultPanel
-            chatResponse={chatResponse}
-            feedbacks={feedbacks}
-            onClose={handlePanelClose}
-            onPaperClick={handlePaperClick}
-            onFeedback={handleFeedback}
-            onSortChange={setSortOrder}
-            sortOrder={sortOrder}
-          />
+        {/* 데스크탑: 기존대로 직접 렌더링 */}
+        {isDesktop ? (
+          <>
+            {view === "result" && isPanelOpen && (
+              <SearchResultPanel
+                chatResponse={chatResponse}
+                feedbacks={feedbacks}
+                onClose={handlePanelClose}
+                onPaperClick={handlePaperClick}
+                onFeedback={handleFeedback}
+                onSortChange={setSortOrder}
+                sortOrder={sortOrder}
+                isDesktop={isDesktop}
+              />
+            )}
+          </>
+        ) : (
+          /* 태블릿: 감싸는 Box로 오버레이 */
+          <Box
+            sx={{
+              position: "absolute",
+              top: "12px",
+              left: { xs: "16px", sm: "64px" },
+              right: { xs: "16px", sm: "64px" },
+              bottom: "12px",
+              display: "flex",
+              pointerEvents: (isPanelOpen && view !== "detail") ? "auto" : "none",
+              zIndex: 10,
+            }}
+          >
+            {view === "result" && isPanelOpen && (
+              <SearchResultPanel
+                chatResponse={chatResponse}
+                feedbacks={feedbacks}
+                onClose={handlePanelClose}
+                onPaperClick={handlePaperClick}
+                onFeedback={handleFeedback}
+                onSortChange={setSortOrder}
+                sortOrder={sortOrder}
+                isDesktop={isDesktop}
+              />
+            )}
+          </Box>
         )}
         {view === "detail" && selectedPaperId && (
           <Box
