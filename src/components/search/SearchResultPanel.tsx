@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Box,
   Typography,
@@ -18,6 +19,8 @@ import {
 import { type PaperType } from "../../types/paper";
 import PaperListCard from "./PaperListCard";
 import PaperDetailContent from "../common/PaperDetailContent";
+import { bookmarkApi } from "../../api/bookmark";
+import BookmarkFolderSelectDialog from "../common/BookmarkFolderSelectDialog";
 
 type ResultPanelView = "list" | "detail";
 
@@ -31,6 +34,8 @@ interface SearchResultPanelProps {
   isDesktop: boolean;
   onDetailOpen: () => void;
   onDetailClose: () => void;
+  bookmarkMap: Record<string, boolean>;
+  onBookmarkToggle: (paperId: string, isBookmarked: boolean) => void;
 }
 
 const SORT_OPTIONS: { label: string; value: SortOrder }[] = [
@@ -226,15 +231,18 @@ const SearchResultPanel = ({
   chatResponse,
   feedbacks,
   sortOrder,
+  bookmarkMap,
   onClose,
   onFeedback,
   onSortChange,
   onDetailClose,
   onDetailOpen,
+  onBookmarkToggle,
   isDesktop,
 }: SearchResultPanelProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const queryClient = useQueryClient();
 
   const [resultPanelView, setResultPanelView] =
     useState<ResultPanelView>("list");
@@ -245,14 +253,34 @@ const SearchResultPanel = ({
   );
   const [kciActive, setKciActive] = useState(false);
   const [sciActive, setSciActive] = useState(false);
-  const [bookmarks, setBookmarks] = useState<Record<string, boolean>>({});
+  const [bookmarkDialogPaperId, setBookmarkDialogPaperId] = useState<
+    string | null
+  >(null);
 
   const papers = chatResponse?.result_items ?? [];
   const keywords = chatResponse?.filters.keywords ?? [];
   const keyword = keywords[0] ?? "";
 
   const handleBookmark = (paperId: string) => {
-    setBookmarks((prev) => ({ ...prev, [paperId]: !prev[paperId] }));
+    if (bookmarkMap[paperId]) {
+      // 북마크 해제
+      bookmarkApi
+        .removeBookmark(paperId)
+        .then(() => {
+          onBookmarkToggle(paperId, false);
+          queryClient.invalidateQueries({ queryKey: ["saved-bookmarks"] });
+          queryClient.invalidateQueries({
+            queryKey: ["saved-bookmark-folders"],
+          });
+          queryClient.invalidateQueries({
+            queryKey: ["saved-bookmarks-total"],
+          });
+        })
+        .catch(() => {});
+    } else {
+      // 북마크 추가 — 다이얼로그 열기
+      setBookmarkDialogPaperId(paperId);
+    }
   };
 
   const handlePaperClick = (paperId: string) => {
@@ -418,7 +446,7 @@ const SearchResultPanel = ({
               <PaperListCard
                 key={paper.paper_id}
                 paper={paper}
-                isBookmarked={bookmarks[paper.paper_id] ?? false}
+                isBookmarked={bookmarkMap[paper.paper_id] ?? false}
                 feedback={feedbacks[paper.paper_id]}
                 onClick={() => handlePaperClick(paper.paper_id)}
                 onBookmark={() => handleBookmark(paper.paper_id)}
@@ -499,7 +527,7 @@ const SearchResultPanel = ({
             <PaperListCard
               key={paper.paper_id}
               paper={paper}
-              isBookmarked={bookmarks[paper.paper_id] ?? false}
+              isBookmarked={bookmarkMap[paper.paper_id] ?? false}
               feedback={feedbacks[paper.paper_id]}
               onClick={() => handlePaperClick(paper.paper_id)}
               onBookmark={() => handleBookmark(paper.paper_id)}
@@ -523,6 +551,17 @@ const SearchResultPanel = ({
           />
         </Box>
       )}
+
+      <BookmarkFolderSelectDialog
+        open={bookmarkDialogPaperId !== null}
+        onClose={() => setBookmarkDialogPaperId(null)}
+        paperId={bookmarkDialogPaperId ?? ""}
+        onBookmarkAdded={() => {
+          if (bookmarkDialogPaperId)
+            onBookmarkToggle(bookmarkDialogPaperId, true);
+          setBookmarkDialogPaperId(null);
+        }}
+      />
     </Box>
   );
 };

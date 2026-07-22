@@ -80,6 +80,7 @@ const SearchPage = () => {
   const [chatResponse, setChatResponse] = useState<ChatResponse | null>(null);
   const [sortOrder, setSortOrder] = useState<SortOrder>("relevance");
   const [feedbacks, setFeedbacks] = useState<Record<string, FeedbackType>>({});
+  const [bookmarkMap, setBookmarkMap] = useState<Record<string, boolean>>({});
 
   // ─── SSE 핸들러 ────────────────────────────────────────
 
@@ -119,6 +120,10 @@ const SearchPage = () => {
             chip_id: chipId,
             chip_type: chipType,
             sort_order: sortOrder,
+            pub_year_start: null,
+            paper_type: null,
+            kci_only: null,
+            sci_only: null,
           },
           callbacks: {
             onSearchStarted: () => {
@@ -179,6 +184,15 @@ const SearchPage = () => {
               setSessionId(response.session_id);
               setChatResponse(response);
               queryClient.invalidateQueries({ queryKey: ["home"] });
+              setBookmarkMap((prev) => ({
+                ...prev,
+                ...Object.fromEntries(
+                  response.result_items.map((p) => [
+                    p.paper_id,
+                    p.is_bookmarked,
+                  ]),
+                ),
+              }));
               setMessages((prev) =>
                 prev.map((m) =>
                   m.id === aiMessageId
@@ -325,6 +339,15 @@ const SearchPage = () => {
       }
     },
     [sessionId],
+  );
+
+  // ─── 북마크 ────────────────────────────────────────────
+
+  const handleBookmarkToggle = useCallback(
+    (paperId: string, isBookmarked: boolean) => {
+      setBookmarkMap((prev) => ({ ...prev, [paperId]: isBookmarked }));
+    },
+    [],
   );
 
   // ─── 네비게이션 ────────────────────────────────────────
@@ -487,6 +510,8 @@ const SearchPage = () => {
                 isDesktop={isDesktop}
                 onDetailOpen={() => setIsPanelDetail(true)}
                 onDetailClose={() => setIsPanelDetail(false)}
+                bookmarkMap={bookmarkMap}
+                onBookmarkToggle={handleBookmarkToggle}
               />
             )}
           </>
@@ -515,6 +540,8 @@ const SearchPage = () => {
                 isDesktop={isDesktop}
                 onDetailOpen={() => setIsPanelDetail(true)}
                 onDetailClose={() => setIsPanelDetail(false)}
+                bookmarkMap={bookmarkMap}
+                onBookmarkToggle={handleBookmarkToggle}
               />
             )}
           </Box>
