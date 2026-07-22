@@ -11,10 +11,11 @@ import { searchChatStream, postFeedback } from "../api/search";
 import {
   type SearchView,
   type ChatMessage,
-  type ChatResponse,
   type SortOrder,
   type FeedbackType,
   type ChipType,
+  type SearchFilters,
+  type SearchPaper,
 } from "../types/search";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import CloseIcon from "@mui/icons-material/Close";
@@ -23,6 +24,12 @@ import CloseIcon from "@mui/icons-material/Close";
 
 interface LocationState {
   query: string;
+}
+
+interface PanelData {
+  result_items: SearchPaper[];
+  filters: SearchFilters;
+  total_count: number;
 }
 
 // ─── Styles ───────────────────────────────────────────────
@@ -77,7 +84,9 @@ const SearchPage = () => {
   const initSentRef = useRef(false);
 
   // ─── 검색 결과 상태 ────────────────────────────────────
-  const [chatResponse, setChatResponse] = useState<ChatResponse | null>(null);
+  const [activePanelData, setActivePanelData] = useState<PanelData | null>(
+    null,
+  );
   const [sortOrder, setSortOrder] = useState<SortOrder>("relevance");
   const [feedbacks, setFeedbacks] = useState<Record<string, FeedbackType>>({});
   const [bookmarkMap, setBookmarkMap] = useState<Record<string, boolean>>({});
@@ -182,17 +191,19 @@ const SearchPage = () => {
             },
             onDone: (response) => {
               setSessionId(response.session_id);
-              setChatResponse(response);
               queryClient.invalidateQueries({ queryKey: ["home"] });
-              setBookmarkMap((prev) => ({
-                ...prev,
-                ...Object.fromEntries(
-                  response.result_items.map((p) => [
-                    p.paper_id,
-                    p.is_bookmarked,
-                  ]),
-                ),
-              }));
+
+              const newBookmarks: Record<string, boolean> = {};
+              response.result_items.forEach(
+                (p) => (newBookmarks[p.paper_id] = p.is_bookmarked),
+              );
+              response.history.forEach((h) => {
+                h.result_items.forEach(
+                  (p) => (newBookmarks[p.paper_id] = p.is_bookmarked),
+                );
+              });
+              setBookmarkMap((prev) => ({ ...prev, ...newBookmarks }));
+
               setMessages((prev) =>
                 prev.map((m) =>
                   m.id === aiMessageId
@@ -208,6 +219,8 @@ const SearchPage = () => {
                                   type: "result_summary" as const,
                                   total_count: response.total_count,
                                   keywords: response.filters.keywords,
+                                  result_items: response.result_items,
+                                  filters: response.filters,
                                 },
                               ]
                             : []),
@@ -233,6 +246,11 @@ const SearchPage = () => {
                 ),
               );
               if (response.result_items.length > 0) {
+                setActivePanelData({
+                  result_items: response.result_items,
+                  filters: response.filters,
+                  total_count: response.total_count,
+                });
                 setView("result");
                 setIsPanelOpen(true);
               }
@@ -363,7 +381,11 @@ const SearchPage = () => {
 
   const handleExitCancel = () => setExitDialogOpen(false);
 
-  const handlePanelOpen = useCallback(() => setIsPanelOpen(true), []);
+  const handlePanelOpen = useCallback((data: PanelData) => {
+    setActivePanelData(data);
+    setIsPanelOpen(true);
+  }, []);
+
   const handlePanelClose = useCallback(() => {
     setIsPanelOpen(false);
     setIsPanelDetail(false);
@@ -422,7 +444,7 @@ const SearchPage = () => {
               }}
             >
               <Box component="span" sx={{ color: "#03C26C" }}>
-                {chatResponse?.filters.keywords[0] ?? ""}
+                {activePanelData?.filters.keywords[0] ?? ""}
               </Box>
               <Box component="span" sx={{ color: "label.normal" }}>
                 {" "}
@@ -501,7 +523,7 @@ const SearchPage = () => {
           <>
             {view === "result" && isPanelOpen && (
               <SearchResultPanel
-                chatResponse={chatResponse}
+                panelData={activePanelData}
                 feedbacks={feedbacks}
                 onClose={handlePanelClose}
                 onFeedback={handleFeedback}
@@ -531,7 +553,7 @@ const SearchPage = () => {
           >
             {view === "result" && isPanelOpen && (
               <SearchResultPanel
-                chatResponse={chatResponse}
+                panelData={activePanelData}
                 feedbacks={feedbacks}
                 onClose={handlePanelClose}
                 onFeedback={handleFeedback}

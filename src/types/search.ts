@@ -16,7 +16,13 @@ export type FeedbackType = "like" | "dislike";
 export type MessageBlock =
   | { type: "text"; content: string }
   | { type: "status"; status: "searching" | "complete"; paperCount?: number }
-  | { type: "result_summary"; total_count: number; keywords: string[] }
+  | {
+      type: "result_summary";
+      total_count: number;
+      keywords: string[];
+      result_items: SearchPaper[];
+      filters: SearchFilters;
+    }
   | { type: "narrow_chips"; chips: NarrowChip[] }
   | { type: "expand_chips"; chips: ExpandChip[] };
 

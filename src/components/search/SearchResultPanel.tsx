@@ -12,9 +12,10 @@ import { useTheme } from "@mui/material/styles";
 import CloseIcon from "@mui/icons-material/Close";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import {
-  type ChatResponse,
   type FeedbackType,
   type SortOrder,
+  type SearchFilters,
+  type SearchPaper,
 } from "../../types/search";
 import { type PaperType } from "../../types/paper";
 import PaperListCard from "./PaperListCard";
@@ -25,7 +26,11 @@ import BookmarkFolderSelectDialog from "../common/BookmarkFolderSelectDialog";
 type ResultPanelView = "list" | "detail";
 
 interface SearchResultPanelProps {
-  chatResponse: ChatResponse | null;
+  panelData: {
+    result_items: SearchPaper[];
+    filters: SearchFilters;
+    total_count: number;
+  } | null;
   feedbacks: Record<string, FeedbackType>;
   sortOrder: SortOrder;
   onClose: () => void;
@@ -228,7 +233,7 @@ const ToggleFilter = ({
 // ─── SearchResultPanel ────────────────────────────────────
 
 const SearchResultPanel = ({
-  chatResponse,
+  panelData,
   feedbacks,
   sortOrder,
   bookmarkMap,
@@ -257,8 +262,8 @@ const SearchResultPanel = ({
     string | null
   >(null);
 
-  const papers = chatResponse?.result_items ?? [];
-  const keywords = chatResponse?.filters.keywords ?? [];
+  const papers = panelData?.result_items ?? [];
+  const keywords = panelData?.filters.keywords ?? [];
   const keyword = keywords[0] ?? "";
 
   const handleBookmark = (paperId: string) => {
