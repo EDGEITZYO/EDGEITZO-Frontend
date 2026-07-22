@@ -553,6 +553,7 @@ const SearchResultPanel = ({
               setSelectedPaperId(null);
               onDetailClose();
             }}
+            onBookmarkChange={onBookmarkToggle}
           />
         </Box>
       )}
@@ -562,8 +563,17 @@ const SearchResultPanel = ({
         onClose={() => setBookmarkDialogPaperId(null)}
         paperId={bookmarkDialogPaperId ?? ""}
         onBookmarkAdded={() => {
-          if (bookmarkDialogPaperId)
+          if (bookmarkDialogPaperId) {
             onBookmarkToggle(bookmarkDialogPaperId, true);
+          }
+          queryClient.invalidateQueries({ queryKey: ["saved-bookmarks"] });
+          queryClient.invalidateQueries({
+            queryKey: ["saved-bookmark-folders"],
+          });
+          queryClient.invalidateQueries({
+            queryKey: ["saved-bookmarks-total"],
+          });
+
           setBookmarkDialogPaperId(null);
         }}
       />
