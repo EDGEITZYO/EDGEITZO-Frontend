@@ -2,27 +2,22 @@ import apiClient from "./client";
 import { useAuthStore } from "../stores/authStore";
 import {
   type SearchChatRequest,
-  type SearchChatDoneEvent,
-  type SearchExecuteRequest,
-  type SearchExecuteResult,
+  type ChatResponse,
+  type FeedbackType,
+  type SearchChatSseEvent,
   type SearchPapersRequest,
   type SearchPaper,
-  type FeedbackType,
-  type SlotType,
-  type SearchStage,
 } from "../types/search";
 
 // ─── SSE 콜백 타입 ────────────────────────────────────────
 
 interface SearchChatStreamCallbacks {
-  onSlotUpdate: (slot: SlotType, value: string) => void;
-  onCompleteness: (pct: number, stage: SearchStage) => void;
-  onKeywordProgress: (
-    stage: "started" | "completed",
-    keywords?: string[],
-  ) => void;
+  onSearchStarted: () => void;
+  onSearching: () => void;
+  onPapersFound: (count: number) => void;
+  onFetching: () => void;
   onToken: (text: string) => void;
-  onDone: (event: SearchChatDoneEvent) => void;
+  onDone: (response: ChatResponse) => void;
   onError: (message: string) => void;
 }
 
@@ -55,13 +50,13 @@ export const searchChatStream = async ({
   );
 
   if (!response.ok) {
-    callbacks.onError(`서버 오류가 발생했어요. 잠시 후 다시 시도해주세요.`);
+    callbacks.onError("서버 오류가 발생했어요. 잠시 후 다시 시도해주세요.");
     return;
   }
 
   const reader = response.body?.getReader();
   if (!reader) {
-    callbacks.onError(`스트림을 읽을 수 없어요.`);
+    callbacks.onError("스트림을 읽을 수 없어요.");
     return;
   }
 
@@ -82,40 +77,36 @@ export const searchChatStream = async ({
         const raw = line.slice(6).trim();
         if (!raw) continue;
 
-        let event: { type: string } & Record<string, unknown>;
+        let event: SearchChatSseEvent;
         try {
-          event = JSON.parse(raw) as { type: string } & Record<string, unknown>;
+          event = JSON.parse(raw) as SearchChatSseEvent;
         } catch {
           continue;
         }
 
         switch (event.type) {
-          case "slot_update":
-            callbacks.onSlotUpdate(
-              event.slot as SlotType,
-              event.value as string,
-            );
+          case "search_started":
+            callbacks.onSearchStarted();
             break;
-          case "completeness":
-            callbacks.onCompleteness(
-              event.pct as number,
-              event.stage as SearchStage,
-            );
+          case "searching":
+            callbacks.onSearching();
             break;
-          case "keyword_progress":
-            callbacks.onKeywordProgress(
-              event.stage as "started" | "completed",
-              event.keywords as string[] | undefined,
-            );
+          case "heartbeat":
+            break;
+          case "papers_found":
+            callbacks.onPapersFound(event.count);
+            break;
+          case "fetching":
+            callbacks.onFetching();
             break;
           case "token":
-            callbacks.onToken(event.text as string);
+            callbacks.onToken(event.text);
             break;
           case "done":
-            callbacks.onDone(event as unknown as SearchChatDoneEvent);
+            callbacks.onDone(event);
             break;
           case "error":
-            callbacks.onError(event.message as string);
+            callbacks.onError(event.message);
             return;
           default:
             break;
@@ -123,37 +114,25 @@ export const searchChatStream = async ({
       }
     }
   } catch (err) {
-    // AbortError는 정상 종료 (언마운트 시)
     if (err instanceof Error && err.name === "AbortError") return;
-    callbacks.onError(`스트림 처리 중 오류가 발생했어요.`);
+    callbacks.onError("스트림 처리 중 오류가 발생했어요.");
   } finally {
     reader.releaseLock();
   }
 };
 
-// ─── /search/execute ─────────────────────────────────────
+// ─── /search/chat ────────────────────────────────────────
 
-export const searchExecute = async (
-  body: Omit<SearchExecuteRequest, "user_id">,
-  userId: string,
-): Promise<SearchExecuteResult> => {
+export const searchChat = async (
+  body: SearchChatRequest,
+): Promise<ChatResponse> => {
   const { data } = await apiClient.post<{
     success: boolean;
-    data: SearchExecuteResult;
-  }>("/search/execute", { ...body, user_id: userId });
+    message: string;
+    data: ChatResponse;
+    meta: unknown;
+  }>("/search/chat", body);
   return data.data;
-};
-
-// ─── /search/papers ──────────────────────────────────────
-
-export const searchPapers = async (
-  body: SearchPapersRequest,
-): Promise<SearchPaper[]> => {
-  const { data } = await apiClient.post<{
-    success: boolean;
-    data: { items: SearchPaper[] };
-  }>("/search/papers", body);
-  return data.data.items;
 };
 
 // ─── /search/feedback ────────────────────────────────────
@@ -168,4 +147,16 @@ export const postFeedback = async (
     paper_id: paperId,
     feedback,
   });
+};
+
+// ─── /search/papers (directSearch용, 이번 범위 외) ────────
+
+export const searchPapers = async (
+  body: SearchPapersRequest,
+): Promise<SearchPaper[]> => {
+  const { data } = await apiClient.post<{
+    success: boolean;
+    data: { items: SearchPaper[] };
+  }>("/search/papers", body);
+  return data.data.items;
 };

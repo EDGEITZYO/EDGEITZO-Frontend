@@ -14,11 +14,14 @@ import { bookmarkApi } from "../../api/bookmark";
 import BookmarkFolderSelectDialog from "./BookmarkFolderSelectDialog";
 import SimilarPaperCard from "../paper/SimilarPaperCard";
 import PaperTypeBadge from "./PaperTypeBadge";
+import CloseIcon from "@mui/icons-material/Close";
 
 interface PaperDetailContentProps {
   paperId: string;
   searchId?: string;
   onRelatedPaperClick?: (paperId: string) => void;
+  onClose?: () => void;
+  onBookmarkChange?: (paperId: string, isBookmarked: boolean) => void;
 }
 
 // ─── 배지 ────────────────────────────────────────────────
@@ -113,6 +116,8 @@ const PaperDetailContent = ({
   paperId,
   searchId,
   onRelatedPaperClick,
+  onClose,
+  onBookmarkChange,
 }: PaperDetailContentProps) => {
   const queryClient = useQueryClient();
   const theme = useTheme();
@@ -192,6 +197,11 @@ const PaperDetailContent = ({
       queryClient.invalidateQueries({ queryKey: ["saved-bookmark-folders"] });
       queryClient.invalidateQueries({ queryKey: ["saved-bookmarks-total"] });
     },
+    onSuccess: () => {
+      if (onBookmarkChange) {
+        onBookmarkChange(paperId, false);
+      }
+    },
   });
 
   const handleBookmarkClick = () => {
@@ -204,6 +214,12 @@ const PaperDetailContent = ({
 
   const handleBookmarkAdded = () => {
     queryClient.invalidateQueries({ queryKey: ["bookmark", paperId] });
+    queryClient.invalidateQueries({ queryKey: ["saved-bookmarks"] });
+    queryClient.invalidateQueries({ queryKey: ["saved-bookmark-folders"] });
+    queryClient.invalidateQueries({ queryKey: ["saved-bookmarks-total"] });
+    if (onBookmarkChange) {
+      onBookmarkChange(paperId, true);
+    }
   };
 
   if (isPaperPending) {
@@ -318,7 +334,10 @@ const PaperDetailContent = ({
                   gap: "8px",
                   order: { xs: 1, sm: 2 },
                   width: { xs: "100%", sm: "auto" },
-                  justifyContent: { xs: "space-between", sm: "flex-end" },
+                  justifyContent: {
+                    xs: paperData.doi ? "space-between" : "flex-end",
+                    sm: "flex-end",
+                  },
                 }}
               >
                 {paperData.doi && (
@@ -357,35 +376,68 @@ const PaperDetailContent = ({
                   </Box>
                 )}
                 <Box
-                  onClick={handleBookmarkClick}
                   sx={{
                     display: "flex",
-                    height: "36px",
-                    padding: "6px 8px",
-                    justifyContent: "center",
                     alignItems: "center",
-                    gap: "2px",
-                    borderRadius: "24px",
-                    backgroundColor: "background.paper",
-                    cursor: "pointer",
+                    gap: "8px",
                   }}
                 >
-                  {isBookmarked ? (
-                    <BookmarkIcon
+                  <Box
+                    onClick={handleBookmarkClick}
+                    sx={{
+                      display: "flex",
+                      height: "36px",
+                      padding: "6px 8px",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      gap: "2px",
+                      borderRadius: "24px",
+                      backgroundColor: "background.paper",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {isBookmarked ? (
+                      <BookmarkIcon
+                        sx={{
+                          width: "20px",
+                          height: "20px",
+                          color: "primary.dark",
+                        }}
+                      />
+                    ) : (
+                      <BookmarkBorderIcon
+                        sx={{
+                          width: "20px",
+                          height: "20px",
+                          color: "label.assistive",
+                        }}
+                      />
+                    )}
+                  </Box>
+
+                  {/* 닫기 버튼 — onClose 있을 때만 */}
+                  {onClose && (
+                    <Box
+                      onClick={onClose}
                       sx={{
-                        width: "20px",
-                        height: "20px",
-                        color: "primary.dark",
+                        display: "flex",
+                        height: "36px",
+                        padding: "6px 8px",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        borderRadius: "24px",
+                        backgroundColor: "background.paper",
+                        cursor: "pointer",
                       }}
-                    />
-                  ) : (
-                    <BookmarkBorderIcon
-                      sx={{
-                        width: "20px",
-                        height: "20px",
-                        color: "label.assistive",
-                      }}
-                    />
+                    >
+                      <CloseIcon
+                        sx={{
+                          width: "20px",
+                          height: "20px",
+                          color: "label.assistive",
+                        }}
+                      />
+                    </Box>
                   )}
                 </Box>
               </Box>

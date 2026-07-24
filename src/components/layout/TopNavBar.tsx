@@ -16,11 +16,17 @@ interface FolderNavConfig {
   onMenuDelete: () => void;
 }
 
+interface SearchNavConfig {
+  query: string;
+}
+
 interface TopNavBarProps {
   onBack: () => void;
+  onLogoClick?: () => void;
   children?: ReactNode;
   title?: string;
   folderConfig?: FolderNavConfig;
+  searchConfig?: SearchNavConfig;
 }
 
 const navBarSx: SxProps<Theme> = {
@@ -85,7 +91,56 @@ const menuItemSx: SxProps<Theme> = {
   color: "label.normal",
 };
 
-const TopNavBar = ({ onBack, children, title, folderConfig }: TopNavBarProps) => {
+const searchNavWrapperSx: SxProps<Theme> = {
+  display: "flex",
+  alignItems: "center",
+  gap: "12px",
+  flex: 1,
+  overflow: "hidden",
+};
+
+const aiBadgeSx: SxProps<Theme> = {
+  display: "flex",
+  width: "62px",
+  height: "31px",
+  padding: "3px 8px 4px 8px",
+  justifyContent: "center",
+  alignItems: "center",
+  gap: "10px",
+  borderRadius: "6px",
+  backgroundColor: "#E6F9F0",
+  flexShrink: 0,
+};
+
+const aiBadgeTextSx: SxProps<Theme> = {
+  color: "#029B56",
+  fontSize: "16px",
+  fontWeight: 600,
+  lineHeight: "24px",
+  letterSpacing: "-0.336px",
+};
+
+const searchQuerySx: SxProps<Theme> = {
+  display: "-webkit-box",
+  WebkitBoxOrient: "vertical",
+  WebkitLineClamp: 1,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  color: "label.normal",
+  fontSize: "20px",
+  fontWeight: 600,
+  lineHeight: "30px",
+  letterSpacing: "-0.42px",
+};
+
+const TopNavBar = ({
+  onBack,
+  onLogoClick,
+  children,
+  title,
+  folderConfig,
+  searchConfig,
+}: TopNavBarProps) => {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -113,7 +168,7 @@ const TopNavBar = ({ onBack, children, title, folderConfig }: TopNavBarProps) =>
           component="img"
           src="/logo_icon.svg"
           alt="Biome 로고"
-          onClick={() => navigate("/home")}
+          onClick={() => (onLogoClick ? onLogoClick() : navigate("/home"))}
           sx={{ width: "36px", height: "36px", cursor: "pointer" }}
         />
         <IconButton
@@ -124,6 +179,17 @@ const TopNavBar = ({ onBack, children, title, folderConfig }: TopNavBarProps) =>
         </IconButton>
       </Box>
 
+      {/* AI 검색 네비 */}
+      {searchConfig && (
+        <Box sx={searchNavWrapperSx}>
+          <Box sx={aiBadgeSx}>
+            <Typography sx={aiBadgeTextSx}>AI 검색</Typography>
+          </Box>
+          <Typography sx={searchQuerySx}>{searchConfig.query}</Typography>
+        </Box>
+      )}
+
+      {/* 일반 타이틀 */}
       {title && <Typography sx={folderNameSx}>{title}</Typography>}
 
       {/* 폴더명 + 메뉴 */}
@@ -149,11 +215,7 @@ const TopNavBar = ({ onBack, children, title, folderConfig }: TopNavBarProps) =>
               <Typography sx={folderNameSx}>{folderConfig.name}</Typography>
               <IconButton sx={menuButtonSx} onClick={handleMenuOpen}>
                 <MoreHorizIcon
-                  sx={{
-                    width: "28px",
-                    height: "28px",
-                    color: "label.normal",
-                  }}
+                  sx={{ width: "28px", height: "28px", color: "label.normal" }}
                 />
               </IconButton>
               <Menu

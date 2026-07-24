@@ -36,7 +36,7 @@ const RecentPaperSection = ({ papers }: RecentPaperSectionProps) => {
 
         {/* 데스크탑/태블릿: 텍스트 + 아이콘, 모바일: 아이콘만 */}
         <Box
-          onClick={() => navigate("/saved?tab=recent")}
+          onClick={() => navigate("/saved/recent")}
           sx={{
             display: "inline-flex",
             alignItems: "center",
