@@ -15,12 +15,18 @@ import {
   type ChipType,
   type NarrowChip,
   type ExpandChip,
+  type SearchPaper,
+  type SearchFilters,
 } from "../../types/search";
 
 interface ChatMessageProps {
   message: ChatMessageType;
   onChipClick: (chipId: string, chipType: ChipType, label: string) => void;
-  onPanelOpen: () => void;
+  onPanelOpen: (data: {
+    result_items: SearchPaper[];
+    filters: SearchFilters;
+    total_count: number;
+  }) => void;
   onRetry: (messageId: string) => void;
   onEdit: (messageId: string, newContent: string) => void;
 }
@@ -215,7 +221,11 @@ const AiMessage = ({
 }: {
   message: ChatMessageType;
   onChipClick: (chipId: string, chipType: ChipType, label: string) => void;
-  onPanelOpen: () => void;
+  onPanelOpen: (data: {
+    result_items: SearchPaper[];
+    filters: SearchFilters;
+    total_count: number;
+  }) => void;
   isMobile: boolean;
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
@@ -339,7 +349,20 @@ const AiMessage = ({
           paperCountBlock?.type === "status" &&
           paperCountBlock.paperCount !== undefined && (
             <Box
-              onClick={onPanelOpen}
+              onClick={() =>
+                onPanelOpen({
+                  result_items: [],
+                  filters: {
+                    pub_year_start: null,
+                    paper_type: null,
+                    citation_min: null,
+                    kci_only: false,
+                    sci_only: false,
+                    keywords: [],
+                  },
+                  total_count: 0,
+                })
+              }
               sx={{
                 display: "flex",
                 padding: isMobile
@@ -425,7 +448,13 @@ const AiMessage = ({
                 <ResultSummaryBox
                   totalCount={resultSummaryBlock.total_count}
                   keywords={resultSummaryBlock.keywords}
-                  onPanelOpen={onPanelOpen}
+                  onPanelOpen={() =>
+                    onPanelOpen({
+                      result_items: resultSummaryBlock.result_items,
+                      filters: resultSummaryBlock.filters,
+                      total_count: resultSummaryBlock.total_count,
+                    })
+                  }
                   isMobile={isMobile}
                 />
               )}

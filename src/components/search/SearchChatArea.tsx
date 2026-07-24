@@ -6,6 +6,8 @@ import ChatInputBar from "./ChatInputBar";
 import {
   type ChatMessage as ChatMessageType,
   type ChipType,
+  type SearchFilters,
+  type SearchPaper,
 } from "../../types/search";
 
 interface SearchChatAreaProps {
@@ -14,7 +16,11 @@ interface SearchChatAreaProps {
   isPanelOpen: boolean;
   onSend: (message: string) => void;
   onChipClick: (chipId: string, chipType: ChipType, label: string) => void;
-  onPanelOpen: () => void;
+  onPanelOpen: (data: {
+    result_items: SearchPaper[];
+    filters: SearchFilters;
+    total_count: number;
+  }) => void;
   onRetry: (messageId: string) => void;
   onEdit: (messageId: string, newContent: string) => void;
   onStop: () => void;

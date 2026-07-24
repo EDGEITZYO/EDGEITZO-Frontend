@@ -16,7 +16,13 @@ export type FeedbackType = "like" | "dislike";
 export type MessageBlock =
   | { type: "text"; content: string }
   | { type: "status"; status: "searching" | "complete"; paperCount?: number }
-  | { type: "result_summary"; total_count: number; keywords: string[] }
+  | {
+      type: "result_summary";
+      total_count: number;
+      keywords: string[];
+      result_items: SearchPaper[];
+      filters: SearchFilters;
+    }
   | { type: "narrow_chips"; chips: NarrowChip[] }
   | { type: "expand_chips"; chips: ExpandChip[] };
 
@@ -43,6 +49,10 @@ export interface SearchChatRequest {
   chip_id: string | null;
   chip_type: ChipType | null;
   sort_order: SortOrder;
+  pub_year_start: number | null;
+  paper_type: string | null;
+  kci_only: boolean | null;
+  sci_only: boolean | null;
 }
 
 // ─── 응답 - 저자 ─────────────────────────────────────────
@@ -85,12 +95,13 @@ export interface SearchPaper {
   issn: string | null;
   doi: string | null;
   db_code: string | null;
+  paper_type: PaperType | null;
   source: string;
+  is_bookmarked: boolean;
   credibility: PaperCredibility;
   score: number;
   similarity_score: number;
   matched_snippet: string | null;
-  paper_type: PaperType | null;
 }
 
 // ─── 응답 - 필터 ─────────────────────────────────────────
@@ -99,6 +110,8 @@ export interface SearchFilters {
   pub_year_start: number | null;
   paper_type: string | null;
   citation_min: number | null;
+  kci_only: boolean;
+  sci_only: boolean;
   keywords: string[];
 }
 
@@ -107,10 +120,12 @@ export interface SearchFilters {
 export type HistoryStepType = "search" | "narrow" | "expand";
 
 export interface SearchHistoryItem {
+  step_id: string;
   step_type: HistoryStepType;
   applied_filter: Record<string, unknown> | null;
   added_keyword: string | null;
   result_count: number;
+  result_items: SearchPaper[];
   timestamp: string;
 }
 

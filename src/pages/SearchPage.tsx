@@ -7,14 +7,15 @@ import TopNavBar from "../components/layout/TopNavBar";
 import ExitConfirmDialog from "../components/search/ExitConfirmDialog";
 import SearchChatArea from "../components/search/SearchChatArea";
 import SearchResultPanel from "../components/search/SearchResultPanel";
-import { searchChatStream, postFeedback } from "../api/search";
+import { searchChatStream, searchChat, postFeedback } from "../api/search";
 import {
   type SearchView,
   type ChatMessage,
-  type ChatResponse,
   type SortOrder,
   type FeedbackType,
   type ChipType,
+  type SearchFilters,
+  type SearchPaper,
 } from "../types/search";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import CloseIcon from "@mui/icons-material/Close";
@@ -23,6 +24,12 @@ import CloseIcon from "@mui/icons-material/Close";
 
 interface LocationState {
   query: string;
+}
+
+interface PanelData {
+  result_items: SearchPaper[];
+  filters: SearchFilters;
+  total_count: number;
 }
 
 // ─── Styles ───────────────────────────────────────────────
@@ -77,9 +84,17 @@ const SearchPage = () => {
   const initSentRef = useRef(false);
 
   // ─── 검색 결과 상태 ────────────────────────────────────
-  const [chatResponse, setChatResponse] = useState<ChatResponse | null>(null);
+  const [activePanelData, setActivePanelData] = useState<PanelData | null>(
+    null,
+  );
   const [sortOrder, setSortOrder] = useState<SortOrder>("relevance");
   const [feedbacks, setFeedbacks] = useState<Record<string, FeedbackType>>({});
+  const [bookmarkMap, setBookmarkMap] = useState<Record<string, boolean>>({});
+  const [filterYear, setFilterYear] = useState<number | null>(null);
+  const [filterPaperType, setFilterPaperType] = useState<string | null>(null);
+  const [filterKci, setFilterKci] = useState<boolean>(false);
+  const [filterSci, setFilterSci] = useState<boolean>(false);
+  const [isFilterLoading, setIsFilterLoading] = useState(false);
 
   // ─── SSE 핸들러 ────────────────────────────────────────
 
@@ -90,6 +105,10 @@ const SearchPage = () => {
       chipType: ChipType | null = null,
     ) => {
       abortControllerRef.current?.abort();
+      setFilterYear(null);
+      setFilterPaperType(null);
+      setFilterKci(false);
+      setFilterSci(false);
       const controller = new AbortController();
       abortControllerRef.current = controller;
 
@@ -119,6 +138,10 @@ const SearchPage = () => {
             chip_id: chipId,
             chip_type: chipType,
             sort_order: sortOrder,
+            pub_year_start: null,
+            paper_type: null,
+            kci_only: null,
+            sci_only: null,
           },
           callbacks: {
             onSearchStarted: () => {
@@ -177,8 +200,19 @@ const SearchPage = () => {
             },
             onDone: (response) => {
               setSessionId(response.session_id);
-              setChatResponse(response);
               queryClient.invalidateQueries({ queryKey: ["home"] });
+
+              const newBookmarks: Record<string, boolean> = {};
+              response.result_items.forEach(
+                (p) => (newBookmarks[p.paper_id] = p.is_bookmarked),
+              );
+              response.history.forEach((h) => {
+                h.result_items.forEach(
+                  (p) => (newBookmarks[p.paper_id] = p.is_bookmarked),
+                );
+              });
+              setBookmarkMap((prev) => ({ ...prev, ...newBookmarks }));
+
               setMessages((prev) =>
                 prev.map((m) =>
                   m.id === aiMessageId
@@ -194,6 +228,8 @@ const SearchPage = () => {
                                   type: "result_summary" as const,
                                   total_count: response.total_count,
                                   keywords: response.filters.keywords,
+                                  result_items: response.result_items,
+                                  filters: response.filters,
                                 },
                               ]
                             : []),
@@ -219,6 +255,11 @@ const SearchPage = () => {
                 ),
               );
               if (response.result_items.length > 0) {
+                setActivePanelData({
+                  result_items: response.result_items,
+                  filters: response.filters,
+                  total_count: response.total_count,
+                });
                 setView("result");
                 setIsPanelOpen(true);
               }
@@ -327,6 +368,88 @@ const SearchPage = () => {
     [sessionId],
   );
 
+  // ─── 북마크 ────────────────────────────────────────────
+
+  const handleBookmarkToggle = useCallback(
+    (paperId: string, isBookmarked: boolean) => {
+      setBookmarkMap((prev) => ({ ...prev, [paperId]: isBookmarked }));
+    },
+    [],
+  );
+
+  // ─── 필터 ────────────────────────────────────────────
+
+  const handleFilterChange = useCallback(
+    async (filters: {
+      year: number | null;
+      paperType: string | null;
+      kci: boolean;
+      sci: boolean;
+    }) => {
+      if (!sessionId) return;
+      setFilterYear(filters.year);
+      setFilterPaperType(filters.paperType);
+      setFilterKci(filters.kci);
+      setFilterSci(filters.sci);
+
+      setIsFilterLoading(true);
+      try {
+        const response = await searchChat({
+          session_id: sessionId,
+          message: "",
+          chip_id: null,
+          chip_type: null,
+          sort_order: sortOrder,
+          pub_year_start: filters.year,
+          paper_type: filters.paperType,
+          kci_only: filters.kci || null,
+          sci_only: filters.sci || null,
+        });
+        setActivePanelData({
+          result_items: response.result_items,
+          filters: response.filters,
+          total_count: response.total_count,
+        });
+      } catch {
+        // 에러 처리
+      } finally {
+        setIsFilterLoading(false);
+      }
+    },
+    [sessionId, sortOrder],
+  );
+
+  const handleSortChange = useCallback(
+    async (sort: SortOrder) => {
+      setSortOrder(sort);
+      if (!sessionId) return;
+      setIsFilterLoading(true);
+      try {
+        const response = await searchChat({
+          session_id: sessionId,
+          message: "",
+          chip_id: null,
+          chip_type: null,
+          sort_order: sort,
+          pub_year_start: filterYear,
+          paper_type: filterPaperType,
+          kci_only: filterKci || null,
+          sci_only: filterSci || null,
+        });
+        setActivePanelData({
+          result_items: response.result_items,
+          filters: response.filters,
+          total_count: response.total_count,
+        });
+      } catch {
+        // 에러 처리
+      } finally {
+        setIsFilterLoading(false);
+      }
+    },
+    [sessionId, filterYear, filterPaperType, filterKci, filterSci],
+  );
+
   // ─── 네비게이션 ────────────────────────────────────────
 
   const handleBackClick = () => {
@@ -340,10 +463,24 @@ const SearchPage = () => {
 
   const handleExitCancel = () => setExitDialogOpen(false);
 
-  const handlePanelOpen = useCallback(() => setIsPanelOpen(true), []);
+  const handlePanelOpen = useCallback((data: PanelData) => {
+    setActivePanelData(data);
+    setIsPanelOpen(true);
+    setFilterYear(null);
+    setFilterPaperType(null);
+    setFilterKci(false);
+    setFilterSci(false);
+    setSortOrder("relevance");
+  }, []);
+
   const handlePanelClose = useCallback(() => {
     setIsPanelOpen(false);
     setIsPanelDetail(false);
+    setFilterYear(null);
+    setFilterPaperType(null);
+    setFilterKci(false);
+    setFilterSci(false);
+    setSortOrder("relevance");
   }, []);
 
   // ─── Render ────────────────────────────────────────────
@@ -399,7 +536,7 @@ const SearchPage = () => {
               }}
             >
               <Box component="span" sx={{ color: "#03C26C" }}>
-                {chatResponse?.filters.keywords[0] ?? ""}
+                {activePanelData?.filters.keywords[0] ?? ""}
               </Box>
               <Box component="span" sx={{ color: "label.normal" }}>
                 {" "}
@@ -478,15 +615,23 @@ const SearchPage = () => {
           <>
             {view === "result" && isPanelOpen && (
               <SearchResultPanel
-                chatResponse={chatResponse}
+                panelData={activePanelData}
                 feedbacks={feedbacks}
                 onClose={handlePanelClose}
                 onFeedback={handleFeedback}
-                onSortChange={setSortOrder}
+                onSortChange={handleSortChange}
                 sortOrder={sortOrder}
                 isDesktop={isDesktop}
                 onDetailOpen={() => setIsPanelDetail(true)}
                 onDetailClose={() => setIsPanelDetail(false)}
+                bookmarkMap={bookmarkMap}
+                onBookmarkToggle={handleBookmarkToggle}
+                filterYear={filterYear}
+                filterPaperType={filterPaperType}
+                filterKci={filterKci}
+                filterSci={filterSci}
+                onFilterChange={handleFilterChange}
+                isFilterLoading={isFilterLoading}
               />
             )}
           </>
@@ -506,15 +651,23 @@ const SearchPage = () => {
           >
             {view === "result" && isPanelOpen && (
               <SearchResultPanel
-                chatResponse={chatResponse}
+                panelData={activePanelData}
                 feedbacks={feedbacks}
                 onClose={handlePanelClose}
                 onFeedback={handleFeedback}
-                onSortChange={setSortOrder}
+                onSortChange={handleSortChange}
                 sortOrder={sortOrder}
                 isDesktop={isDesktop}
                 onDetailOpen={() => setIsPanelDetail(true)}
                 onDetailClose={() => setIsPanelDetail(false)}
+                bookmarkMap={bookmarkMap}
+                onBookmarkToggle={handleBookmarkToggle}
+                filterYear={filterYear}
+                filterPaperType={filterPaperType}
+                filterKci={filterKci}
+                filterSci={filterSci}
+                onFilterChange={handleFilterChange}
+                isFilterLoading={isFilterLoading}
               />
             )}
           </Box>

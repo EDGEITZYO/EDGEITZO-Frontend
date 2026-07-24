@@ -21,6 +21,7 @@ interface PaperDetailContentProps {
   searchId?: string;
   onRelatedPaperClick?: (paperId: string) => void;
   onClose?: () => void;
+  onBookmarkChange?: (paperId: string, isBookmarked: boolean) => void;
 }
 
 // ─── 배지 ────────────────────────────────────────────────
@@ -116,6 +117,7 @@ const PaperDetailContent = ({
   searchId,
   onRelatedPaperClick,
   onClose,
+  onBookmarkChange,
 }: PaperDetailContentProps) => {
   const queryClient = useQueryClient();
   const theme = useTheme();
@@ -195,6 +197,11 @@ const PaperDetailContent = ({
       queryClient.invalidateQueries({ queryKey: ["saved-bookmark-folders"] });
       queryClient.invalidateQueries({ queryKey: ["saved-bookmarks-total"] });
     },
+    onSuccess: () => {
+      if (onBookmarkChange) {
+        onBookmarkChange(paperId, false);
+      }
+    },
   });
 
   const handleBookmarkClick = () => {
@@ -207,6 +214,12 @@ const PaperDetailContent = ({
 
   const handleBookmarkAdded = () => {
     queryClient.invalidateQueries({ queryKey: ["bookmark", paperId] });
+    queryClient.invalidateQueries({ queryKey: ["saved-bookmarks"] });
+    queryClient.invalidateQueries({ queryKey: ["saved-bookmark-folders"] });
+    queryClient.invalidateQueries({ queryKey: ["saved-bookmarks-total"] });
+    if (onBookmarkChange) {
+      onBookmarkChange(paperId, true);
+    }
   };
 
   if (isPaperPending) {

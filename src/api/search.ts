@@ -121,6 +121,20 @@ export const searchChatStream = async ({
   }
 };
 
+// ─── /search/chat ────────────────────────────────────────
+
+export const searchChat = async (
+  body: SearchChatRequest,
+): Promise<ChatResponse> => {
+  const { data } = await apiClient.post<{
+    success: boolean;
+    message: string;
+    data: ChatResponse;
+    meta: unknown;
+  }>("/search/chat", body);
+  return data.data;
+};
+
 // ─── /search/feedback ────────────────────────────────────
 
 export const postFeedback = async (
