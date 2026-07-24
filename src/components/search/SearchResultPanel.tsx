@@ -7,6 +7,7 @@ import {
   Menu,
   MenuItem,
   useMediaQuery,
+  CircularProgress,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import CloseIcon from "@mui/icons-material/Close";
@@ -41,6 +42,17 @@ interface SearchResultPanelProps {
   onDetailClose: () => void;
   bookmarkMap: Record<string, boolean>;
   onBookmarkToggle: (paperId: string, isBookmarked: boolean) => void;
+  filterYear: number | null;
+  filterPaperType: string | null;
+  filterKci: boolean;
+  filterSci: boolean;
+  onFilterChange: (filters: {
+    year: number | null;
+    paperType: string | null;
+    kci: boolean;
+    sci: boolean;
+  }) => void;
+  isFilterLoading: boolean;
 }
 
 const SORT_OPTIONS: { label: string; value: SortOrder }[] = [
@@ -62,7 +74,6 @@ const PAPER_TYPE_OPTIONS: { label: string; value: PaperType }[] = [
   { label: "학술 저널", value: "학술 저널" },
   { label: "박사학위 논문", value: "박사학위 논문" },
   { label: "석사학위 논문", value: "석사학위 논문" },
-  { label: "학위논문", value: "학위논문" },
 ];
 
 // ─── 드롭다운 필터 ────────────────────────────────────────
@@ -237,13 +248,19 @@ const SearchResultPanel = ({
   feedbacks,
   sortOrder,
   bookmarkMap,
+  filterYear,
+  filterPaperType,
+  filterKci,
+  filterSci,
   onClose,
   onFeedback,
   onSortChange,
   onDetailClose,
   onDetailOpen,
   onBookmarkToggle,
+  onFilterChange,
   isDesktop,
+  isFilterLoading,
 }: SearchResultPanelProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -252,12 +269,6 @@ const SearchResultPanel = ({
   const [resultPanelView, setResultPanelView] =
     useState<ResultPanelView>("list");
   const [selectedPaperId, setSelectedPaperId] = useState<string | null>(null);
-  const [selectedYear, setSelectedYear] = useState<number | null>(null);
-  const [selectedPaperType, setSelectedPaperType] = useState<PaperType | null>(
-    null,
-  );
-  const [kciActive, setKciActive] = useState(false);
-  const [sciActive, setSciActive] = useState(false);
   const [bookmarkDialogPaperId, setBookmarkDialogPaperId] = useState<
     string | null
   >(null);
@@ -409,27 +420,55 @@ const SearchResultPanel = ({
               <DropdownFilter
                 label="발행연도"
                 options={YEAR_OPTIONS}
-                selectedValue={selectedYear}
-                onSelect={(value) => setSelectedYear(value as number)}
+                selectedValue={filterYear}
+                onSelect={(value) =>
+                  onFilterChange({
+                    year: value as number,
+                    paperType: filterPaperType,
+                    kci: filterKci,
+                    sci: filterSci,
+                  })
+                }
                 isMobile={false}
               />
               <DropdownFilter
                 label="논문 유형"
                 options={PAPER_TYPE_OPTIONS}
-                selectedValue={selectedPaperType}
-                onSelect={(value) => setSelectedPaperType(value as PaperType)}
+                selectedValue={filterPaperType}
+                onSelect={(value) =>
+                  onFilterChange({
+                    year: filterYear,
+                    paperType: value as string,
+                    kci: filterKci,
+                    sci: filterSci,
+                  })
+                }
                 isMobile={false}
               />
               <ToggleFilter
                 label="KCI 등재"
-                active={kciActive}
-                onToggle={() => setKciActive((prev) => !prev)}
+                active={filterKci}
+                onToggle={() =>
+                  onFilterChange({
+                    year: filterYear,
+                    paperType: filterPaperType,
+                    kci: !filterKci,
+                    sci: filterSci,
+                  })
+                }
                 isMobile={false}
               />
               <ToggleFilter
                 label="SCI 등재"
-                active={sciActive}
-                onToggle={() => setSciActive((prev) => !prev)}
+                active={filterSci}
+                onToggle={() =>
+                  onFilterChange({
+                    year: filterYear,
+                    paperType: filterPaperType,
+                    kci: filterKci,
+                    sci: !filterSci,
+                  })
+                }
                 isMobile={false}
               />
             </Box>
@@ -438,7 +477,8 @@ const SearchResultPanel = ({
             sx={{
               display: "flex",
               flexDirection: "column",
-              alignItems: "flex-start",
+              alignItems: isFilterLoading ? "center" : "flex-start",
+              justifyContent: isFilterLoading ? "center" : "flex-start",
               gap: "8px",
               flex: "1 0 0",
               alignSelf: "stretch",
@@ -447,17 +487,43 @@ const SearchResultPanel = ({
               overflowY: "auto",
             }}
           >
-            {papers.map((paper) => (
-              <PaperListCard
-                key={paper.paper_id}
-                paper={paper}
-                isBookmarked={bookmarkMap[paper.paper_id] ?? false}
-                feedback={feedbacks[paper.paper_id]}
-                onClick={() => handlePaperClick(paper.paper_id)}
-                onBookmark={() => handleBookmark(paper.paper_id)}
-                onFeedback={onFeedback}
-              />
-            ))}
+            {isFilterLoading ? (
+              <CircularProgress />
+            ) : papers.length === 0 ? (
+              <Box
+                sx={{
+                  display: "flex",
+                  flex: "1 0 0",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  alignSelf: "stretch",
+                }}
+              >
+                <Typography
+                  sx={{
+                    color: "label.alternative",
+                    fontSize: "16px",
+                    fontWeight: 400,
+                    lineHeight: "24px",
+                    letterSpacing: "-0.336px",
+                  }}
+                >
+                  탐색 결과에 맞는 논문이 없어요.
+                </Typography>
+              </Box>
+            ) : (
+              papers.map((paper) => (
+                <PaperListCard
+                  key={paper.paper_id}
+                  paper={paper}
+                  isBookmarked={bookmarkMap[paper.paper_id] ?? false}
+                  feedback={feedbacks[paper.paper_id]}
+                  onClick={() => handlePaperClick(paper.paper_id)}
+                  onBookmark={() => handleBookmark(paper.paper_id)}
+                  onFeedback={onFeedback}
+                />
+              ))
+            )}
           </Box>
         </>
       )}
@@ -485,27 +551,55 @@ const SearchResultPanel = ({
           <DropdownFilter
             label="발행연도"
             options={YEAR_OPTIONS}
-            selectedValue={selectedYear}
-            onSelect={(value) => setSelectedYear(value as number)}
+            selectedValue={filterYear}
+            onSelect={(value) =>
+              onFilterChange({
+                year: value as number,
+                paperType: filterPaperType,
+                kci: filterKci,
+                sci: filterSci,
+              })
+            }
             isMobile={true}
           />
           <DropdownFilter
             label="논문 유형"
             options={PAPER_TYPE_OPTIONS}
-            selectedValue={selectedPaperType}
-            onSelect={(value) => setSelectedPaperType(value as PaperType)}
+            selectedValue={filterPaperType}
+            onSelect={(value) =>
+              onFilterChange({
+                year: filterYear,
+                paperType: value as string,
+                kci: filterKci,
+                sci: filterSci,
+              })
+            }
             isMobile={true}
           />
           <ToggleFilter
             label="KCI 등재"
-            active={kciActive}
-            onToggle={() => setKciActive((prev) => !prev)}
+            active={filterKci}
+            onToggle={() =>
+              onFilterChange({
+                year: filterYear,
+                paperType: filterPaperType,
+                kci: !filterKci,
+                sci: filterSci,
+              })
+            }
             isMobile={true}
           />
           <ToggleFilter
             label="SCI 등재"
-            active={sciActive}
-            onToggle={() => setSciActive((prev) => !prev)}
+            active={filterSci}
+            onToggle={() =>
+              onFilterChange({
+                year: filterYear,
+                paperType: filterPaperType,
+                kci: filterKci,
+                sci: !filterSci,
+              })
+            }
             isMobile={true}
           />
         </Box>
@@ -518,7 +612,8 @@ const SearchResultPanel = ({
             display: "flex",
             padding: "0 16px 16px 16px",
             flexDirection: "column",
-            alignItems: "flex-start",
+            alignItems: isFilterLoading ? "center" : "flex-start",
+            justifyContent: isFilterLoading ? "center" : "flex-start",
             gap: "16px",
             flex: "1 0 0",
             alignSelf: "stretch",
@@ -528,17 +623,43 @@ const SearchResultPanel = ({
             backdropFilter: "blur(2.9px)",
           }}
         >
-          {papers.map((paper) => (
-            <PaperListCard
-              key={paper.paper_id}
-              paper={paper}
-              isBookmarked={bookmarkMap[paper.paper_id] ?? false}
-              feedback={feedbacks[paper.paper_id]}
-              onClick={() => handlePaperClick(paper.paper_id)}
-              onBookmark={() => handleBookmark(paper.paper_id)}
-              onFeedback={onFeedback}
-            />
-          ))}
+          {isFilterLoading ? (
+            <CircularProgress />
+          ) : papers.length === 0 ? (
+            <Box
+              sx={{
+                display: "flex",
+                flex: "1 0 0",
+                justifyContent: "center",
+                alignItems: "center",
+                alignSelf: "stretch",
+              }}
+            >
+              <Typography
+                sx={{
+                  color: "label.alternative",
+                  fontSize: "16px",
+                  fontWeight: 400,
+                  lineHeight: "24px",
+                  letterSpacing: "-0.336px",
+                }}
+              >
+                탐색 결과에 맞는 논문이 없어요.
+              </Typography>
+            </Box>
+          ) : (
+            papers.map((paper) => (
+              <PaperListCard
+                key={paper.paper_id}
+                paper={paper}
+                isBookmarked={bookmarkMap[paper.paper_id] ?? false}
+                feedback={feedbacks[paper.paper_id]}
+                onClick={() => handlePaperClick(paper.paper_id)}
+                onBookmark={() => handleBookmark(paper.paper_id)}
+                onFeedback={onFeedback}
+              />
+            ))
+          )}
         </Box>
       )}
 

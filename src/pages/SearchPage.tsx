@@ -7,7 +7,7 @@ import TopNavBar from "../components/layout/TopNavBar";
 import ExitConfirmDialog from "../components/search/ExitConfirmDialog";
 import SearchChatArea from "../components/search/SearchChatArea";
 import SearchResultPanel from "../components/search/SearchResultPanel";
-import { searchChatStream, postFeedback } from "../api/search";
+import { searchChatStream, searchChat, postFeedback } from "../api/search";
 import {
   type SearchView,
   type ChatMessage,
@@ -90,6 +90,11 @@ const SearchPage = () => {
   const [sortOrder, setSortOrder] = useState<SortOrder>("relevance");
   const [feedbacks, setFeedbacks] = useState<Record<string, FeedbackType>>({});
   const [bookmarkMap, setBookmarkMap] = useState<Record<string, boolean>>({});
+  const [filterYear, setFilterYear] = useState<number | null>(null);
+  const [filterPaperType, setFilterPaperType] = useState<string | null>(null);
+  const [filterKci, setFilterKci] = useState<boolean>(false);
+  const [filterSci, setFilterSci] = useState<boolean>(false);
+  const [isFilterLoading, setIsFilterLoading] = useState(false);
 
   // ─── SSE 핸들러 ────────────────────────────────────────
 
@@ -100,6 +105,10 @@ const SearchPage = () => {
       chipType: ChipType | null = null,
     ) => {
       abortControllerRef.current?.abort();
+      setFilterYear(null);
+      setFilterPaperType(null);
+      setFilterKci(false);
+      setFilterSci(false);
       const controller = new AbortController();
       abortControllerRef.current = controller;
 
@@ -368,6 +377,79 @@ const SearchPage = () => {
     [],
   );
 
+  // ─── 필터 ────────────────────────────────────────────
+
+  const handleFilterChange = useCallback(
+    async (filters: {
+      year: number | null;
+      paperType: string | null;
+      kci: boolean;
+      sci: boolean;
+    }) => {
+      if (!sessionId) return;
+      setFilterYear(filters.year);
+      setFilterPaperType(filters.paperType);
+      setFilterKci(filters.kci);
+      setFilterSci(filters.sci);
+
+      setIsFilterLoading(true);
+      try {
+        const response = await searchChat({
+          session_id: sessionId,
+          message: "",
+          chip_id: null,
+          chip_type: null,
+          sort_order: sortOrder,
+          pub_year_start: filters.year,
+          paper_type: filters.paperType,
+          kci_only: filters.kci || null,
+          sci_only: filters.sci || null,
+        });
+        setActivePanelData({
+          result_items: response.result_items,
+          filters: response.filters,
+          total_count: response.total_count,
+        });
+      } catch {
+        // 에러 처리
+      } finally {
+        setIsFilterLoading(false);
+      }
+    },
+    [sessionId, sortOrder],
+  );
+
+  const handleSortChange = useCallback(
+    async (sort: SortOrder) => {
+      setSortOrder(sort);
+      if (!sessionId) return;
+      setIsFilterLoading(true);
+      try {
+        const response = await searchChat({
+          session_id: sessionId,
+          message: "",
+          chip_id: null,
+          chip_type: null,
+          sort_order: sort,
+          pub_year_start: filterYear,
+          paper_type: filterPaperType,
+          kci_only: filterKci || null,
+          sci_only: filterSci || null,
+        });
+        setActivePanelData({
+          result_items: response.result_items,
+          filters: response.filters,
+          total_count: response.total_count,
+        });
+      } catch {
+        // 에러 처리
+      } finally {
+        setIsFilterLoading(false);
+      }
+    },
+    [sessionId, filterYear, filterPaperType, filterKci, filterSci],
+  );
+
   // ─── 네비게이션 ────────────────────────────────────────
 
   const handleBackClick = () => {
@@ -384,11 +466,21 @@ const SearchPage = () => {
   const handlePanelOpen = useCallback((data: PanelData) => {
     setActivePanelData(data);
     setIsPanelOpen(true);
+    setFilterYear(null);
+    setFilterPaperType(null);
+    setFilterKci(false);
+    setFilterSci(false);
+    setSortOrder("relevance");
   }, []);
 
   const handlePanelClose = useCallback(() => {
     setIsPanelOpen(false);
     setIsPanelDetail(false);
+    setFilterYear(null);
+    setFilterPaperType(null);
+    setFilterKci(false);
+    setFilterSci(false);
+    setSortOrder("relevance");
   }, []);
 
   // ─── Render ────────────────────────────────────────────
@@ -527,13 +619,19 @@ const SearchPage = () => {
                 feedbacks={feedbacks}
                 onClose={handlePanelClose}
                 onFeedback={handleFeedback}
-                onSortChange={setSortOrder}
+                onSortChange={handleSortChange}
                 sortOrder={sortOrder}
                 isDesktop={isDesktop}
                 onDetailOpen={() => setIsPanelDetail(true)}
                 onDetailClose={() => setIsPanelDetail(false)}
                 bookmarkMap={bookmarkMap}
                 onBookmarkToggle={handleBookmarkToggle}
+                filterYear={filterYear}
+                filterPaperType={filterPaperType}
+                filterKci={filterKci}
+                filterSci={filterSci}
+                onFilterChange={handleFilterChange}
+                isFilterLoading={isFilterLoading}
               />
             )}
           </>
@@ -557,13 +655,19 @@ const SearchPage = () => {
                 feedbacks={feedbacks}
                 onClose={handlePanelClose}
                 onFeedback={handleFeedback}
-                onSortChange={setSortOrder}
+                onSortChange={handleSortChange}
                 sortOrder={sortOrder}
                 isDesktop={isDesktop}
                 onDetailOpen={() => setIsPanelDetail(true)}
                 onDetailClose={() => setIsPanelDetail(false)}
                 bookmarkMap={bookmarkMap}
                 onBookmarkToggle={handleBookmarkToggle}
+                filterYear={filterYear}
+                filterPaperType={filterPaperType}
+                filterKci={filterKci}
+                filterSci={filterSci}
+                onFilterChange={handleFilterChange}
+                isFilterLoading={isFilterLoading}
               />
             )}
           </Box>
