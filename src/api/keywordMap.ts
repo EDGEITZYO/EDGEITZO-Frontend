@@ -1,44 +1,67 @@
 import apiClient from "./client";
 import type { ApiResponse } from "../types/auth";
 import type {
-  KMMapResponse,
-  KMGenerateResponse,
+  KMGraphResponse,
+  KMLoadParams,
+  KMRecenterRequest,
   KMExpandRequest,
   KMExpandResponse,
+  KMLastAnchorResponse,
+  KMNodeDetailResponse,
   KMNodePapersResponse,
   KMPaperFilter,
 } from "../types/keywordMap";
 
 export const keywordMapApi = {
-  // 키워드맵 생성
-  // POST /keyword-map/generate
-  generate: (researchField: string, userId: string) =>
-    apiClient.post<ApiResponse<KMGenerateResponse>>("/keyword-map/generate", {
-      research_field: researchField,
-      user_id: userId,
-    }),
+  // 키워드맵 최초 앵커 로드
+  // GET /keyword-map?keyword=...&user_id=...
+  loadMap: (params: KMLoadParams) =>
+    apiClient.get<ApiResponse<KMGraphResponse>>("/keyword-map", { params }),
 
-  // 저장된 키워드맵 조회
+  // 마지막 조회 앵커 복원 (홈 탐색 이력용)
   // GET /keyword-search/map/{user_id}
-  getMap: (userId: string) =>
-    apiClient.get<ApiResponse<KMMapResponse>>(`/keyword-search/map/${userId}`),
+  getLastAnchor: (userId: string) =>
+    apiClient.get<ApiResponse<KMLastAnchorResponse>>(
+      `/keyword-search/map/${userId}`,
+    ),
 
-  // 노드 하위 키워드 확장
-  // POST /keyword-map/node/{node_id}/expand
-  expandNode: (nodeId: string, body: KMExpandRequest) =>
+  // 노드 재중심화
+  // POST /keyword-map/node/{node_key}/recenter
+  recenter: (nodeKey: string, body: KMRecenterRequest, userId?: string) =>
+    apiClient.post<ApiResponse<KMGraphResponse>>(
+      `/keyword-map/node/${encodeURIComponent(nodeKey)}/recenter`,
+      body,
+      { params: userId ? { user_id: userId } : undefined },
+    ),
+
+  // 노드 제자리 확장
+  // POST /keyword-map/node/{node_key}/expand
+  expandNode: (nodeKey: string, body: KMExpandRequest) =>
     apiClient.post<ApiResponse<KMExpandResponse>>(
-      `/keyword-map/node/${encodeURIComponent(nodeId)}/expand`,
+      `/keyword-map/node/${encodeURIComponent(nodeKey)}/expand`,
       body,
     ),
 
-  // 노드 연결 논문 목록
-  // GET /keyword-map/node/{node_id}/papers
+  // 키워드 노드 논문 목록
+  // GET /keyword-map/node/{node_key}/papers
   getNodePapers: (
-    nodeId: string,
-    filter: KMPaperFilter & { page: number; size: number; user_id?: string; keyword_path?: string },
+    nodeKey: string,
+    filter: KMPaperFilter & {
+      user_id?: string;
+      keyword_path?: string;
+      map_session_id?: string;
+      research_field?: string;
+    },
   ) =>
     apiClient.get<ApiResponse<KMNodePapersResponse>>(
-      `/keyword-map/node/${encodeURIComponent(nodeId)}/papers`,
+      `/keyword-map/node/${encodeURIComponent(nodeKey)}/papers`,
       { params: filter },
+    ),
+
+  // 키워드 노드 상세 정보 (정의 + 연구자)
+  // GET /keyword-map/node/{node_key}/detail
+  getNodeDetail: (nodeKey: string) =>
+    apiClient.get<ApiResponse<KMNodeDetailResponse>>(
+      `/keyword-map/node/${encodeURIComponent(nodeKey)}/detail`,
     ),
 };

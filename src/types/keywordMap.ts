@@ -1,144 +1,171 @@
 import { type PaperType } from "./paper";
 
-// ─── 노드 단계 ───────────────────────────────────────────
+// ─── 노드 tier ────────────────────────────────────────────
+// 0=앵커, 1=1단계 부모/자녀, 2=2단계 자녀, 3=expand로만 생성
 
-export type NodeDepth = 1 | 2 | 3 | 4;
+export type NodeTier = 0 | 1 | 2 | 3;
 
-// ─── 엣지 축 타입 ─────────────────────────────────────────
+// ─── 노드 side ────────────────────────────────────────────
 
-export type EdgeAxisLabel = "핵심기술" | "연구대상" | "상위분야" | "응용분야";
+export type NodeSide = "anchor" | "parent" | "child";
 
-// ─── 방향 ─────────────────────────────────────────────────
+// ─── 엣지 타입 ────────────────────────────────────────────
 
-export type NodeDirection = "top" | "right" | "bottom" | "left";
+export type KMEdgeType = "tree" | "cross_link";
 
 // ─── 키워드 노드 데이터 (ReactFlow용) ────────────────────
 
 export interface KeywordNodeData {
   label: string;
-  depth: NodeDepth;
-  direction: NodeDirection;
-  definition?: string;
+  tier: NodeTier;
+  side: NodeSide;
+  paperCount: number;
+  isHub: boolean;
+  crossLinkCount: number;
   isExpanded: boolean;
   isSelected: boolean;
-  isFocused: boolean;
 }
 
 // ─── 브레드크럼 ───────────────────────────────────────────
 
 export interface BreadcrumbItem {
-  nodeId: string;
+  nodeKey: string;
   label: string;
-  depth: NodeDepth;
 }
 
-// ─── API: 키워드맵 트리 노드 ─────────────────────────────
-// GET /keyword-search/map/{user_id}, POST /keyword-map/generate 응답
+// ─── API: 그래프 노드 ─────────────────────────────────────
 
-export interface KMTreeNode {
-  id: string;
-  ko: string;
-  en: string;
-  depth: number;
-  edge_type: EdgeAxisLabel | null;
-  definition: string | null;
-  children: KMTreeNode[];
+export interface KMGraphNode {
+  key: string;
+  name_ko: string | null;
+  name_en: string | null;
+  tier: number;
+  side: NodeSide;
+  paper_count: number;
+  is_hub: boolean;
+  cross_link_count: number;
 }
 
-// ─── API: 키워드맵 생성 응답 ──────────────────────────────
-// POST /keyword-map/generate
+// ─── API: 그래프 엣지 ─────────────────────────────────────
 
-export interface KMGenerateResponse {
-  research_field: string;
-  tree: KMTreeNode;
+export interface KMGraphEdge {
+  source: string;
+  target: string;
+  type: KMEdgeType;
+  paper_count: number;
 }
 
-// ─── API: 키워드맵 조회 응답 ──────────────────────────────
-// GET /keyword-search/map/{user_id}
+// ─── API: 그래프 응답 공통 ────────────────────────────────
 
-export interface KMMapResponse {
-  research_field: string;
-  tree: KMTreeNode;
+export interface KMGraphResponse {
+  anchor: KMGraphNode;
+  nodes: KMGraphNode[];
+  edges: KMGraphEdge[];
+  has_more_parents: boolean;
+  has_more_children: boolean;
 }
 
-// ─── API: 노드 확장 요청 body ─────────────────────────────
-// POST /keyword-map/node/{node_id}/expand
+// ─── API: GET /keyword-map ────────────────────────────────
+
+export interface KMLoadParams {
+  keyword: string;
+  user_id?: string;
+}
+
+// ─── API: POST /keyword-map/node/{node_key}/recenter ─────
+
+export interface KMRecenterRequest {
+  existing_node_keys: string[];
+}
+
+// ─── API: POST /keyword-map/node/{node_key}/expand ───────
 
 export interface KMExpandRequest {
-  parent_label: string;
-  parent_label_en: string;
-  axis: EdgeAxisLabel;
-  research_field: string;
-  depth: number;
+  existing_node_keys: string[];
+  current_tier: number;
 }
 
-// ─── API: 노드 확장 응답 ──────────────────────────────────
-
-export interface KMExpandedChild {
-  id: string;
-  ko: string;
-  en: string;
-  edge_type: EdgeAxisLabel;
-  definition: string | null;
-}
+// ─── API: expand 응답 ─────────────────────────────────────
 
 export interface KMExpandResponse {
-  parent_label: string;
-  new_children: KMExpandedChild[];
+  parent_key: string;
+  new_nodes: KMGraphNode[];
+  new_edges: KMGraphEdge[];
 }
 
-// ─── API: 논문 배지 ───────────────────────────────────────
+// ─── API: GET /keyword-search/map/{user_id} ───────────────
 
-export interface TrustBadge {
-  kci: boolean;
-  sci: boolean;
-  citation_count: number;
-  degree_type: string | null;
+export interface KMLastAnchorResponse {
+  last_anchor_key: string;
+  last_anchor_name_ko: string | null;
+  last_anchor_name_en: string | null;
 }
 
-// ─── API: 노드 연결 논문 ──────────────────────────────────
-// GET /keyword-map/node/{node_id}/papers
+// ─── API: GET /keyword-map/node/{node_key}/detail ────────
+
+export interface KMNodeDefinition {
+  keyword_key: string;
+  definition: string;
+  source_url: string | null;
+  source: "trend" | "llm";
+}
+
+export interface KMNodeResearcher {
+  cn: string;
+  name_ko: string | null;
+  name_en: string | null;
+  institution_ko: string | null;
+  article_count: number | null;
+}
+
+export interface KMNodeDetailResponse {
+  definition: KMNodeDefinition | null;
+  researchers: KMNodeResearcher[];
+}
+
+// ─── API: GET /keyword-map/node/{node_key}/papers ────────
 
 export interface KMNodePaper {
   paper_id: string;
   title: string;
   authors: string[];
-  pub_year: number;
-  journal_name: string;
-  paper_type: PaperType;
-  abstract: string;
+  pub_year: number | null;
+  journal_name: string | null;
+  paper_type: PaperType | null;
+  abstract: string | null;
   keywords: string[];
   doi: string | null;
   kci_registered: boolean;
   sci_indexed: boolean;
-  citation_count: number;
+  citation_count: number | null;
   relevance_score: number;
-  trust_badge: TrustBadge;
+  trust_badge: KMTrustBadge | null;
+  is_bookmarked: boolean;
+}
+
+export interface KMTrustBadge {
+  kci: boolean | null;
+  sci: boolean | null;
+  citation_count: number | null;
+  degree_type: string | null;
 }
 
 export interface KMNodePapersResponse {
   keyword: string;
   papers: KMNodePaper[];
   total: number;
-  page: number;
-  size: number;
   search_id: string | null;
 }
 
 // ─── 논문 필터 ────────────────────────────────────────────
 
-export type KMPaperSortType = "date" | "citation";
+export type KMPaperSortType = "relevance" | "latest" | "oldest" | "citation";
 
-export type KMYearRange = "3y" | "5y" | "10y";
-
-export type KMPaperType =
-  | "학술 저널"
-  | "박사학위 논문"
-  | "석사학위 논문";
+export type KMPaperType = "학술 저널" | "박사학위 논문" | "석사학위 논문";
 
 export interface KMPaperFilter {
   sort: KMPaperSortType;
-  year_range?: KMYearRange;
+  year?: number;
   paper_type?: KMPaperType;
   kci?: boolean;
   sci?: boolean;
