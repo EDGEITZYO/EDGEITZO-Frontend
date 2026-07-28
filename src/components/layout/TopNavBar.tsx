@@ -4,6 +4,7 @@ import { type SxProps, type Theme } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+import { type BreadcrumbItem } from "../../types/keywordMap";
 
 interface FolderNavConfig {
   name: string;
@@ -20,6 +21,11 @@ interface SearchNavConfig {
   query: string;
 }
 
+interface KeywordMapNavConfig {
+  breadcrumbs: BreadcrumbItem[];
+  onBreadcrumbClick: (nodeKey: string) => void;
+}
+
 interface TopNavBarProps {
   onBack: () => void;
   onLogoClick?: () => void;
@@ -27,6 +33,7 @@ interface TopNavBarProps {
   title?: string;
   folderConfig?: FolderNavConfig;
   searchConfig?: SearchNavConfig;
+  keywordMapConfig?: KeywordMapNavConfig;
 }
 
 const navBarSx: SxProps<Theme> = {
@@ -133,6 +140,63 @@ const searchQuerySx: SxProps<Theme> = {
   letterSpacing: "-0.42px",
 };
 
+// ─── 키워드맵 브레드크럼 스타일 ──────────────────────────
+
+const kmNavWrapperSx: SxProps<Theme> = {
+  display: "flex",
+  alignItems: "center",
+  gap: "12px",
+  flex: 1,
+  overflow: "hidden",
+};
+
+const kmBadgeSx: SxProps<Theme> = {
+  display: "flex",
+  padding: "3px 8px 4px 8px",
+  justifyContent: "center",
+  alignItems: "center",
+  gap: "10px",
+  borderRadius: "6px",
+  backgroundColor: "#EDFAE6",
+  flexShrink: 0,
+};
+
+const kmBadgeTextSx: SxProps<Theme> = {
+  color: "#3BA502",
+  fontSize: "16px",
+  fontWeight: 600,
+  lineHeight: "24px",
+  letterSpacing: "-0.336px",
+};
+
+const kmBreadcrumbWrapperSx: SxProps<Theme> = {
+  display: "flex",
+  alignItems: "center",
+  gap: "4px",
+  overflow: "hidden",
+};
+
+const kmPrevLabelSx: SxProps<Theme> = {
+  display: "-webkit-box",
+  WebkitBoxOrient: "vertical",
+  WebkitLineClamp: 1,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  color: "label.normal",
+  fontSize: "20px",
+  fontWeight: 600,
+  lineHeight: "30px",
+  letterSpacing: "-0.42px",
+  cursor: "pointer",
+  flexShrink: 0,
+};
+
+const kmCurrentLabelSx: SxProps<Theme> = {
+  ...kmPrevLabelSx,
+  color: "#3BA502",
+  cursor: "default",
+};
+
 const TopNavBar = ({
   onBack,
   onLogoClick,
@@ -140,6 +204,7 @@ const TopNavBar = ({
   title,
   folderConfig,
   searchConfig,
+  keywordMapConfig,
 }: TopNavBarProps) => {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
@@ -257,6 +322,63 @@ const TopNavBar = ({
               </Menu>
             </>
           )}
+        </Box>
+      )}
+
+      {/* 키워드맵 브레드크럼 */}
+      {keywordMapConfig && keywordMapConfig.breadcrumbs.length > 0 && (
+        <Box sx={kmNavWrapperSx}>
+          <Box sx={kmBadgeSx}>
+            <Typography sx={kmBadgeTextSx}>키워드</Typography>
+          </Box>
+          <Box sx={kmBreadcrumbWrapperSx}>
+            {keywordMapConfig.breadcrumbs.map((crumb, index) => {
+              const isLast = index === keywordMapConfig.breadcrumbs.length - 1;
+              return (
+                <Box
+                  key={crumb.nodeKey}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    flexShrink: 0,
+                  }}
+                >
+                  {index > 0 && (
+                    <Box
+                      sx={{
+                        width: "20px",
+                        height: "20px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: "4px",
+                          height: "4px",
+                          borderRadius: "4px",
+                          backgroundColor: "label.normal",
+                        }}
+                      />
+                    </Box>
+                  )}
+                  <Typography
+                    onClick={
+                      !isLast
+                        ? () =>
+                            keywordMapConfig.onBreadcrumbClick(crumb.nodeKey)
+                        : undefined
+                    }
+                    sx={isLast ? kmCurrentLabelSx : kmPrevLabelSx}
+                  >
+                    {crumb.label}
+                  </Typography>
+                </Box>
+              );
+            })}
+          </Box>
         </Box>
       )}
 
