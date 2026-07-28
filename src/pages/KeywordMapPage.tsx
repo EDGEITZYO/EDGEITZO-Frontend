@@ -1,49 +1,74 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Box } from "@mui/material";
 import { ReactFlowProvider } from "reactflow";
-import Header from "../components/layout/Header";
-import Breadcrumb from "../components/keyword-map/Breadcrumb";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import TopNavBar from "../components/layout/TopNavBar";
 import KeywordMapGraph from "../components/keyword-map/KeywordMapGraph";
 import PaperListPanel from "../components/keyword-map/PaperListPanel";
-import PaperDetailPanel from "../components/keyword-map/PaperDetailPanel";
-import { useKeywordMapActions } from "../stores/keywordMapStore";
+import {
+  useKeywordMapActions,
+  useBreadcrumbs,
+} from "../stores/keywordMapStore";
 
 const KeywordMapPage = () => {
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const { selectPaper, closePaperPanel } = useKeywordMapActions();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const keyword = searchParams.get("keyword") ?? "";
+
+  const breadcrumbs = useBreadcrumbs();
+  const { reset } = useKeywordMapActions();
+
+  useEffect(() => {
+    if (!keyword) {
+      navigate("/home", { replace: true });
+    }
+  }, [keyword, navigate]);
 
   useEffect(() => {
     return () => {
-      closePaperPanel();
+      reset();
     };
-  }, [closePaperPanel]);
+  }, [reset]);
 
-  const handleFullscreen = () => {
-    setIsDetailOpen(true);
+  const handleBack = () => {
+    navigate(-1);
   };
 
-  const handleDetailClose = () => {
-    setIsDetailOpen(false);
-    selectPaper(null);
+  const handleBreadcrumbClick = (nodeKey: string) => {
+    window.dispatchEvent(
+      new CustomEvent("recenterNode", { detail: { nodeKey } }),
+    );
   };
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-      <Header isLoggedIn />
-      <Breadcrumb />
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100vh",
+        backgroundColor: "#EDEFF5",
+      }}
+    >
+      <TopNavBar
+        onBack={handleBack}
+        keywordMapConfig={{
+          breadcrumbs,
+          onBreadcrumbClick: handleBreadcrumbClick,
+        }}
+      />
       <Box
         sx={{
           flex: 1,
           position: "relative",
           overflow: "hidden",
-          height: "100%",
+          mt: "76px",
+          backgroundColor: "#EDEFF5",
         }}
       >
         <ReactFlowProvider>
-          <KeywordMapGraph />
+          <KeywordMapGraph keyword={keyword} />
         </ReactFlowProvider>
-        <PaperListPanel onFullscreen={handleFullscreen} />
-        {isDetailOpen && <PaperDetailPanel onClose={handleDetailClose} />}
+        <PaperListPanel />
       </Box>
     </Box>
   );

@@ -15,7 +15,6 @@ import BookmarkPage from "../pages/BookmarkPage";
 import RecentPaperPage from "../pages/RecentPaperPage";
 import MyPage from "../pages/MyPage";
 import PaperDetailPage from "../pages/PaperDetailPage";
-import KeywordMapEditPage from "../pages/KeywordMapEditPage";
 import BookmarkFolderDetailPage from "../pages/BookmarkFolderDetailPage";
 import RecentPaperFullscreenPage from "../pages/RecentPaperFullscreenPage";
 import MyPageEditPage from "../pages/MyPageEditPage";
@@ -102,14 +101,6 @@ const router = createBrowserRouter([
     element: (
       <AuthGuard>
         <KeywordMapPage />
-      </AuthGuard>
-    ),
-  },
-  {
-    path: "/keyword-map/edit",
-    element: (
-      <AuthGuard>
-        <KeywordMapEditPage />
       </AuthGuard>
     ),
   },
