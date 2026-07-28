@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import ReactFlow, {
-  Background,
   Controls,
   type NodeTypes,
   type EdgeTypes,
@@ -12,23 +11,19 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 import { Box, Typography, CircularProgress } from "@mui/material";
 import { type Node, type Edge } from "reactflow";
-import { useNavigate } from "react-router-dom";
+import dagre from "@dagrejs/dagre";
 import KeywordNode from "./KeywordNode";
 import KeywordEdge from "./KeywordEdge";
 import {
   useKeywordMapActions,
-  useKeywordMapGenerating,
-  useSelectedNodeId,
-  useBreadcrumbs,
+  useKeywordMapLoading,
+  useSelectedNodeKey,
 } from "../../stores/keywordMapStore";
 import {
   type KeywordNodeData,
-  type NodeDirection,
-  type EdgeAxisLabel,
-  type KMTreeNode,
-  type KMExpandedChild,
+  type KMGraphNode,
+  type KMGraphEdge,
 } from "../../types/keywordMap";
-import NodeTooltip from "./NodeTooltip";
 import { keywordMapApi } from "../../api/keywordMap";
 import { useMypageQuery } from "../../queries/useMypageQuery";
 
@@ -39,246 +34,290 @@ const edgeTypes: EdgeTypes = { keywordEdge: KeywordEdge };
 
 // ─── 레이아웃 상수 ────────────────────────────────────────
 
-const DEPTH_GAP = 350;
-const SIBLING_GAP = 150;
+const NODE_WIDTH = 392; // 360px + padding 16px*2
+const NODE_HEIGHT = 92; // 76px + padding 8px*2
 
-const getChildPosition = (
-  parentX: number,
-  parentY: number,
-  direction: NodeDirection,
-  index: number,
-  total: number,
-): { x: number; y: number } => {
-  const dynamicGap =
-    total > 3 ? SIBLING_GAP * (1 + (total - 3) * 0.1) : SIBLING_GAP;
-  const offset = (index - (total - 1) / 2) * dynamicGap;
-  switch (direction) {
-    case "top":
-      return { x: parentX + offset, y: parentY - DEPTH_GAP };
-    case "bottom":
-      return { x: parentX + offset, y: parentY + DEPTH_GAP };
-    case "left":
-      return { x: parentX - DEPTH_GAP, y: parentY + offset };
-    case "right":
-      return { x: parentX + DEPTH_GAP, y: parentY + offset };
-  }
-};
+// ─── dagre 레이아웃 ───────────────────────────────────────
 
-const getOppositeDirection = (direction: NodeDirection): string => {
-  switch (direction) {
-    case "top":
-      return "bottom";
-    case "bottom":
-      return "top";
-    case "left":
-      return "right";
-    case "right":
-      return "left";
-  }
-};
-
-// ─── edge_type → NodeDirection 매핑 ──────────────────────
-
-const AXIS_TO_DIRECTION: Record<EdgeAxisLabel, NodeDirection> = {
-  상위분야: "top",
-  응용분야: "bottom",
-  연구대상: "left",
-  핵심기술: "right",
-};
-
-// ─── 트리 → ReactFlow 변환 ────────────────────────────────
-
-const buildGraphFromTree = (
-  root: KMTreeNode,
+const getLayoutedElements = (
+  nodes: Node<KeywordNodeData>[],
+  edges: Edge[],
 ): { nodes: Node<KeywordNodeData>[]; edges: Edge[] } => {
-  const nodes: Node<KeywordNodeData>[] = [];
-  const edges: Edge[] = [];
+  const g = new dagre.graphlib.Graph();
+  g.setDefaultEdgeLabel(() => ({}));
+  g.setGraph({
+    rankdir: "LR",
+    nodesep: 60,
+    ranksep: 100,
+  });
 
-  const traverse = (
-    node: KMTreeNode,
-    parentId: string | null,
-    direction: NodeDirection,
-    x: number,
-    y: number,
-  ) => {
-    const rfNode: Node<KeywordNodeData> = {
-      id: node.id,
+  nodes.forEach((node) => {
+    g.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
+  });
+
+  edges.forEach((edge) => {
+    g.setEdge(edge.source, edge.target);
+  });
+
+  dagre.layout(g);
+
+  return {
+    nodes: nodes.map((node) => {
+      const pos = g.node(node.id);
+      return {
+        ...node,
+        position: {
+          x: pos.x - NODE_WIDTH / 2,
+          y: pos.y - NODE_HEIGHT / 2,
+        },
+      };
+    }),
+    edges,
+  };
+};
+
+// ─── API 응답 → ReactFlow 변환 ────────────────────────────
+
+const buildGraphFromResponse = (
+  anchor: KMGraphNode,
+  nodes: KMGraphNode[],
+  edges: KMGraphEdge[],
+) => {
+  const uniqueNodes = nodes.filter((n) => n.key !== anchor.key);
+  const allNodes: Node<KeywordNodeData>[] = [anchor, ...uniqueNodes].map(
+    (n) => ({
+      id: n.key,
       type: "keywordNode",
-      position: { x, y },
+      position: { x: 0, y: 0 },
       data: {
-        label: node.ko,
-        depth: Math.min(node.depth + 1, 4) as 1 | 2 | 3 | 4,
-        direction,
-        definition: node.definition ?? undefined,
+        label: n.name_ko ?? n.key,
+        tier: Math.min(n.tier, 3) as 0 | 1 | 2 | 3,
+        side: n.side,
+        paperCount: n.paper_count,
+        isHub: n.is_hub,
+        crossLinkCount: n.cross_link_count,
         isExpanded: false,
         isSelected: false,
-        isFocused: false,
       },
-    };
-    nodes.push(rfNode);
+    }),
+  );
 
-    if (parentId !== null) {
-      edges.push({
-        id: `edge-${parentId}-${node.id}`,
-        source: parentId,
-        target: node.id,
-        sourceHandle: direction,
-        targetHandle: `${getOppositeDirection(direction)}-target`,
-        type: "keywordEdge",
-        data: { axisLabel: node.edge_type },
-      });
-    }
+  const allEdges: Edge[] = edges.map((e) => ({
+    id: `edge-${e.source}-${e.target}`,
+    source: e.source,
+    target: e.target,
+    type: "keywordEdge",
+    data: { edgeType: e.type },
+  }));
 
-    // depth 1까지만 렌더링 (depth 0=루트, depth 1=2단계)
-    if (node.depth >= 1) return;
+  // dagre 레이아웃은 tree 엣지만으로 계산
+  const treeEdges = allEdges.filter((e) => e.data?.edgeType === "tree");
+  const { nodes: layoutedNodes } = getLayoutedElements(allNodes, treeEdges);
 
-    // 🌟 수정된 부분: 자식 노드를 방향(Top, Bottom, Left, Right)별로 그룹화
-    const childrenByDir: Record<NodeDirection, KMTreeNode[]> = {
-      top: [],
-      bottom: [],
-      left: [],
-      right: [],
-    };
-
-    node.children.forEach((child) => {
-      const childDirection =
-        child.edge_type !== null
-          ? AXIS_TO_DIRECTION[child.edge_type]
-          : direction;
-      childrenByDir[childDirection].push(child);
-    });
-
-    // 🌟 그룹화된 방향별로 각각 독립적인 index와 total을 가지고 오프셋 계산
-    (Object.keys(childrenByDir) as NodeDirection[]).forEach((dir) => {
-      const dirChildren = childrenByDir[dir];
-      const total = dirChildren.length;
-
-      dirChildren.forEach((child, index) => {
-        const pos = getChildPosition(x, y, dir, index, total);
-        traverse(child, node.id, dir, pos.x, pos.y);
-      });
-    });
-  };
-
-  traverse(root, null, "right", 0, 0);
-  return { nodes, edges };
+  // 렌더링도 tree 엣지만 사용
+  const treeEdgesOnly = allEdges.filter((e) => e.data?.edgeType === "tree");
+  return { nodes: layoutedNodes, edges: treeEdgesOnly };
 };
 
 // ─── 컴포넌트 ─────────────────────────────────────────────
 
-const KeywordMapGraph = () => {
-  const navigate = useNavigate();
+interface KeywordMapGraphProps {
+  keyword: string;
+}
+
+const KeywordMapGraph = ({ keyword }: KeywordMapGraphProps) => {
   const { data: mypageData } = useMypageQuery();
   const userId = mypageData?.profile.id;
-  const { isGenerating } = useKeywordMapGenerating();
-  const selectedNodeId = useSelectedNodeId();
-  const breadcrumbs = useBreadcrumbs();
+
+  const { isLoading, loadError } = useKeywordMapLoading();
+  const selectedNodeKey = useSelectedNodeKey();
   const {
-    selectNode,
-    setNodes: setStoreNodes,
-    setEdges: setStoreEdges,
-    pushBreadcrumb,
-    openPaperPanel,
+    setGraph,
     setBreadcrumbs,
-    setIsGenerating,
-    setGenerateError,
-    setResearchField,
+    pushBreadcrumb,
+    selectNode,
+    setIsLoading,
+    setLoadError,
   } = useKeywordMapActions();
 
   const [nodes, setNodes, onNodesChange] = useNodesState<KeywordNodeData>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const { setCenter, flowToScreenPosition, fitView } = useReactFlow();
-  const [tooltipPosition, setTooltipPosition] = useState<{
-    x: number;
-    y: number;
-  } | null>(null);
+  const { fitView } = useReactFlow();
   const hasLoaded = useRef(false);
-  const [isLoadingGraph, setIsLoadingGraph] = useState(true);
 
-  // ─── applyTree (useEffect보다 먼저 선언) ────────────────
+  // ─── 그래프 적용 ──────────────────────────────────────
 
-  const applyTree = useCallback(
-    (tree: KMTreeNode, researchField: string) => {
-      const { nodes: newNodes, edges: newEdges } = buildGraphFromTree(tree);
-      setNodes(newNodes);
-      setEdges(newEdges);
-      setStoreNodes(newNodes);
-      setStoreEdges(newEdges);
-      setBreadcrumbs([{ nodeId: tree.id, label: researchField, depth: 1 }]);
+  const applyGraph = useCallback(
+    (
+      anchor: KMGraphNode,
+      responseNodes: KMGraphNode[],
+      responseEdges: KMGraphEdge[],
+      isInitial = false,
+    ) => {
+      const { nodes: layoutedNodes, edges: layoutedEdges } =
+        buildGraphFromResponse(anchor, responseNodes, responseEdges);
+
+      setNodes(layoutedNodes);
+      setEdges(layoutedEdges);
+      setGraph({
+        nodes: layoutedNodes,
+        edges: layoutedEdges,
+        anchorKey: anchor.key,
+        anchorLabel: anchor.name_ko ?? anchor.key,
+        hasMoreParents: false,
+        hasMoreChildren: false,
+      });
+
+      if (isInitial) {
+        setBreadcrumbs([
+          { nodeKey: anchor.key, label: anchor.name_ko ?? anchor.key },
+        ]);
+        setTimeout(() => fitView({ padding: 0.1 }), 0);
+      }
     },
-    [setNodes, setEdges, setStoreNodes, setStoreEdges, setBreadcrumbs],
+    [setNodes, setEdges, setGraph, setBreadcrumbs, fitView],
   );
 
-  // ─── 초기 로딩 ──────────────────────────────────────────
+  // ─── 초기 로딩 ──────────────────────────────────────
 
   useEffect(() => {
-    if (!userId) return;
+    if (!keyword) return;
     if (hasLoaded.current) return;
     hasLoaded.current = true;
 
     const loadGraph = async () => {
-      setIsLoadingGraph(true);
+      setIsLoading(true);
+      setLoadError(null);
       try {
-        const res = await keywordMapApi.getMap(userId);
-        const { tree, research_field } = res.data.data;
-        setResearchField(research_field);
-        applyTree(tree, research_field);
-      } catch (err: unknown) {
-        const isNotFound =
-          typeof err === "object" &&
-          err !== null &&
-          "response" in err &&
-          (err as { response?: { status?: number } }).response?.status === 404;
-
-        if (isNotFound) {
-          const researchField = mypageData?.profile.research_field;
-
-          if (!researchField) {
-            navigate("/keyword-map/edit");
-            return;
-          }
-
-          setIsGenerating(true);
-          setGenerateError(null);
-          try {
-            const genRes = await keywordMapApi.generate(researchField, userId);
-            const { tree, research_field } = genRes.data.data;
-            setResearchField(research_field);
-            applyTree(tree, research_field);
-          } catch {
-            setGenerateError("키워드맵 생성에 실패했어요. 다시 시도해주세요.");
-            navigate("/keyword-map/edit");
-          } finally {
-            setIsGenerating(false);
-          }
-        } else {
-          navigate("/keyword-map/edit");
-        }
+        const res = await keywordMapApi.loadMap({
+          keyword,
+          user_id: userId ?? undefined,
+        });
+        const { anchor, nodes: resNodes, edges: resEdges } = res.data.data;
+        applyGraph(anchor, resNodes, resEdges, true);
+      } catch {
+        setLoadError("키워드맵을 불러오지 못했어요. 다시 시도해주세요.");
       } finally {
-        setIsLoadingGraph(false);
+        setIsLoading(false);
       }
     };
 
     loadGraph();
-  }, [
-    userId,
-    applyTree,
-    navigate,
-    mypageData,
-    setGenerateError,
-    setIsGenerating,
-    setResearchField,
-  ]);
+  }, [keyword, userId, applyGraph, setIsLoading, setLoadError]);
 
-  const handleInit = useCallback(() => {
-    setTimeout(() => fitView({ padding: 0.1 }), 0);
-  }, [fitView]);
+  // ─── expand 이벤트 수신 ───────────────────────────────
 
-  // ─── 노드 클릭 ──────────────────────────────────────────
+  useEffect(() => {
+    const handleExpand = async (e: Event) => {
+      const { nodeId } = (e as CustomEvent<{ nodeId: string }>).detail;
+      const targetNode = nodes.find((n) => n.id === nodeId);
+      if (!targetNode) return;
+
+      const existingNodeKeys = nodes.map((n) => n.id);
+
+      try {
+        const res = await keywordMapApi.expandNode(nodeId, {
+          existing_node_keys: existingNodeKeys,
+          current_tier: targetNode.data.tier,
+        });
+
+        const { new_nodes, new_edges } = res.data.data;
+
+        const newRFNodes: Node<KeywordNodeData>[] = new_nodes.map((n) => ({
+          id: n.key,
+          type: "keywordNode",
+          position: { x: 0, y: 0 },
+          data: {
+            label: n.name_ko ?? n.key,
+            tier: Math.min(n.tier, 3) as 0 | 1 | 2 | 3,
+            side: n.side,
+            paperCount: n.paper_count,
+            isHub: n.is_hub,
+            crossLinkCount: n.cross_link_count,
+            isExpanded: false,
+            isSelected: false,
+          },
+        }));
+
+        const newRFEdges: Edge[] = new_edges.map((e) => ({
+          id: `edge-${e.source}-${e.target}`,
+          source: e.source,
+          target: e.target,
+          type: "keywordEdge",
+          data: { edgeType: e.type },
+        }));
+
+        const updatedNodes = [
+          ...nodes.map((n) =>
+            n.id === nodeId
+              ? { ...n, data: { ...n.data, isExpanded: true } }
+              : n,
+          ),
+          ...newRFNodes,
+        ];
+        const updatedEdges = [...edges, ...newRFEdges];
+
+        const { nodes: layoutedNodes, edges: layoutedEdges } =
+          getLayoutedElements(updatedNodes, updatedEdges);
+
+        setNodes(layoutedNodes);
+        setEdges(layoutedEdges);
+        setGraph({
+          nodes: layoutedNodes,
+          edges: layoutedEdges,
+          anchorKey: "",
+          anchorLabel: "",
+          hasMoreParents: false,
+          hasMoreChildren: false,
+        });
+
+        pushBreadcrumb({
+          nodeKey: nodeId,
+          label: targetNode.data.label,
+        });
+      } catch {
+        // TODO: 에러 토스트
+      }
+    };
+
+    window.addEventListener("expandNode", handleExpand);
+    return () => window.removeEventListener("expandNode", handleExpand);
+  }, [nodes, edges, setNodes, setEdges, setGraph, pushBreadcrumb]);
+
+  // ─── recenter 이벤트 수신 (보류 — 백엔드 확인 후) ────
+
+  useEffect(() => {
+    const handleRecenter = async (e: Event) => {
+      const { nodeKey } = (e as CustomEvent<{ nodeKey: string }>).detail;
+      const existingNodeKeys = nodes.map((n) => n.id);
+
+      try {
+        const res = await keywordMapApi.recenter(
+          nodeKey,
+          { existing_node_keys: existingNodeKeys },
+          userId ?? undefined,
+        );
+        const { anchor, nodes: resNodes, edges: resEdges } = res.data.data;
+        applyGraph(anchor, resNodes, resEdges, false);
+
+        pushBreadcrumb({
+          nodeKey: anchor.key,
+          label: anchor.name_ko ?? anchor.key,
+        });
+      } catch {
+        // TODO: 에러 토스트
+      }
+    };
+
+    window.addEventListener("recenterNode", handleRecenter);
+    return () => window.removeEventListener("recenterNode", handleRecenter);
+  }, [nodes, userId, applyGraph, pushBreadcrumb]);
+
+  // ─── 노드 클릭 ──────────────────────────────────────
 
   const handleNodeClick: NodeMouseHandler = useCallback(
     (_, node) => {
-      const isAlreadySelected = node.id === selectedNodeId;
+      const isAlreadySelected = node.id === selectedNodeKey;
       selectNode(isAlreadySelected ? null : node.id);
 
       setNodes((nds) =>
@@ -290,161 +329,22 @@ const KeywordMapGraph = () => {
           },
         })),
       );
-
-      if (!isAlreadySelected) {
-        const screenPos = flowToScreenPosition({
-          x: node.position.x,
-          y: node.position.y,
-        });
-        setTooltipPosition({ x: screenPos.x, y: screenPos.y });
-        setCenter(node.position.x, node.position.y, { duration: 500, zoom: 1 });
-      } else {
-        setTooltipPosition(null);
-      }
     },
-    [selectedNodeId, selectNode, setNodes, setCenter, flowToScreenPosition],
+    [selectedNodeKey, selectNode, setNodes],
   );
 
-  // ─── 하위 키워드 확장 ────────────────────────────────────
+  // ─── 캔버스 클릭 (노드 선택 해제) ───────────────────
 
-  const handleExpandNode = useCallback(
-    async (nodeId: string): Promise<void> => {
-      const targetNode = nodes.find((n) => n.id === nodeId);
-      if (!targetNode) return;
+  const handlePaneClick = useCallback(() => {
+    selectNode(null);
+    setNodes((nds) =>
+      nds.map((n) => ({ ...n, data: { ...n.data, isSelected: false } })),
+    );
+  }, [selectNode, setNodes]);
 
-      const nodeData = targetNode.data;
-      if (nodeData.depth >= 4) return;
+  // ─── 로딩/에러 상태 ──────────────────────────────────
 
-      const parentEdge = edges.find((e) => e.target === nodeId);
-      const axis: EdgeAxisLabel =
-        (parentEdge?.data?.axisLabel as EdgeAxisLabel) ?? "핵심기술";
-      const rootBreadcrumb = breadcrumbs[0];
-      const researchField = rootBreadcrumb?.label ?? "";
-
-      try {
-        const res = await keywordMapApi.expandNode(nodeId, {
-          parent_label: nodeData.label,
-          parent_label_en: "",
-          axis,
-          research_field: researchField,
-          depth: nodeData.depth,
-        });
-
-        const { new_children } = res.data.data;
-        const newDepth = Math.min(nodeData.depth + 1, 4) as 2 | 3 | 4;
-
-        const childrenByDir: Record<NodeDirection, KMExpandedChild[]> = {
-          top: [],
-          bottom: [],
-          left: [],
-          right: [],
-        };
-
-        new_children.forEach((child: KMExpandedChild) => {
-          const childDirection =
-            nodeData.depth === 1
-              ? (AXIS_TO_DIRECTION[child.edge_type] ?? nodeData.direction)
-              : nodeData.direction;
-          childrenByDir[childDirection].push(child);
-        });
-
-        const newNodes: Node<KeywordNodeData>[] = [];
-        const newEdges: Edge[] = [];
-
-        (Object.keys(childrenByDir) as NodeDirection[]).forEach((dir) => {
-          const dirChildren = childrenByDir[dir];
-          const total = dirChildren.length;
-
-          dirChildren.forEach((child, index) => {
-            const pos = getChildPosition(
-              targetNode.position.x,
-              targetNode.position.y,
-              dir,
-              index,
-              total,
-            );
-
-            newNodes.push({
-              id: child.id,
-              type: "keywordNode",
-              position: pos,
-              data: {
-                label: child.ko,
-                depth: newDepth,
-                direction: dir,
-                definition: child.definition ?? undefined,
-                isExpanded: false,
-                isSelected: false,
-                isFocused: false,
-              },
-            });
-
-            newEdges.push({
-              id: `edge-${nodeId}-${child.id}`,
-              source: nodeId,
-              target: child.id,
-              sourceHandle: dir,
-              targetHandle: `${getOppositeDirection(dir)}-target`,
-              type: "keywordEdge",
-              data: { axisLabel: child.edge_type },
-            });
-          });
-        });
-
-        setNodes((nds) => [
-          ...nds.map((n) =>
-            n.id === nodeId
-              ? { ...n, data: { ...n.data, isExpanded: true } }
-              : n,
-          ),
-          ...newNodes,
-        ]);
-        setEdges((eds) => [...eds, ...newEdges]);
-
-        const sameOrHigherDepthIndex = breadcrumbs.findIndex(
-          (b) => b.depth >= nodeData.depth,
-        );
-        if (sameOrHigherDepthIndex !== -1) {
-          setBreadcrumbs([
-            ...breadcrumbs.slice(0, sameOrHigherDepthIndex),
-            { nodeId, label: nodeData.label, depth: nodeData.depth },
-          ]);
-        } else {
-          pushBreadcrumb({
-            nodeId,
-            label: nodeData.label,
-            depth: nodeData.depth,
-          });
-        }
-      } catch {
-        throw new Error("하위 키워드 생성에 실패했어요.");
-      }
-    },
-    [
-      nodes,
-      edges,
-      breadcrumbs,
-      setNodes,
-      setEdges,
-      pushBreadcrumb,
-      setBreadcrumbs,
-    ],
-  );
-
-  // ─── 키워드로 검색 ───────────────────────────────────────
-
-  const handleSearchKeyword = useCallback(
-    (nodeId: string, keyword: string) => {
-      openPaperPanel(nodeId, keyword);
-      selectNode(null);
-      setTooltipPosition(null);
-    },
-    [openPaperPanel, selectNode],
-  );
-
-  // ─── 로딩 상태 ──────────────────────────────────────────
-
-  if (isLoadingGraph || isGenerating) {
+  if (isLoading) {
     return (
       <Box
         sx={{
@@ -454,15 +354,32 @@ const KeywordMapGraph = () => {
           alignItems: "center",
           justifyContent: "center",
           gap: "16px",
+          height: "100%",
         }}
       >
         <CircularProgress color="primary" />
         <Typography
           sx={{ fontSize: "17px", fontWeight: 600, color: "label.normal" }}
         >
-          {isGenerating
-            ? "키워드맵을 생성중이에요."
-            : "키워드맵을 불러오는 중이에요."}
+          키워드맵을 불러오는 중이에요.
+        </Typography>
+      </Box>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <Box
+        sx={{
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100%",
+        }}
+      >
+        <Typography sx={{ fontSize: "17px", color: "label.alternative" }}>
+          {loadError}
         </Typography>
       </Box>
     );
@@ -476,40 +393,15 @@ const KeywordMapGraph = () => {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onNodeClick={handleNodeClick}
+        onPaneClick={handlePaneClick}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
-        onInit={handleInit}
+        onInit={() => setTimeout(() => fitView({ padding: 0.1 }), 0)}
         connectOnClick={false}
         nodesConnectable={false}
       >
-        <Background />
         <Controls />
       </ReactFlow>
-      {tooltipPosition &&
-        selectedNodeId &&
-        (() => {
-          const selectedNode = nodes.find((n) => n.id === selectedNodeId);
-          if (!selectedNode) return null;
-          return (
-            <Box
-              sx={{
-                position: "absolute",
-                left: tooltipPosition.x + 80,
-                top: tooltipPosition.y - 20,
-                zIndex: 10,
-              }}
-            >
-              <NodeTooltip
-                nodeId={selectedNodeId}
-                data={selectedNode.data}
-                onSearchKeyword={(keyword) =>
-                  handleSearchKeyword(selectedNodeId, keyword)
-                }
-                onExpandNode={handleExpandNode}
-              />
-            </Box>
-          );
-        })()}
     </Box>
   );
 };
