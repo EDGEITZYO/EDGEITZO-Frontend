@@ -121,6 +121,7 @@ const useKeywordMapStore = create<KeywordMapState & KeywordMapActions>()(
         panelNodeKey: nodeKey,
         panelKeyword: keyword,
         currentPage: 1,
+        paperFilter: { sort: "relevance" },
       }),
 
     closePaperPanel: () =>
@@ -129,6 +130,7 @@ const useKeywordMapStore = create<KeywordMapState & KeywordMapActions>()(
         panelNodeKey: null,
         panelKeyword: null,
         currentPage: 1,
+        paperFilter: { sort: "relevance" },
       }),
 
     setCurrentPage: (page) => set({ currentPage: page }),
