@@ -328,6 +328,32 @@ const KeywordMapGraph = ({ keyword }: KeywordMapGraphProps) => {
     [selectedNodeKey, selectNode, setNodes],
   );
 
+  // ─── 노드 마우스 이벤트 ───────────────────────────────
+
+  const handleNodeMouseEnter: NodeMouseHandler = useCallback(
+    (_, node) => {
+      setNodes((nds) =>
+        nds.map((n) => ({
+          ...n,
+          zIndex: n.id === node.id ? 1000 : (n.zIndex ?? 1),
+        })),
+      );
+    },
+    [setNodes],
+  );
+
+  const handleNodeMouseLeave: NodeMouseHandler = useCallback(
+    (_, node) => {
+      setNodes((nds) =>
+        nds.map((n) => ({
+          ...n,
+          zIndex: n.id === node.id && !n.data.isSelected ? 1 : (n.zIndex ?? 1),
+        })),
+      );
+    },
+    [setNodes],
+  );
+
   // ─── 캔버스 클릭 (노드 선택 해제) ───────────────────
 
   const handlePaneClick = useCallback(() => {
@@ -389,6 +415,8 @@ const KeywordMapGraph = ({ keyword }: KeywordMapGraphProps) => {
         onEdgesChange={onEdgesChange}
         onNodeClick={handleNodeClick}
         onPaneClick={handlePaneClick}
+        onNodeMouseEnter={handleNodeMouseEnter}
+        onNodeMouseLeave={handleNodeMouseLeave}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onInit={() => setTimeout(() => fitView({ padding: 0.1 }), 0)}
