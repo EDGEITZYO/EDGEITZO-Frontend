@@ -415,7 +415,7 @@ const PaperListPanel = () => {
         alignSelf: "stretch",
         overflowY: "auto",
         ...(isMobileList && {
-          padding: "16px",
+          padding: "0 16px 16px 16px",
           borderRadius: "12px",
           backgroundColor: "background.default",
           backdropFilter: "blur(2.9px)",
@@ -615,21 +615,47 @@ const PaperListPanel = () => {
           </Box>
         )}
 
-        {/* 모바일 필터 */}
-        {isMobile && panelView === "list" && filterBar(true)}
-
-        {/* list 논문 목록 */}
-        {panelView === "list" && (
+        {/* list — 데스크탑/태블릿 */}
+        {panelView === "list" && !isMobile && (
           <Box
             sx={{
               flex: 1,
               overflow: "hidden",
               display: "flex",
               flexDirection: "column",
-              padding: isMobile ? 0 : "0 16px 16px 16px",
+              padding: "0 16px 16px 16px",
             }}
           >
-            {paperList(isMobile)}
+            {paperList(false)}
+          </Box>
+        )}
+
+        {/* list — 모바일: 필터 + 목록 묶음 */}
+        {panelView === "list" && isMobile && (
+          <Box
+            sx={{
+              flex: 1,
+              margin: "0 16px 16px 16px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "16px",
+              borderRadius: "12px",
+              backgroundColor: "background.default",
+              backdropFilter: "blur(2.9px)",
+              overflow: "hidden",
+            }}
+          >
+            {filterBar(true)}
+            <Box
+              sx={{
+                flex: 1,
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              {paperList(true)}
+            </Box>
           </Box>
         )}
 
