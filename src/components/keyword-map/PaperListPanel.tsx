@@ -635,7 +635,6 @@ const PaperListPanel = () => {
           <Box
             sx={{
               flex: 1,
-              margin: "0 16px 16px 16px",
               display: "flex",
               flexDirection: "column",
               gap: "16px",
