@@ -171,7 +171,7 @@ const SearchBar = () => {
       <Box
         sx={{
           display: { xs: "flex", sm: "none" },
-          width: "328px",
+          width: "100%",
           padding: "16px 12px 12px 12px",
           flexDirection: "column",
           alignItems: "flex-start",
@@ -217,15 +217,10 @@ const SearchBar = () => {
 
         {/* 토글 + 제출버튼 */}
         <Box
-          sx={{
-            display: "flex",
-            width: "304px",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
+          sx={{ display: "flex", width: "100%", flexWrap: "wrap", gap: "8px" }}
         >
           {Toggle}
-          {SubmitButton}
+          <Box sx={{ marginLeft: "auto" }}>{SubmitButton}</Box>
         </Box>
       </Box>
 
