@@ -583,7 +583,14 @@ const PaperListPanel = () => {
 
         {/* detail */}
         {panelView === "detail" && selectedPaperId && (
-          <Box sx={{ flex: 1, overflow: "auto", alignSelf: "stretch" }}>
+          <Box
+            sx={{
+              flex: 1,
+              overflow: "auto",
+              alignSelf: "stretch",
+              padding: isMobile ? "16px" : "32px",
+            }}
+          >
             <PaperDetailContent
               paperId={selectedPaperId}
               onRelatedPaperClick={(paperId) => setSelectedPaperId(paperId)}
