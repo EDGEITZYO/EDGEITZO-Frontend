@@ -61,6 +61,7 @@ interface DropdownFilterProps {
   selectedValue: string | number | null;
   onSelect: (value: string | number) => void;
   isMobile: boolean;
+  clearable?: boolean;
 }
 
 const DropdownFilter = ({
@@ -69,17 +70,27 @@ const DropdownFilter = ({
   selectedValue,
   onSelect,
   isMobile,
+  clearable = false,
 }: DropdownFilterProps) => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const isSelected = clearable && selectedValue !== null;
   const selectedLabel =
     options.find((o) => o.value === selectedValue)?.label ?? label;
+
+  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isSelected) return;
+    setAnchorEl(e.currentTarget);
+  };
+
+  const handleClear = (e: React.MouseEvent<SVGSVGElement>) => {
+    e.stopPropagation();
+    onSelect("__clear__");
+  };
 
   return (
     <>
       <Box
-        onClick={(e: React.MouseEvent<HTMLDivElement>) =>
-          setAnchorEl(e.currentTarget)
-        }
+        onClick={handleClick}
         sx={{
           display: "flex",
           height: isMobile ? "36px" : "42px",
@@ -87,8 +98,8 @@ const DropdownFilter = ({
           alignItems: "center",
           gap: isMobile ? "4px" : "16px",
           borderRadius: "216px",
-          backgroundColor: "fill.normal",
-          cursor: "pointer",
+          backgroundColor: isSelected ? "#1E2026" : "fill.normal",
+          cursor: isSelected ? "default" : "pointer",
           flexShrink: 0,
         }}
       >
@@ -98,8 +109,8 @@ const DropdownFilter = ({
             WebkitBoxOrient: "vertical",
             WebkitLineClamp: 1,
             overflow: "hidden",
-            color: selectedValue
-              ? "label.normal"
+            color: isSelected
+              ? "#FFF"
               : isMobile
                 ? "label.neutral"
                 : "label.alternative",
@@ -120,20 +131,39 @@ const DropdownFilter = ({
             borderRadius: "24px",
           }}
         >
-          <KeyboardArrowDownIcon sx={{ width: 20, height: 20 }} />
+          {isSelected ? (
+            <CloseIcon
+              onClick={handleClear}
+              sx={{
+                width: 20,
+                height: 20,
+                color: "#FFF",
+                cursor: "pointer",
+              }}
+            />
+          ) : (
+            <KeyboardArrowDownIcon
+              sx={{
+                width: 20,
+                height: 20,
+                transform: anchorEl ? "rotate(180deg)" : "none",
+              }}
+            />
+          )}
         </Box>
       </Box>
       <Menu
         anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
+        open={anchorEl !== null}
         onClose={() => setAnchorEl(null)}
         slotProps={{
           paper: {
             sx: {
-              borderRadius: "8px",
+              borderRadius: "28px",
               border: "1px solid",
-              borderColor: "line.normal",
+              borderColor: "label.alternative",
               boxShadow: "none",
+              padding: "8px",
             },
           },
         }}
@@ -147,11 +177,19 @@ const DropdownFilter = ({
               setAnchorEl(null);
             }}
             sx={{
+              borderRadius: "216px",
               fontSize: isMobile ? "13px" : "16px",
               fontWeight: 400,
               lineHeight: isMobile ? "22px" : "24px",
               letterSpacing: isMobile ? "-0.26px" : "-0.336px",
               color: "label.normal",
+              justifyContent: "center",
+              "&.Mui-selected": {
+                backgroundColor: "background.paper",
+              },
+              "&:hover": {
+                backgroundColor: "background.paper",
+              },
             }}
           >
             {option.label}
@@ -310,23 +348,38 @@ const PaperListPanel = () => {
         label="관련도순"
         options={SORT_OPTIONS}
         selectedValue={paperFilter.sort}
-        onSelect={(value) => setPaperFilter({ sort: value as KMPaperSortType })}
+        onSelect={(value) => {
+          if (value === "__clear__") return;
+          setPaperFilter({ sort: value as KMPaperSortType });
+        }}
         isMobile={isMobileFilter}
       />
       <DropdownFilter
         label="발행연도"
+        clearable
         options={YEAR_OPTIONS}
         selectedValue={paperFilter.year ?? null}
-        onSelect={(value) => setPaperFilter({ year: value as number })}
+        onSelect={(value) => {
+          if (value === "__clear__") {
+            setPaperFilter({ year: undefined });
+            return;
+          }
+          setPaperFilter({ year: value as number });
+        }}
         isMobile={isMobileFilter}
       />
       <DropdownFilter
         label="논문 유형"
+        clearable
         options={PAPER_TYPE_OPTIONS}
         selectedValue={paperFilter.paper_type ?? null}
-        onSelect={(value) =>
-          setPaperFilter({ paper_type: value as KMPaperType })
-        }
+        onSelect={(value) => {
+          if (value === "__clear__") {
+            setPaperFilter({ paper_type: undefined });
+            return;
+          }
+          setPaperFilter({ paper_type: value as KMPaperType });
+        }}
         isMobile={isMobileFilter}
       />
       <ToggleFilter
