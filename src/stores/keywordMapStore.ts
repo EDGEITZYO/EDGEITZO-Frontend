@@ -41,6 +41,7 @@ interface KeywordMapActions {
   }) => void;
   setBreadcrumbs: (breadcrumbs: BreadcrumbItem[]) => void;
   pushBreadcrumb: (item: BreadcrumbItem) => void;
+  popBreadcrumbTo: (nodeKey: string) => void;
   selectNode: (nodeKey: string | null) => void;
   hoverNode: (nodeKey: string | null) => void;
   openPaperPanel: (nodeKey: string, keyword: string) => void;
@@ -102,6 +103,13 @@ const useKeywordMapStore = create<KeywordMapState & KeywordMapActions>()(
 
     pushBreadcrumb: (item) =>
       set((state) => ({ breadcrumbs: [...state.breadcrumbs, item] })),
+
+    popBreadcrumbTo: (nodeKey) =>
+      set((state) => {
+        const index = state.breadcrumbs.findIndex((b) => b.nodeKey === nodeKey);
+        if (index === -1) return state;
+        return { breadcrumbs: state.breadcrumbs.slice(0, index + 1) };
+      }),
 
     selectNode: (nodeKey) => set({ selectedNodeKey: nodeKey }),
 
@@ -184,6 +192,7 @@ export const useKeywordMapActions = () =>
       setGraph: state.setGraph,
       setBreadcrumbs: state.setBreadcrumbs,
       pushBreadcrumb: state.pushBreadcrumb,
+      popBreadcrumbTo: state.popBreadcrumbTo,
       selectNode: state.selectNode,
       hoverNode: state.hoverNode,
       openPaperPanel: state.openPaperPanel,

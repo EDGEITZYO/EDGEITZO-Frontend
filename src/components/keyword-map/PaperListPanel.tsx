@@ -362,7 +362,7 @@ const PaperListPanel = () => {
         alignSelf: "stretch",
         overflowY: "auto",
         ...(isMobileList && {
-          padding: "0 16px 16px 16px",
+          padding: "16px",
           borderRadius: "12px",
           backgroundColor: "background.default",
           backdropFilter: "blur(2.9px)",
@@ -489,28 +489,27 @@ const PaperListPanel = () => {
                 <CloseIcon sx={{ fontSize: 24, color: "label.normal" }} />
               )}
             </IconButton>
-            {panelView === "list" && (
-              <Typography
-                sx={{
-                  display: "-webkit-box",
-                  WebkitBoxOrient: "vertical",
-                  WebkitLineClamp: 1,
-                  overflow: "hidden",
-                  fontSize: "18px",
-                  fontWeight: 600,
-                  lineHeight: "29px",
-                  letterSpacing: "-0.378px",
-                }}
-              >
-                <Box component="span" sx={{ color: "#3BA502" }}>
-                  {keyword}
-                </Box>
-                <Box component="span" sx={{ color: "label.normal" }}>
-                  {" "}
-                  검색 결과
-                </Box>
-              </Typography>
-            )}
+            {/* panelView === "list" 조건 제거 — detail일 때도 타이틀 보임 */}
+            <Typography
+              sx={{
+                display: "-webkit-box",
+                WebkitBoxOrient: "vertical",
+                WebkitLineClamp: 1,
+                overflow: "hidden",
+                fontSize: "18px",
+                fontWeight: 600,
+                lineHeight: "29px",
+                letterSpacing: "-0.378px",
+              }}
+            >
+              <Box component="span" sx={{ color: "#3BA502" }}>
+                {keyword}
+              </Box>
+              <Box component="span" sx={{ color: "label.normal" }}>
+                {" "}
+                검색 결과
+              </Box>
+            </Typography>
           </Box>
         )}
 

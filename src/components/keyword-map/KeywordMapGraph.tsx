@@ -299,11 +299,6 @@ const KeywordMapGraph = ({ keyword }: KeywordMapGraphProps) => {
         );
         const { anchor, nodes: resNodes, edges: resEdges } = res.data.data;
         applyGraph(anchor, resNodes, resEdges, false);
-
-        pushBreadcrumb({
-          nodeKey: anchor.key,
-          label: anchor.name_ko ?? anchor.key,
-        });
       } catch {
         // TODO: 에러 토스트
       }
