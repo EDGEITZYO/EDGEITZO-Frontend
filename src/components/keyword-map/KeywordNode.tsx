@@ -21,7 +21,7 @@ const KeywordNode = memo(
     const { openPaperPanel } = useKeywordMapActions();
 
     const isAnchor = data.side === "anchor";
-    const canExpand = !data.isExpanded && data.tier < 3;
+    const canExpand = !data.isExpanded && data.tier < 3 && !isAnchor;
     const showDefinitionBox = isHovered || selected;
 
     const handleMouseEnter = useCallback(async () => {
