@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import Sidebar from "../components/layout/Sidebar";
@@ -6,12 +5,9 @@ import PersonalMessage from "../components/home/PersonalMessage";
 import SearchBar from "../components/home/SearchBar";
 import RecentSearchSection from "../components/home/RecentSearchSection";
 import RecentPaperSection from "../components/home/RecentPaperSection";
-import KeywordMapModal from "../components/keyword-map/KeywordMapModal";
 import { homeApi } from "../api/home";
 
 const HomePage = () => {
-  const [isKeywordMapModalOpen, setIsKeywordMapModalOpen] = useState(false);
-
   const { data, isPending, isError } = useQuery({
     queryKey: ["home"],
     queryFn: async () => {
@@ -63,7 +59,6 @@ const HomePage = () => {
       }}
     >
       <Sidebar />
-
       <Box
         component="main"
         sx={{
@@ -89,7 +84,7 @@ const HomePage = () => {
           }}
         >
           <PersonalMessage message={data.user.personalized_message} />
-          <SearchBar onKeywordMapClick={() => setIsKeywordMapModalOpen(true)} />
+          <SearchBar />
         </Box>
 
         {/* 간격: 검색바 영역 ↔ 최근 탐색 섹션 */}
@@ -111,11 +106,6 @@ const HomePage = () => {
           <RecentPaperSection papers={data.recent_papers} />
         </Box>
       </Box>
-
-      <KeywordMapModal
-        open={isKeywordMapModalOpen}
-        onClose={() => setIsKeywordMapModalOpen(false)}
-      />
     </Box>
   );
 };

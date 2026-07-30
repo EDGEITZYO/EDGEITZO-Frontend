@@ -6,3 +6,11 @@ export const mypageKeys = {
   all: ["mypage"] as const,
   detail: () => [...mypageKeys.all] as const,
 };
+
+export const keywordMapKeys = {
+  all: ["keyword-map"] as const,
+  papers: (nodeKey: string, filter: object) =>
+    [...keywordMapKeys.all, "papers", nodeKey, filter] as const,
+  detail: (nodeKey: string) =>
+    [...keywordMapKeys.all, "detail", nodeKey] as const,
+};

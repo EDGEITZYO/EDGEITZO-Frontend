@@ -1,524 +1,700 @@
-import { Box, Typography, IconButton, CircularProgress } from "@mui/material";
-import { type SxProps, type Theme } from "@mui/material/styles";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  Box,
+  Typography,
+  IconButton,
+  Menu,
+  MenuItem,
+  useMediaQuery,
+  CircularProgress,
+} from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import CloseIcon from "@mui/icons-material/Close";
-import FullscreenIcon from "@mui/icons-material/Fullscreen";
-import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
-import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import PaperCard from "./PaperCard";
+import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import { type PaperType } from "../../types/paper";
+import { type KMPaperSortType, type KMPaperType } from "../../types/keywordMap";
+import KMPaperCard from "./KMPaperCard";
+import PaperDetailContent from "../common/PaperDetailContent";
+import { bookmarkApi } from "../../api/bookmark";
+import BookmarkFolderSelectDialog from "../common/BookmarkFolderSelectDialog";
 import {
   usePaperPanel,
   useKeywordMapActions,
-  useBreadcrumbs,
 } from "../../stores/keywordMapStore";
-import { keywordMapApi } from "../../api/keywordMap";
-import { useMypageQuery } from "../../queries/useMypageQuery";
+import { useNodePapersQuery } from "../../queries/useNodePapersQuery";
+import { keywordMapKeys } from "../../queries/keys";
 
-const filterChipSx: SxProps<Theme> = {
-  px: "13px",
-  py: "5px",
-  borderRadius: "7px",
-  backgroundColor: "background.default",
-  cursor: "pointer",
-  display: "flex",
-  alignItems: "center",
-  gap: "3px",
-  "&:hover": { backgroundColor: "fill.normal" },
-};
+// ─── 타입 ─────────────────────────────────────────────────
 
-interface PaperListPanelProps {
-  onFullscreen: () => void;
+type PanelView = "list" | "detail";
+
+// ─── 필터 옵션 ────────────────────────────────────────────
+
+const SORT_OPTIONS: { label: string; value: KMPaperSortType }[] = [
+  { label: "관련도순", value: "relevance" },
+  { label: "최신순", value: "latest" },
+  { label: "오래된순", value: "oldest" },
+  { label: "인용높은순", value: "citation" },
+];
+
+const YEAR_OPTIONS: { label: string; value: number }[] = Array.from(
+  { length: 11 },
+  (_, i) => {
+    const year = 2026 - i;
+    return { label: `${year}년`, value: year };
+  },
+);
+
+const PAPER_TYPE_OPTIONS: { label: string; value: PaperType }[] = [
+  { label: "학술 저널", value: "학술 저널" },
+  { label: "박사학위 논문", value: "박사학위 논문" },
+  { label: "석사학위 논문", value: "석사학위 논문" },
+];
+
+// ─── DropdownFilter ───────────────────────────────────────
+
+interface DropdownFilterProps {
+  label: string;
+  options: { label: string; value: string | number }[];
+  selectedValue: string | number | null;
+  onSelect: (value: string | number) => void;
+  isMobile: boolean;
+  clearable?: boolean;
 }
 
-const PaperListPanel = ({ onFullscreen }: PaperListPanelProps) => {
-  const {
-    isPaperPanelOpen,
-    panelNodeId,
-    panelKeyword,
-    currentPage,
-    paperFilter,
-  } = usePaperPanel();
-  const {
-    closePaperPanel,
-    selectPaper,
-    setCurrentPage,
-    setSearchId,
-    setPaperFilter,
-  } = useKeywordMapActions();
-  const breadcrumbs = useBreadcrumbs();
+const DropdownFilter = ({
+  label,
+  options,
+  selectedValue,
+  onSelect,
+  isMobile,
+  clearable = false,
+}: DropdownFilterProps) => {
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const isSelected = clearable && selectedValue !== null;
+  const selectedLabel =
+    options.find((o) => o.value === selectedValue)?.label ?? label;
 
-  const { data: mypageData } = useMypageQuery();
-  const userId = mypageData?.profile.id;
+  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isSelected) return;
+    setAnchorEl(e.currentTarget);
+  };
+
+  const handleClear = (e: React.MouseEvent<SVGSVGElement>) => {
+    e.stopPropagation();
+    onSelect("__clear__");
+  };
+
+  return (
+    <>
+      <Box
+        onClick={handleClick}
+        sx={{
+          display: "flex",
+          height: isMobile ? "36px" : "42px",
+          padding: isMobile ? "0 8px 0 16px" : "8px 8px 8px 16px",
+          alignItems: "center",
+          gap: isMobile ? "4px" : "16px",
+          borderRadius: "216px",
+          backgroundColor: isSelected ? "#1E2026" : "fill.normal",
+          cursor: isSelected ? "default" : "pointer",
+          flexShrink: 0,
+        }}
+      >
+        <Typography
+          sx={{
+            display: "-webkit-box",
+            WebkitBoxOrient: "vertical",
+            WebkitLineClamp: 1,
+            overflow: "hidden",
+            color: isSelected
+              ? "#FFF"
+              : isMobile
+                ? "label.neutral"
+                : "label.alternative",
+            fontSize: isMobile ? "13px" : "16px",
+            fontWeight: 400,
+            lineHeight: isMobile ? "22px" : "24px",
+            letterSpacing: isMobile ? "-0.26px" : "-0.336px",
+          }}
+        >
+          {selectedLabel}
+        </Typography>
+        <Box
+          sx={{
+            display: "flex",
+            padding: isMobile ? "7px 8px 9px 8px" : "9px 10px 11px 10px",
+            justifyContent: "center",
+            alignItems: "center",
+            borderRadius: "24px",
+          }}
+        >
+          {isSelected ? (
+            <CloseIcon
+              onClick={handleClear}
+              sx={{
+                width: 20,
+                height: 20,
+                color: "#FFF",
+                cursor: "pointer",
+              }}
+            />
+          ) : (
+            <KeyboardArrowDownIcon
+              sx={{
+                width: 20,
+                height: 20,
+                transform: anchorEl ? "rotate(180deg)" : "none",
+              }}
+            />
+          )}
+        </Box>
+      </Box>
+      <Menu
+        anchorEl={anchorEl}
+        open={anchorEl !== null}
+        onClose={() => setAnchorEl(null)}
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: "28px",
+              border: "1px solid",
+              borderColor: "label.alternative",
+              boxShadow: "none",
+              padding: "8px",
+            },
+          },
+        }}
+      >
+        {options.map((option) => (
+          <MenuItem
+            key={option.value}
+            selected={option.value === selectedValue}
+            onClick={() => {
+              onSelect(option.value);
+              setAnchorEl(null);
+            }}
+            sx={{
+              borderRadius: "216px",
+              fontSize: isMobile ? "13px" : "16px",
+              fontWeight: 400,
+              lineHeight: isMobile ? "22px" : "24px",
+              letterSpacing: isMobile ? "-0.26px" : "-0.336px",
+              color: "label.normal",
+              justifyContent: "center",
+              "&.Mui-selected": {
+                backgroundColor: "background.paper",
+              },
+              "&:hover": {
+                backgroundColor: "background.paper",
+              },
+            }}
+          >
+            {option.label}
+          </MenuItem>
+        ))}
+      </Menu>
+    </>
+  );
+};
+
+// ─── ToggleFilter ─────────────────────────────────────────
+
+interface ToggleFilterProps {
+  label: string;
+  active: boolean;
+  onToggle: () => void;
+  isMobile: boolean;
+}
+
+const ToggleFilter = ({
+  label,
+  active,
+  onToggle,
+  isMobile,
+}: ToggleFilterProps) => (
+  <Box
+    onClick={onToggle}
+    sx={{
+      display: "flex",
+      height: isMobile ? "36px" : "auto",
+      padding: isMobile ? "0 16px" : "8px 13px",
+      justifyContent: "center",
+      alignItems: "center",
+      borderRadius: isMobile ? "216px" : "24px",
+      backgroundColor: active
+        ? "label.normal"
+        : isMobile
+          ? "background.paper"
+          : "fill.normal",
+      cursor: "pointer",
+      flexShrink: 0,
+    }}
+  >
+    <Typography
+      sx={{
+        color: active
+          ? "#FAFAFC"
+          : isMobile
+            ? "label.neutral"
+            : "label.alternative",
+        fontSize: isMobile ? "13px" : "16px",
+        fontWeight: 400,
+        lineHeight: isMobile ? "22px" : "24px",
+        letterSpacing: isMobile ? "-0.26px" : "-0.336px",
+      }}
+    >
+      {label}
+    </Typography>
+  </Box>
+);
+
+// ─── PaperListPanel ───────────────────────────────────────
+
+const PaperListPanel = () => {
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const queryClient = useQueryClient();
-  const PAGE_SIZE = 20;
-  const [openFilter, setOpenFilter] = useState<"year" | "type" | null>(null);
-  const keywordPath = breadcrumbs.map((b) => b.label).join(",");
 
-  useEffect(() => {
-    if (isPaperPanelOpen) {
-      queryClient.invalidateQueries({ queryKey: ["home"] });
-    }
-  }, [isPaperPanelOpen, queryClient]);
+  const { isPaperPanelOpen, panelNodeKey, panelKeyword, paperFilter } =
+    usePaperPanel();
+  const { closePaperPanel, setPaperFilter } = useKeywordMapActions();
 
-  const { data, isPending, isError } = useQuery({
-    queryKey: ["km-papers", panelNodeId, paperFilter, currentPage, breadcrumbs],
-    queryFn: async () => {
-      const res = await keywordMapApi.getNodePapers(panelNodeId!, {
-        ...paperFilter,
-        page: currentPage,
-        size: PAGE_SIZE,
-        user_id: userId ?? undefined,
-        keyword_path: keywordPath || undefined,
-      });
-      setSearchId(res.data.data.search_id ?? null);
-      return res.data.data;
-    },
-    enabled: isPaperPanelOpen && panelNodeId !== null,
-    staleTime: 1000 * 60 * 3,
+  const [panelView, setPanelView] = useState<PanelView>("list");
+  const [selectedPaperId, setSelectedPaperId] = useState<string | null>(null);
+  const [bookmarkDialogPaperId, setBookmarkDialogPaperId] = useState<
+    string | null
+  >(null);
+
+  const { data, isPending, isError } = useNodePapersQuery({
+    nodeKey: panelNodeKey,
+    filter: paperFilter,
+    enabled: isPaperPanelOpen,
   });
 
   if (!isPaperPanelOpen) return null;
 
   const papers = data?.papers ?? [];
-  const totalCount = data?.total ?? 0;
-  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+  const keyword = panelKeyword ?? "";
 
-  const handlePaperClick = (paperId: string) => {
-    selectPaper(paperId);
-    onFullscreen();
+  // ─── 북마크 ─────────────────────────────────────────────
+
+  const handleBookmark = (paperId: string, isBookmarked: boolean) => {
+    if (isBookmarked) {
+      bookmarkApi
+        .removeBookmark(paperId)
+        .then(() => {
+          queryClient.invalidateQueries({
+            queryKey: keywordMapKeys.papers(panelNodeKey ?? "", paperFilter),
+          });
+          queryClient.invalidateQueries({ queryKey: ["saved-bookmarks"] });
+          queryClient.invalidateQueries({
+            queryKey: ["saved-bookmark-folders"],
+          });
+        })
+        .catch(() => {});
+    } else {
+      setBookmarkDialogPaperId(paperId);
+    }
   };
 
-  return (
+  const handleBookmarkAdded = () => {
+    queryClient.invalidateQueries({
+      queryKey: keywordMapKeys.papers(panelNodeKey ?? "", paperFilter),
+    });
+    queryClient.invalidateQueries({ queryKey: ["saved-bookmarks"] });
+    queryClient.invalidateQueries({ queryKey: ["saved-bookmark-folders"] });
+    setBookmarkDialogPaperId(null);
+  };
+
+  // ─── 논문 클릭 ──────────────────────────────────────────
+
+  const handlePaperClick = (paperId: string) => {
+    setSelectedPaperId(paperId);
+    setPanelView("detail");
+  };
+
+  // ─── 닫기 ───────────────────────────────────────────────
+
+  const handleClose = () => {
+    if (panelView === "detail") {
+      setPanelView("list");
+      setSelectedPaperId(null);
+    } else {
+      closePaperPanel();
+    }
+  };
+
+  // ─── 필터 ───────────────────────────────────────────────
+
+  const filterBar = (isMobileFilter: boolean) => (
     <Box
       sx={{
-        width: "762px",
-        height: "100%",
-        position: "absolute",
-        right: 0,
-        top: 0,
         display: "flex",
-        flexDirection: "column",
-        borderRadius: "11px 0 0 11px",
-        backgroundColor: "background.paper",
-        boxShadow: "0 0 9px rgba(0, 0, 0, 0.1)",
-        zIndex: 10,
+        alignItems: "center",
+        gap: isMobileFilter ? "4px" : "8px",
+        ...(isMobileFilter && {
+          padding: "0 16px",
+          overflowX: "auto",
+          "&::-webkit-scrollbar": { display: "none" },
+        }),
+        ...(!isMobileFilter && { flexWrap: "wrap" }),
       }}
     >
-      {/* 헤더 */}
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "9px 10px 9px 25px",
-          borderBottom: "1px solid",
-          borderColor: "line.normal",
-          backgroundColor: "background.paper",
-          flexShrink: 0,
+      <DropdownFilter
+        label="관련도순"
+        options={SORT_OPTIONS}
+        selectedValue={paperFilter.sort}
+        onSelect={(value) => {
+          if (value === "__clear__") return;
+          setPaperFilter({ sort: value as KMPaperSortType });
         }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <Box
-            sx={{
-              px: "9px",
-              py: "6px",
-              borderRadius: "7px",
-              backgroundColor: "#CBCDD7",
-            }}
-          >
-            <Typography
-              sx={{
-                fontSize: "17px",
-                fontWeight: 600,
-                color: "#31333F",
-                letterSpacing: "-0.34px",
-              }}
-            >
-              {panelKeyword}
-            </Typography>
-          </Box>
-          <Typography
-            sx={{
-              fontSize: "17px",
-              fontWeight: 600,
-              color: "label.strong",
-              letterSpacing: "-0.34px",
-            }}
-          >
-            검색 결과 {totalCount}건
-          </Typography>
-        </Box>
-        <Box sx={{ display: "flex", alignItems: "center" }}>
-          <IconButton onClick={onFullscreen} size="small">
-            <FullscreenIcon sx={{ fontSize: "24px", color: "label.strong" }} />
-          </IconButton>
-          <IconButton onClick={closePaperPanel} size="small">
-            <CloseIcon sx={{ fontSize: "24px", color: "label.strong" }} />
-          </IconButton>
-        </Box>
-      </Box>
-
-      {/* 필터 바 */}
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: "6px",
-          padding: "9px 10px 9px 25px",
-          borderBottom: "1px solid",
-          borderColor: "line.normal",
-          backgroundColor: "background.paper",
-          flexShrink: 0,
-          position: "relative",
+        isMobile={isMobileFilter}
+      />
+      <DropdownFilter
+        label="발행연도"
+        clearable
+        options={YEAR_OPTIONS}
+        selectedValue={paperFilter.year ?? null}
+        onSelect={(value) => {
+          if (value === "__clear__") {
+            setPaperFilter({ year: undefined });
+            return;
+          }
+          setPaperFilter({ year: value as number });
         }}
-      >
-        {/* 발행 연도 드롭다운 */}
-        <Box sx={{ position: "relative" }}>
-          <Box
-            sx={{
-              ...filterChipSx,
-              backgroundColor: paperFilter.year_range
-                ? "static.black"
-                : "background.default",
-            }}
-            onClick={() =>
-              setOpenFilter((prev) => (prev === "year" ? null : "year"))
-            }
-          >
-            <Typography
-              sx={{
-                fontSize: "17px",
-                fontWeight: 600,
-                color: paperFilter.year_range ? "static.white" : "label.strong",
-                letterSpacing: "-0.34px",
-              }}
-            >
-              {paperFilter.year_range === "3y"
-                ? "3년"
-                : paperFilter.year_range === "5y"
-                  ? "5년"
-                  : paperFilter.year_range === "10y"
-                    ? "10년"
-                    : "발행 연도"}
-            </Typography>
-            <KeyboardArrowRightIcon
-              sx={{
-                fontSize: "24px",
-                color: paperFilter.year_range ? "static.white" : "label.strong",
-                transform: "rotate(90deg)",
-              }}
-            />
-          </Box>
-          {openFilter === "year" && (
-            <Box
-              sx={{
-                position: "absolute",
-                top: "calc(100% + 4px)",
-                left: 0,
-                zIndex: 100,
-                borderRadius: "8px",
-                border: "1px solid",
-                borderColor: "line.normal",
-                backgroundColor: "background.default",
-                minWidth: "120px",
-                overflow: "hidden",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-              }}
-            >
-              {([null, "3y", "5y", "10y"] as const).map((val) => (
-                <Box
-                  key={val ?? "all"}
-                  sx={{
-                    px: "16px",
-                    py: "10px",
-                    cursor: "pointer",
-                    backgroundColor:
-                      paperFilter.year_range === val
-                        ? "fill.normal"
-                        : "transparent",
-                    "&:hover": { backgroundColor: "fill.normal" },
-                  }}
-                  onClick={() => {
-                    setPaperFilter({ year_range: val ?? undefined });
-                    setOpenFilter(null);
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      fontSize: "16px",
-                      fontWeight: paperFilter.year_range === val ? 600 : 400,
-                      color: "label.strong",
-                    }}
-                  >
-                    {val === null
-                      ? "전체"
-                      : val === "3y"
-                        ? "3년"
-                        : val === "5y"
-                          ? "5년"
-                          : "10년"}
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
-          )}
-        </Box>
+        isMobile={isMobileFilter}
+      />
+      <DropdownFilter
+        label="논문 유형"
+        clearable
+        options={PAPER_TYPE_OPTIONS}
+        selectedValue={paperFilter.paper_type ?? null}
+        onSelect={(value) => {
+          if (value === "__clear__") {
+            setPaperFilter({ paper_type: undefined });
+            return;
+          }
+          setPaperFilter({ paper_type: value as KMPaperType });
+        }}
+        isMobile={isMobileFilter}
+      />
+      <ToggleFilter
+        label="KCI 등재"
+        active={paperFilter.kci === true}
+        onToggle={() =>
+          setPaperFilter({ kci: paperFilter.kci === true ? undefined : true })
+        }
+        isMobile={isMobileFilter}
+      />
+      <ToggleFilter
+        label="SCI 등재"
+        active={paperFilter.sci === true}
+        onToggle={() =>
+          setPaperFilter({ sci: paperFilter.sci === true ? undefined : true })
+        }
+        isMobile={isMobileFilter}
+      />
+    </Box>
+  );
 
-        {/* 논문 유형 드롭다운 */}
-        <Box sx={{ position: "relative" }}>
-          <Box
-            sx={{
-              ...filterChipSx,
-              backgroundColor: paperFilter.paper_type
-                ? "static.black"
-                : "background.default",
-            }}
-            onClick={() =>
-              setOpenFilter((prev) => (prev === "type" ? null : "type"))
-            }
-          >
-            <Typography
-              sx={{
-                fontSize: "17px",
-                fontWeight: 600,
-                color: paperFilter.paper_type ? "static.white" : "label.strong",
-                letterSpacing: "-0.34px",
-              }}
-            >
-              {paperFilter.paper_type ?? "논문 유형"}
-            </Typography>
-            <KeyboardArrowRightIcon
-              sx={{
-                fontSize: "24px",
-                color: paperFilter.paper_type ? "static.white" : "label.strong",
-                transform: "rotate(90deg)",
-              }}
-            />
-          </Box>
-          {openFilter === "type" && (
-            <Box
-              sx={{
-                position: "absolute",
-                top: "calc(100% + 4px)",
-                left: 0,
-                zIndex: 100,
-                borderRadius: "8px",
-                border: "1px solid",
-                borderColor: "line.normal",
-                backgroundColor: "background.default",
-                minWidth: "160px",
-                overflow: "hidden",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-              }}
-            >
-              {(
-                [null, "학술 저널", "박사학위 논문", "석사학위 논문"] as const
-              ).map((val) => (
-                <Box
-                  key={val ?? "all"}
-                  sx={{
-                    px: "16px",
-                    py: "10px",
-                    cursor: "pointer",
-                    backgroundColor:
-                      paperFilter.paper_type === val
-                        ? "fill.normal"
-                        : "transparent",
-                    "&:hover": { backgroundColor: "fill.normal" },
-                  }}
-                  onClick={() => {
-                    setPaperFilter({ paper_type: val ?? undefined });
-                    setOpenFilter(null);
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      fontSize: "16px",
-                      fontWeight: paperFilter.paper_type === val ? 600 : 400,
-                      color: "label.strong",
-                    }}
-                  >
-                    {val ?? "전체"}
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
-          )}
-        </Box>
+  // ─── 논문 목록 ──────────────────────────────────────────
 
-        {/* SCI 등재 */}
-        <Box
-          sx={{
-            ...filterChipSx,
-            backgroundColor:
-              paperFilter.sci === true ? "static.black" : "background.default",
-          }}
-          onClick={() => {
-            setPaperFilter({
-              sci: paperFilter.sci === true ? undefined : true,
-            });
-            setOpenFilter(null);
-          }}
-        >
-          <Typography
-            sx={{
-              fontSize: "17px",
-              fontWeight: 600,
-              color: paperFilter.sci === true ? "static.white" : "label.strong",
-              letterSpacing: "-0.34px",
-            }}
-          >
-            SCI 등재
-          </Typography>
-        </Box>
-
-        {/* KCI 등재 */}
-        <Box
-          sx={{
-            ...filterChipSx,
-            backgroundColor:
-              paperFilter.kci === true ? "static.black" : "background.default",
-          }}
-          onClick={() => {
-            setPaperFilter({
-              kci: paperFilter.kci === true ? undefined : true,
-            });
-            setOpenFilter(null);
-          }}
-        >
-          <Typography
-            sx={{
-              fontSize: "17px",
-              fontWeight: 600,
-              color: paperFilter.kci === true ? "static.white" : "label.strong",
-              letterSpacing: "-0.34px",
-            }}
-          >
-            KCI 등재
-          </Typography>
-        </Box>
-      </Box>
-
-      {/* 논문 목록 */}
-      <Box sx={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "8px", padding: "12px" }}>
-        {isPending ? (
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              height: "100%",
-            }}
-          >
-            <CircularProgress />
-          </Box>
-        ) : isError ? (
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              height: "100%",
-            }}
-          >
-            <Typography sx={{ fontSize: "16px", color: "label.alternative" }}>
-              논문을 불러오지 못했어요. 다시 시도해주세요.
-            </Typography>
-          </Box>
-        ) : papers.length === 0 ? (
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              height: "100%",
-            }}
-          >
-            <Typography
-              sx={{
-                fontSize: "24px",
-                fontWeight: 700,
-                color: "static.black",
-                letterSpacing: "-0.48px",
-              }}
-            >
-              검색 조건에 맞는 학술 자료가 없어요
-            </Typography>
-          </Box>
-        ) : (
-          papers.map((paper) => (
-            <PaperCard
-              key={paper.paper_id}
-              paper={paper}
-              onClick={handlePaperClick}
-            />
-          ))
-        )}
-      </Box>
-
-      {/* 페이지네이션 */}
-      {totalPages > 1 && (
+  const paperList = (isMobileList: boolean) => (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: isPending ? "center" : "flex-start",
+        justifyContent: isPending ? "center" : "flex-start",
+        gap: isMobileList ? "16px" : "8px",
+        flex: "1 0 0",
+        alignSelf: "stretch",
+        overflowY: "auto",
+        ...(isMobileList && {
+          padding: "0 16px 16px 16px",
+          borderRadius: "12px",
+          backgroundColor: "background.default",
+          backdropFilter: "blur(2.9px)",
+        }),
+      }}
+    >
+      {isPending ? (
+        <CircularProgress />
+      ) : isError ? (
         <Box
           sx={{
             display: "flex",
+            flex: "1 0 0",
             justifyContent: "center",
             alignItems: "center",
-            padding: "16px",
-            flexShrink: 0,
-            borderTop: "1px solid",
-            borderColor: "line.normal",
+            alignSelf: "stretch",
           }}
         >
+          <Typography
+            sx={{
+              color: "label.alternative",
+              fontSize: "16px",
+              fontWeight: 400,
+              lineHeight: "24px",
+              letterSpacing: "-0.336px",
+            }}
+          >
+            논문을 불러오지 못했어요. 다시 시도해주세요.
+          </Typography>
+        </Box>
+      ) : papers.length === 0 ? (
+        <Box
+          sx={{
+            display: "flex",
+            flex: "1 0 0",
+            justifyContent: "center",
+            alignItems: "center",
+            alignSelf: "stretch",
+          }}
+        >
+          <Typography
+            sx={{
+              color: "label.alternative",
+              fontSize: "16px",
+              fontWeight: 400,
+              lineHeight: "24px",
+              letterSpacing: "-0.336px",
+            }}
+          >
+            탐색 결과에 맞는 논문이 없어요.
+          </Typography>
+        </Box>
+      ) : (
+        papers.map((paper) => (
+          <KMPaperCard
+            key={paper.paper_id}
+            paper={paper}
+            onClick={() => handlePaperClick(paper.paper_id)}
+            onBookmark={() =>
+              handleBookmark(paper.paper_id, paper.is_bookmarked)
+            }
+          />
+        ))
+      )}
+    </Box>
+  );
+
+  // ─── 패널 위치/크기 ──────────────────────────────────────
+
+  const panelPositionSx = isMobile
+    ? {
+        position: "fixed" as const,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 20,
+      }
+    : {
+        position: "absolute" as const,
+        top: "12px",
+        right: "12px",
+        bottom: "12px",
+        zIndex: 20,
+        ...(panelView === "detail"
+          ? { left: "12px" }
+          : isDesktop
+            ? { width: "calc((100% - 12px) * 734 / (930 + 734))" }
+            : { left: "12px" }),
+      };
+
+  return (
+    <>
+      <Box
+        sx={{
+          ...panelPositionSx,
+          display: "flex",
+          flexDirection: "column",
+          borderRadius: isMobile ? "0" : "8px",
+          backgroundColor: "background.default",
+          overflow: "hidden",
+        }}
+      >
+        {/* 모바일 헤더 */}
+        {isMobile && (
           <Box
             sx={{
               display: "flex",
+              padding: "16px",
               alignItems: "center",
-              gap: "10px",
-              px: "12px",
-              py: "3px",
-              borderRadius: "91px",
-              backgroundColor: "background.default",
-              boxShadow: "0 0 8.9px rgba(0, 0, 0, 0.1)",
+              gap: "8px",
+              alignSelf: "stretch",
             }}
           >
-            <KeyboardArrowLeftIcon
-              onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
-              sx={{
-                fontSize: "20px",
-                cursor: currentPage > 1 ? "pointer" : "default",
-                color: currentPage > 1 ? "label.strong" : "label.disable",
-              }}
-            />
+            <IconButton
+              onClick={handleClose}
+              sx={{ p: 0, width: "28px", height: "28px", flexShrink: 0 }}
+            >
+              {panelView === "detail" ? (
+                <ArrowBackIosNewIcon
+                  sx={{ fontSize: 16, color: "label.normal" }}
+                />
+              ) : (
+                <CloseIcon sx={{ fontSize: 24, color: "label.normal" }} />
+              )}
+            </IconButton>
+            {/* panelView === "list" 조건 제거 — detail일 때도 타이틀 보임 */}
             <Typography
               sx={{
-                fontSize: "20px",
-                fontWeight: 700,
-                letterSpacing: "-0.4px",
+                display: "-webkit-box",
+                WebkitBoxOrient: "vertical",
+                WebkitLineClamp: 1,
+                overflow: "hidden",
+                fontSize: "18px",
+                fontWeight: 600,
+                lineHeight: "29px",
+                letterSpacing: "-0.378px",
               }}
             >
-              <Box component="span" sx={{ color: "label.strong" }}>
-                {currentPage}
+              <Box component="span" sx={{ color: "#3BA502" }}>
+                {keyword}
               </Box>
-              <Box component="span" sx={{ color: "label.assistive" }}>
-                /{totalPages}
+              <Box component="span" sx={{ color: "label.normal" }}>
+                {" "}
+                검색 결과
               </Box>
             </Typography>
-            <KeyboardArrowRightIcon
-              onClick={() =>
-                currentPage < totalPages && setCurrentPage(currentPage + 1)
-              }
+          </Box>
+        )}
+
+        {/* 데스크탑/태블릿 list */}
+        {!isMobile && panelView === "list" && (
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "16px",
+              padding: "16px",
+              alignSelf: "stretch",
+            }}
+          >
+            <Box
               sx={{
-                fontSize: "20px",
-                cursor: currentPage < totalPages ? "pointer" : "default",
-                color:
-                  currentPage < totalPages ? "label.strong" : "label.disable",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Typography
+                sx={{
+                  display: "-webkit-box",
+                  WebkitBoxOrient: "vertical",
+                  WebkitLineClamp: 1,
+                  overflow: "hidden",
+                  fontSize: "24px",
+                  fontWeight: 600,
+                  lineHeight: "36px",
+                  letterSpacing: "-0.528px",
+                }}
+              >
+                <Box component="span" sx={{ color: "#3BA502" }}>
+                  {keyword}
+                </Box>
+                <Box component="span" sx={{ color: "label.normal" }}>
+                  {" "}
+                  검색 결과
+                </Box>
+              </Typography>
+              <IconButton
+                onClick={handleClose}
+                sx={{ width: "36px", height: "36px", padding: "8px" }}
+              >
+                <CloseIcon sx={{ width: 20, height: 20 }} />
+              </IconButton>
+            </Box>
+            {filterBar(false)}
+          </Box>
+        )}
+
+        {/* list — 데스크탑/태블릿 */}
+        {panelView === "list" && !isMobile && (
+          <Box
+            sx={{
+              flex: 1,
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
+              padding: "0 16px 16px 16px",
+            }}
+          >
+            {paperList(false)}
+          </Box>
+        )}
+
+        {/* list — 모바일: 필터 + 목록 묶음 */}
+        {panelView === "list" && isMobile && (
+          <Box
+            sx={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              gap: "16px",
+              borderRadius: "12px",
+              backgroundColor: "background.default",
+              backdropFilter: "blur(2.9px)",
+              overflow: "hidden",
+            }}
+          >
+            {filterBar(true)}
+            <Box
+              sx={{
+                flex: 1,
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              {paperList(true)}
+            </Box>
+          </Box>
+        )}
+
+        {/* detail */}
+        {panelView === "detail" && selectedPaperId && (
+          <Box
+            sx={{
+              flex: 1,
+              overflow: "auto",
+              alignSelf: "stretch",
+              padding: isMobile ? "16px" : "32px",
+            }}
+          >
+            <PaperDetailContent
+              paperId={selectedPaperId}
+              onRelatedPaperClick={(paperId) => setSelectedPaperId(paperId)}
+              onClose={() => {
+                setPanelView("list");
+                setSelectedPaperId(null);
+              }}
+              onBookmarkChange={() => {
+                queryClient.invalidateQueries({
+                  queryKey: keywordMapKeys.papers(
+                    panelNodeKey ?? "",
+                    paperFilter,
+                  ),
+                });
               }}
             />
           </Box>
-        </Box>
-      )}
-    </Box>
+        )}
+      </Box>
+
+      <BookmarkFolderSelectDialog
+        open={bookmarkDialogPaperId !== null}
+        onClose={() => setBookmarkDialogPaperId(null)}
+        paperId={bookmarkDialogPaperId ?? ""}
+        onBookmarkAdded={handleBookmarkAdded}
+      />
+    </>
   );
 };
 
