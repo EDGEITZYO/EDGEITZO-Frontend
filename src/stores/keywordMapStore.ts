@@ -12,62 +12,68 @@ import {
 type KeywordNode = Node<KeywordNodeData>;
 
 interface KeywordMapState {
-  researchField: string;
   nodes: KeywordNode[];
   edges: Edge[];
+  anchorKey: string;
+  anchorLabel: string;
+  hasMoreParents: boolean;
+  hasMoreChildren: boolean;
   breadcrumbs: BreadcrumbItem[];
-  selectedNodeId: string | null;
+  selectedNodeKey: string | null;
+  hoveredNodeKey: string | null;
   isPaperPanelOpen: boolean;
-  panelNodeId: string | null;
+  panelNodeKey: string | null;
   panelKeyword: string | null;
-  totalCount: number;
   currentPage: number;
   paperFilter: KMPaperFilter;
-  selectedPaperId: string | null;
-  isGenerating: boolean;
-  generateError: string | null;
-  searchId: string | null;
+  isLoading: boolean;
+  loadError: string | null;
 }
 
 interface KeywordMapActions {
-  setResearchField: (field: string) => void;
-  setNodes: (nodes: KeywordNode[]) => void;
-  setEdges: (edges: Edge[]) => void;
-  pushBreadcrumb: (item: BreadcrumbItem) => void;
+  setGraph: (params: {
+    nodes: KeywordNode[];
+    edges: Edge[];
+    anchorKey: string;
+    anchorLabel: string;
+    hasMoreParents: boolean;
+    hasMoreChildren: boolean;
+  }) => void;
   setBreadcrumbs: (breadcrumbs: BreadcrumbItem[]) => void;
-  popBreadcrumbTo: (nodeId: string) => void;
-  selectNode: (nodeId: string | null) => void;
-  openPaperPanel: (nodeId: string, keyword: string) => void;
+  popBreadcrumbTo: (nodeKey: string) => void;
+  setBreadcrumbAtTier: (tier: number, item: BreadcrumbItem) => void;
+  selectNode: (nodeKey: string | null) => void;
+  hoverNode: (nodeKey: string | null) => void;
+  openPaperPanel: (nodeKey: string, keyword: string) => void;
   closePaperPanel: () => void;
   setCurrentPage: (page: number) => void;
   setPaperFilter: (filter: Partial<KMPaperFilter>) => void;
-  selectPaper: (paperId: string | null) => void;
-  setIsGenerating: (isGenerating: boolean) => void;
-  setGenerateError: (error: string | null) => void;
+  setIsLoading: (isLoading: boolean) => void;
+  setLoadError: (error: string | null) => void;
   reset: () => void;
-  setSearchId: (searchId: string | null) => void;
 }
 
 // ─── 초기값 ───────────────────────────────────────────────
 
 const initialState: KeywordMapState = {
-  researchField: "",
   nodes: [],
   edges: [],
+  anchorKey: "",
+  anchorLabel: "",
+  hasMoreParents: false,
+  hasMoreChildren: false,
   breadcrumbs: [],
-  selectedNodeId: null,
+  selectedNodeKey: null,
+  hoveredNodeKey: null,
   isPaperPanelOpen: false,
-  panelNodeId: null,
+  panelNodeKey: null,
   panelKeyword: null,
-  totalCount: 0,
   currentPage: 1,
   paperFilter: {
-    sort: "date",
+    sort: "relevance",
   },
-  selectedPaperId: null,
-  isGenerating: false,
-  generateError: null,
-  searchId: null,
+  isLoading: false,
+  loadError: null,
 };
 
 // ─── 스토어 ───────────────────────────────────────────────
@@ -76,42 +82,58 @@ const useKeywordMapStore = create<KeywordMapState & KeywordMapActions>()(
   (set) => ({
     ...initialState,
 
-    setResearchField: (field) => set({ researchField: field }),
-    setNodes: (nodes) => set({ nodes }),
-    setEdges: (edges) => set({ edges }),
-
-    pushBreadcrumb: (item) =>
-      set((state) => ({ breadcrumbs: [...state.breadcrumbs, item] })),
+    setGraph: ({
+      nodes,
+      edges,
+      anchorKey,
+      anchorLabel,
+      hasMoreParents,
+      hasMoreChildren,
+    }) =>
+      set({
+        nodes,
+        edges,
+        anchorKey,
+        anchorLabel,
+        hasMoreParents,
+        hasMoreChildren,
+      }),
 
     setBreadcrumbs: (breadcrumbs) => set({ breadcrumbs }),
 
-    popBreadcrumbTo: (nodeId) =>
+    popBreadcrumbTo: (nodeKey) =>
       set((state) => {
-        const index = state.breadcrumbs.findIndex((b) => b.nodeId === nodeId);
+        const index = state.breadcrumbs.findIndex((b) => b.nodeKey === nodeKey);
         if (index === -1) return state;
         return { breadcrumbs: state.breadcrumbs.slice(0, index + 1) };
       }),
 
-    selectNode: (nodeId) => set({ selectedNodeId: nodeId }),
+    setBreadcrumbAtTier: (tier, item) =>
+      set((state) => {
+        const filtered = state.breadcrumbs.filter((b) => b.tier < tier);
+        return { breadcrumbs: [...filtered, item] };
+      }),
 
-    openPaperPanel: (nodeId, keyword) =>
+    selectNode: (nodeKey) => set({ selectedNodeKey: nodeKey }),
+
+    hoverNode: (nodeKey) => set({ hoveredNodeKey: nodeKey }),
+
+    openPaperPanel: (nodeKey, keyword) =>
       set({
         isPaperPanelOpen: true,
-        panelNodeId: nodeId,
+        panelNodeKey: nodeKey,
         panelKeyword: keyword,
-        totalCount: 0,
         currentPage: 1,
-        selectedPaperId: null,
+        paperFilter: { sort: "relevance" },
       }),
 
     closePaperPanel: () =>
       set({
         isPaperPanelOpen: false,
-        panelNodeId: null,
+        panelNodeKey: null,
         panelKeyword: null,
-        totalCount: 0,
         currentPage: 1,
-        selectedPaperId: null,
+        paperFilter: { sort: "relevance" },
       }),
 
     setCurrentPage: (page) => set({ currentPage: page }),
@@ -121,72 +143,70 @@ const useKeywordMapStore = create<KeywordMapState & KeywordMapActions>()(
         paperFilter: { ...state.paperFilter, ...filter },
       })),
 
-    selectPaper: (paperId) => set({ selectedPaperId: paperId }),
-    setIsGenerating: (isGenerating) => set({ isGenerating }),
-    setGenerateError: (error) => set({ generateError: error }),
+    setIsLoading: (isLoading) => set({ isLoading }),
+    setLoadError: (error) => set({ loadError: error }),
     reset: () => set(initialState),
-    setSearchId: (searchId) => set({ searchId }),
   }),
 );
 
 // ─── 셀렉터 훅 ────────────────────────────────────────────
 
-export const useResearchField = () =>
-  useKeywordMapStore((state) => state.researchField);
-
 export const useKeywordMapGraph = () =>
   useKeywordMapStore(
-    useShallow((state) => ({ nodes: state.nodes, edges: state.edges })),
+    useShallow((state) => ({
+      nodes: state.nodes,
+      edges: state.edges,
+      anchorKey: state.anchorKey,
+      anchorLabel: state.anchorLabel,
+      hasMoreParents: state.hasMoreParents,
+      hasMoreChildren: state.hasMoreChildren,
+    })),
   );
 
 export const useBreadcrumbs = () =>
   useKeywordMapStore((state) => state.breadcrumbs);
 
-export const useSelectedNodeId = () =>
-  useKeywordMapStore((state) => state.selectedNodeId);
+export const useSelectedNodeKey = () =>
+  useKeywordMapStore((state) => state.selectedNodeKey);
+
+export const useHoveredNodeKey = () =>
+  useKeywordMapStore((state) => state.hoveredNodeKey);
 
 export const usePaperPanel = () =>
   useKeywordMapStore(
     useShallow((state) => ({
       isPaperPanelOpen: state.isPaperPanelOpen,
-      panelNodeId: state.panelNodeId,
+      panelNodeKey: state.panelNodeKey,
       panelKeyword: state.panelKeyword,
-      totalCount: state.totalCount,
       currentPage: state.currentPage,
       paperFilter: state.paperFilter,
     })),
   );
 
-export const useSelectedPaperId = () =>
-  useKeywordMapStore((state) => state.selectedPaperId);
-
-export const useKeywordMapGenerating = () =>
+export const useKeywordMapLoading = () =>
   useKeywordMapStore(
     useShallow((state) => ({
-      isGenerating: state.isGenerating,
-      generateError: state.generateError,
+      isLoading: state.isLoading,
+      loadError: state.loadError,
     })),
   );
 
 export const useKeywordMapActions = () =>
   useKeywordMapStore(
     useShallow((state) => ({
-      setResearchField: state.setResearchField,
-      setNodes: state.setNodes,
-      setEdges: state.setEdges,
-      pushBreadcrumb: state.pushBreadcrumb,
+      setGraph: state.setGraph,
       setBreadcrumbs: state.setBreadcrumbs,
       popBreadcrumbTo: state.popBreadcrumbTo,
+      setBreadcrumbAtTier: state.setBreadcrumbAtTier,
       selectNode: state.selectNode,
+      hoverNode: state.hoverNode,
       openPaperPanel: state.openPaperPanel,
       closePaperPanel: state.closePaperPanel,
       setCurrentPage: state.setCurrentPage,
       setPaperFilter: state.setPaperFilter,
-      selectPaper: state.selectPaper,
-      setIsGenerating: state.setIsGenerating,
-      setGenerateError: state.setGenerateError,
+      setIsLoading: state.setIsLoading,
+      setLoadError: state.setLoadError,
       reset: state.reset,
-      setSearchId: state.setSearchId,
     })),
   );
 
