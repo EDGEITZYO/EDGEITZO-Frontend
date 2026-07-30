@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Box, IconButton, Typography, useMediaQuery } from "@mui/material";
+import { useQueryClient } from "@tanstack/react-query";
 import { useTheme } from "@mui/material/styles";
 import { ReactFlowProvider } from "reactflow";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -24,17 +25,20 @@ const KeywordMapPage = () => {
   const { isPaperPanelOpen } = usePaperPanel();
   const { reset, closePaperPanel, popBreadcrumbTo } = useKeywordMapActions();
 
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    return () => {
+      reset();
+      queryClient.invalidateQueries({ queryKey: ["home"] });
+    };
+  }, [reset, queryClient]);
+
   useEffect(() => {
     if (!keyword) {
       navigate("/home", { replace: true });
     }
   }, [keyword, navigate]);
-
-  useEffect(() => {
-    return () => {
-      reset();
-    };
-  }, [reset]);
 
   const handleBack = () => {
     if (isMobile && isPaperPanelOpen) {
