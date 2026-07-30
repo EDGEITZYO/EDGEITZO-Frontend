@@ -88,7 +88,7 @@ const KeywordNode = memo(
             sx={{
               display: "flex",
               width: "360px",
-              height: "76px",
+              minHeight: "76px",
               padding: "10px 12px",
               alignItems: "flex-start",
               gap: "2px",
