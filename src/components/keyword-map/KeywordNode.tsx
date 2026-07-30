@@ -18,7 +18,7 @@ const KeywordNode = memo(
     const [definition, setDefinition] = useState<KMNodeDefinition | null>(null);
     const [isFetchingDetail, setIsFetchingDetail] = useState(false);
 
-    const { openPaperPanel } = useKeywordMapActions();
+    const { openPaperPanel, setBreadcrumbAtTier } = useKeywordMapActions();
 
     const isAnchor = data.side === "anchor";
     const canExpand = data.hasMore;
@@ -48,7 +48,12 @@ const KeywordNode = memo(
 
     const handleSearch = useCallback(() => {
       openPaperPanel(id, data.label);
-    }, [id, data.label, openPaperPanel]);
+      setBreadcrumbAtTier(data.tier, {
+        nodeKey: id,
+        label: data.label,
+        tier: data.tier,
+      });
+    }, [id, data.label, data.tier, openPaperPanel, setBreadcrumbAtTier]);
 
     // expand 로직은 KeywordMapGraph에서 관리 — 이벤트만 올려줌
     const handleExpand = useCallback(async () => {

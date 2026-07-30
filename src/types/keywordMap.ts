@@ -31,6 +31,7 @@ export interface KeywordNodeData {
 export interface BreadcrumbItem {
   nodeKey: string;
   label: string;
+  tier: number;
 }
 
 // ─── API: 그래프 노드 ─────────────────────────────────────

@@ -40,8 +40,8 @@ interface KeywordMapActions {
     hasMoreChildren: boolean;
   }) => void;
   setBreadcrumbs: (breadcrumbs: BreadcrumbItem[]) => void;
-  pushBreadcrumb: (item: BreadcrumbItem) => void;
   popBreadcrumbTo: (nodeKey: string) => void;
+  setBreadcrumbAtTier: (tier: number, item: BreadcrumbItem) => void;
   selectNode: (nodeKey: string | null) => void;
   hoverNode: (nodeKey: string | null) => void;
   openPaperPanel: (nodeKey: string, keyword: string) => void;
@@ -101,14 +101,17 @@ const useKeywordMapStore = create<KeywordMapState & KeywordMapActions>()(
 
     setBreadcrumbs: (breadcrumbs) => set({ breadcrumbs }),
 
-    pushBreadcrumb: (item) =>
-      set((state) => ({ breadcrumbs: [...state.breadcrumbs, item] })),
-
     popBreadcrumbTo: (nodeKey) =>
       set((state) => {
         const index = state.breadcrumbs.findIndex((b) => b.nodeKey === nodeKey);
         if (index === -1) return state;
         return { breadcrumbs: state.breadcrumbs.slice(0, index + 1) };
+      }),
+
+    setBreadcrumbAtTier: (tier, item) =>
+      set((state) => {
+        const filtered = state.breadcrumbs.filter((b) => b.tier < tier);
+        return { breadcrumbs: [...filtered, item] };
       }),
 
     selectNode: (nodeKey) => set({ selectedNodeKey: nodeKey }),
@@ -193,8 +196,8 @@ export const useKeywordMapActions = () =>
     useShallow((state) => ({
       setGraph: state.setGraph,
       setBreadcrumbs: state.setBreadcrumbs,
-      pushBreadcrumb: state.pushBreadcrumb,
       popBreadcrumbTo: state.popBreadcrumbTo,
+      setBreadcrumbAtTier: state.setBreadcrumbAtTier,
       selectNode: state.selectNode,
       hoverNode: state.hoverNode,
       openPaperPanel: state.openPaperPanel,

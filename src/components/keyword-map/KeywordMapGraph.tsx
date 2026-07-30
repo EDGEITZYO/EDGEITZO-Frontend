@@ -134,7 +134,7 @@ const KeywordMapGraph = ({ keyword }: KeywordMapGraphProps) => {
   const {
     setGraph,
     setBreadcrumbs,
-    pushBreadcrumb,
+    setBreadcrumbAtTier,
     selectNode,
     setIsLoading,
     setLoadError,
@@ -170,7 +170,7 @@ const KeywordMapGraph = ({ keyword }: KeywordMapGraphProps) => {
 
       if (isInitial) {
         setBreadcrumbs([
-          { nodeKey: anchor.key, label: anchor.name_ko ?? anchor.key },
+          { nodeKey: anchor.key, label: anchor.name_ko ?? anchor.key, tier: 0 },
         ]);
         setTimeout(() => fitView({ padding: 0.1 }), 0);
       }
@@ -278,9 +278,10 @@ const KeywordMapGraph = ({ keyword }: KeywordMapGraphProps) => {
           hasMoreChildren: false,
         });
 
-        pushBreadcrumb({
+        setBreadcrumbAtTier(targetNode.data.tier, {
           nodeKey: nodeId,
           label: targetNode.data.label,
+          tier: targetNode.data.tier,
         });
       } catch {
         // TODO: 에러 토스트
@@ -289,7 +290,7 @@ const KeywordMapGraph = ({ keyword }: KeywordMapGraphProps) => {
 
     window.addEventListener("expandNode", handleExpand);
     return () => window.removeEventListener("expandNode", handleExpand);
-  }, [nodes, edges, setNodes, setEdges, setGraph, pushBreadcrumb]);
+  }, [nodes, edges, setNodes, setEdges, setGraph, setBreadcrumbAtTier]);
 
   // ─── recenter 이벤트 수신 (보류 — 백엔드 확인 후) ────
 
@@ -313,7 +314,7 @@ const KeywordMapGraph = ({ keyword }: KeywordMapGraphProps) => {
 
     window.addEventListener("recenterNode", handleRecenter);
     return () => window.removeEventListener("recenterNode", handleRecenter);
-  }, [nodes, userId, applyGraph, pushBreadcrumb]);
+  }, [nodes, userId, applyGraph, setBreadcrumbAtTier]);
 
   // ─── 노드 클릭 ──────────────────────────────────────
 
