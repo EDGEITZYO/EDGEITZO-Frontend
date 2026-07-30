@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import ReactFlow, {
   Controls,
   type NodeTypes,
@@ -130,6 +130,7 @@ const KeywordMapGraph = ({ keyword }: KeywordMapGraphProps) => {
   const userId = mypageData?.profile.id;
 
   const { isLoading, loadError } = useKeywordMapLoading();
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const selectedNodeKey = useSelectedNodeKey();
   const {
     setGraph,
@@ -199,6 +200,7 @@ const KeywordMapGraph = ({ keyword }: KeywordMapGraphProps) => {
         setLoadError("키워드맵을 불러오지 못했어요. 다시 시도해주세요.");
       } finally {
         setIsLoading(false);
+        setIsInitialLoading(false);
       }
     };
 
@@ -373,7 +375,7 @@ const KeywordMapGraph = ({ keyword }: KeywordMapGraphProps) => {
 
   // ─── 로딩/에러 상태 ──────────────────────────────────
 
-  if (isLoading) {
+  if (isLoading || isInitialLoading) {
     return (
       <Box
         sx={{
