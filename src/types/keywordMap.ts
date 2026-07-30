@@ -22,7 +22,7 @@ export interface KeywordNodeData {
   paperCount: number;
   isHub: boolean;
   crossLinkCount: number;
-  isExpanded: boolean;
+  hasMore: boolean;
   isSelected: boolean;
 }
 
@@ -44,6 +44,7 @@ export interface KMGraphNode {
   paper_count: number;
   is_hub: boolean;
   cross_link_count: number;
+  has_more: boolean;
 }
 
 // ─── API: 그래프 엣지 ─────────────────────────────────────
@@ -91,6 +92,7 @@ export interface KMExpandResponse {
   parent_key: string;
   new_nodes: KMGraphNode[];
   new_edges: KMGraphEdge[];
+  parent_has_more: boolean;
 }
 
 // ─── API: GET /keyword-search/map/{user_id} ───────────────

@@ -96,7 +96,7 @@ const buildGraphFromResponse = (
         paperCount: n.paper_count,
         isHub: n.is_hub,
         crossLinkCount: n.cross_link_count,
-        isExpanded: false,
+        hasMore: n.has_more,
         isSelected: false,
       },
     }),
@@ -234,7 +234,7 @@ const KeywordMapGraph = ({ keyword }: KeywordMapGraphProps) => {
             paperCount: n.paper_count,
             isHub: n.is_hub,
             crossLinkCount: n.cross_link_count,
-            isExpanded: false,
+            hasMore: n.has_more,
             isSelected: false,
           },
         }));
@@ -247,24 +247,31 @@ const KeywordMapGraph = ({ keyword }: KeywordMapGraphProps) => {
           data: { edgeType: e.type },
         }));
 
+        const { parent_has_more } = res.data.data;
+
         const updatedNodes = [
           ...nodes.map((n) =>
             n.id === nodeId
-              ? { ...n, data: { ...n.data, isExpanded: true } }
+              ? { ...n, data: { ...n.data, hasMore: parent_has_more } }
               : n,
           ),
           ...newRFNodes,
         ];
         const updatedEdges = [...edges, ...newRFEdges];
 
-        const { nodes: layoutedNodes, edges: layoutedEdges } =
-          getLayoutedElements(updatedNodes, updatedEdges);
+        const treeEdgesOnly = updatedEdges.filter(
+          (e) => e.data?.edgeType === "tree",
+        );
+        const { nodes: layoutedNodes } = getLayoutedElements(
+          updatedNodes,
+          treeEdgesOnly,
+        );
 
         setNodes(layoutedNodes);
-        setEdges(layoutedEdges);
+        setEdges(treeEdgesOnly);
         setGraph({
           nodes: layoutedNodes,
-          edges: layoutedEdges,
+          edges: treeEdgesOnly,
           anchorKey: "",
           anchorLabel: "",
           hasMoreParents: false,
