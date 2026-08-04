@@ -16,7 +16,7 @@ import { useMypageQuery } from "../queries/useMypageQuery";
 
 const INFO_ROWS = [
   { label: "성별", key: "gender" },
-  { label: "나이", key: "age" },
+  { label: "출생 연도", key: "birth_year" },
   { label: "역할", key: "role" },
   { label: "전공 · 연구 분야", key: "research_field" },
 ] as const;
@@ -173,7 +173,9 @@ const MyPage = () => {
                       overflow: "hidden",
                     }}
                   >
-                    {profile[key] ?? "선택 안함"}
+                    {key === "birth_year"
+                      ? `${profile[key]}년`
+                      : (profile[key] ?? "선택 안함")}
                   </Typography>
                 </Box>
               ))}
@@ -361,7 +363,9 @@ const MyPage = () => {
                         overflow: "hidden",
                       }}
                     >
-                      {profile[key] ?? "선택 안함"}
+                      {key === "birth_year"
+                        ? `${profile[key]}년`
+                        : (profile[key] ?? "선택 안함")}
                     </Typography>
                   </Box>
                 ))}

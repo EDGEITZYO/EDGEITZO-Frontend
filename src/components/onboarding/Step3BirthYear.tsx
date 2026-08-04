@@ -119,6 +119,8 @@ const Step3BirthYear = ({
 
   const isValid = inputValue.length === 4 && !validateYear(inputValue);
 
+  const koreanAge = isValid ? CURRENT_YEAR - Number(inputValue) + 1 : null;
+
   const stepNumber = (
     <Box
       sx={{
@@ -179,7 +181,21 @@ const Step3BirthYear = ({
         slotProps={{
           input: {
             endAdornment: (
-              <InputAdornment position="end" sx={{ gap: "4px" }}>
+              <InputAdornment position="end" sx={{ gap: "16px" }}>
+                {koreanAge !== null && (
+                  <Typography
+                    sx={{
+                      fontSize: "16px",
+                      fontWeight: 400,
+                      lineHeight: "24px",
+                      letterSpacing: "-0.336px",
+                      color: "label.assistive",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {koreanAge}세
+                  </Typography>
+                )}
                 <IconButton
                   onClick={handleNext}
                   sx={{
