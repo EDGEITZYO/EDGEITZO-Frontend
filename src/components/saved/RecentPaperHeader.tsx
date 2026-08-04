@@ -3,8 +3,8 @@ import { Box, Typography, IconButton } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import ViewListIcon from "@mui/icons-material/ViewList";
-import ShowChartIcon from "@mui/icons-material/ShowChart";
+import MenuIcon from "@mui/icons-material/Menu";
+import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -321,7 +321,7 @@ const RecentPaperHeader = ({
               },
             }}
           >
-            <ViewListIcon
+            <MenuIcon
               sx={{
                 width: "24px",
                 height: "24px",
@@ -349,7 +349,7 @@ const RecentPaperHeader = ({
               },
             }}
           >
-            <ShowChartIcon
+            <TrendingUpIcon
               sx={{
                 width: "24px",
                 height: "24px",
