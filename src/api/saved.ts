@@ -24,4 +24,7 @@ export const savedApi = {
     apiClient.get<ApiResponse<RecentPaperStats>>("/saved/recent/stats", {
       params,
     }),
+
+  deleteRecentPaper: (paperId: string) =>
+    apiClient.delete<ApiResponse<null>>(`/saved/recent/${paperId}`),
 };

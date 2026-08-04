@@ -13,6 +13,7 @@ import FolderDialog from "./FolderDialog";
 import { type FolderDialogState } from "../../types/saved";
 import { useRecentPapersQuery } from "../../queries/useSavedQuery";
 import { bookmarkKeys, savedKeys } from "../../queries/keys";
+import { savedApi } from "../../api/saved";
 
 const PAGE_SIZE = 10;
 
@@ -146,6 +147,13 @@ const RecentPaperListView = ({
     },
   });
 
+  const { mutate: deleteRecentPaper } = useMutation({
+    mutationFn: (paperId: string) => savedApi.deleteRecentPaper(paperId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: savedKeys.all });
+    },
+  });
+
   const allPapers: RecentPaper[] = data?.groups.flatMap((g) => g.papers) ?? [];
   const totalPages = Math.ceil(allPapers.length / PAGE_SIZE);
   const pagedPapers = allPapers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -178,8 +186,7 @@ const RecentPaperListView = ({
   };
 
   const handleDelete = (paperId: string) => {
-    // TODO: 최근 읽은 논문 삭제 API 백엔드 미구현
-    console.log("delete", paperId);
+    deleteRecentPaper(paperId);
   };
 
   // 날짜별 그루핑 (pagedPapers 기준)
