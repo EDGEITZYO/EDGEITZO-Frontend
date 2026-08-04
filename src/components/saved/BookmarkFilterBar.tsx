@@ -1,6 +1,7 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Box, Typography } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import CloseIcon from "@mui/icons-material/Close";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import { type BookmarkFilter } from "../../types/saved";
 import { type BookmarkPaperTypeFilter } from "../../api/bookmark";
@@ -9,43 +10,6 @@ interface BookmarkFilterBarProps {
   filter: BookmarkFilter;
   onFilterChange: (filter: BookmarkFilter) => void;
 }
-
-const filterPillSx: SxProps<Theme> = {
-  display: "flex",
-  width: "164px",
-  height: "42px",
-  padding: "8px 8px 8px 16px",
-  justifyContent: "space-between",
-  alignItems: "center",
-  borderRadius: "216px",
-  backgroundColor: "background.default",
-  cursor: "pointer",
-  flexShrink: 0,
-};
-
-const filterTextSx: SxProps<Theme> = {
-  display: "-webkit-box",
-  WebkitBoxOrient: "vertical",
-  WebkitLineClamp: 1,
-  overflow: "hidden",
-  textOverflow: "ellipsis",
-  color: "label.alternative",
-  fontSize: "16px",
-  fontWeight: 400,
-  lineHeight: "24px",
-  letterSpacing: "-0.336px",
-};
-
-const dropdownArrowSx: SxProps<Theme> = {
-  display: "flex",
-  width: "40px",
-  height: "40px",
-  padding: "9px 10px 11px 10px",
-  justifyContent: "center",
-  alignItems: "center",
-  borderRadius: "24px",
-  flexShrink: 0,
-};
 
 const dropdownContainerSx: SxProps<Theme> = {
   position: "absolute",
@@ -61,35 +25,20 @@ const dropdownContainerSx: SxProps<Theme> = {
   border: "1px solid",
   borderColor: "label.alternative",
   backgroundColor: "background.default",
-  minWidth: "164px",
+  minWidth: "100%",
 };
 
-const dropdownItemActiveSx: SxProps<Theme> = {
+const dropdownItemSx = (isActive: boolean): SxProps<Theme> => ({
   display: "flex",
   height: "42px",
   padding: "8px",
-  justifyContent: "center",
   alignItems: "center",
-  gap: "16px",
   alignSelf: "stretch",
   borderRadius: "216px",
-  backgroundColor: "background.paper",
-  cursor: "pointer",
-};
-
-const dropdownItemSx: SxProps<Theme> = {
-  display: "flex",
-  height: "42px",
-  padding: "8px",
-  justifyContent: "center",
-  alignItems: "center",
-  gap: "16px",
-  alignSelf: "stretch",
-  borderRadius: "216px",
-  backgroundColor: "background.default",
+  backgroundColor: isActive ? "background.paper" : "background.default",
   cursor: "pointer",
   "&:hover": { backgroundColor: "background.paper" },
-};
+});
 
 const dropdownItemTextSx: SxProps<Theme> = {
   display: "-webkit-box",
@@ -102,7 +51,6 @@ const dropdownItemTextSx: SxProps<Theme> = {
   fontWeight: 400,
   lineHeight: "24px",
   letterSpacing: "-0.336px",
-  flex: "1 0 0",
 };
 
 const togglePillSx = (isActive: boolean): SxProps<Theme> => ({
@@ -169,6 +117,31 @@ const BookmarkFilterBar = ({
     onFilterChange({ ...filter, sci: filter.sci === true ? null : true });
   };
 
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        openDropdown === "year" &&
+        yearRef.current &&
+        !yearRef.current.contains(e.target as Node)
+      ) {
+        setOpenDropdown(null);
+      }
+      if (
+        openDropdown === "type" &&
+        typeRef.current &&
+        !typeRef.current.contains(e.target as Node)
+      ) {
+        setOpenDropdown(null);
+      }
+    };
+    if (openDropdown !== null) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [openDropdown]);
+
   const toggleDropdown = (type: "year" | "type") => {
     setOpenDropdown((prev) => (prev === type ? null : type));
   };
@@ -184,14 +157,66 @@ const BookmarkFilterBar = ({
     >
       {/* 발행 연도 */}
       <Box ref={yearRef} sx={{ position: "relative" }}>
-        <Box sx={filterPillSx} onClick={() => toggleDropdown("year")}>
-          <Typography sx={filterTextSx}>
+        <Box
+          sx={{
+            display: "flex",
+            width: "164px",
+            height: "42px",
+            padding: "8px 8px 8px 16px",
+            justifyContent: "space-between",
+            alignItems: "center",
+            borderRadius: "216px",
+            backgroundColor:
+              filter.year !== null ? "#1E2026" : "background.default",
+            cursor: filter.year !== null ? "default" : "pointer",
+            flexShrink: 0,
+          }}
+          onClick={() => {
+            if (filter.year !== null) return;
+            toggleDropdown("year");
+          }}
+        >
+          <Typography
+            sx={{
+              display: "-webkit-box",
+              WebkitBoxOrient: "vertical",
+              WebkitLineClamp: 1,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              color: filter.year !== null ? "#FFF" : "label.alternative",
+              fontSize: "16px",
+              fontWeight: 400,
+              lineHeight: "24px",
+              letterSpacing: "-0.336px",
+            }}
+          >
             {filter.year !== null ? `${filter.year}년` : "발행 연도"}
           </Typography>
-          <Box sx={dropdownArrowSx}>
-            <KeyboardArrowDownIcon
-              sx={{ fontSize: 20, color: "label.alternative" }}
-            />
+          <Box
+            sx={{
+              display: "flex",
+              width: "40px",
+              height: "40px",
+              padding: "9px 10px 11px 10px",
+              justifyContent: "center",
+              alignItems: "center",
+              borderRadius: "24px",
+              flexShrink: 0,
+            }}
+          >
+            {filter.year !== null ? (
+              <CloseIcon
+                onClick={(e: React.MouseEvent<SVGSVGElement>) => {
+                  e.stopPropagation();
+                  onFilterChange({ ...filter, year: null });
+                }}
+                sx={{ fontSize: 20, color: "#FFF", cursor: "pointer" }}
+              />
+            ) : (
+              <KeyboardArrowDownIcon
+                sx={{ fontSize: 20, color: "label.alternative" }}
+              />
+            )}
           </Box>
         </Box>
         {openDropdown === "year" && (
@@ -199,21 +224,10 @@ const BookmarkFilterBar = ({
             {YEARS.map((year) => (
               <Box
                 key={year}
-                sx={
-                  filter.year === year ? dropdownItemActiveSx : dropdownItemSx
-                }
+                sx={dropdownItemSx(filter.year === year)}
                 onClick={() => handleYearSelect(year)}
               >
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    flex: "1 0 0",
-                  }}
-                >
-                  <Typography sx={dropdownItemTextSx}>{year}</Typography>
-                </Box>
+                <Typography sx={dropdownItemTextSx}>{year}</Typography>
               </Box>
             ))}
           </Box>
@@ -222,14 +236,66 @@ const BookmarkFilterBar = ({
 
       {/* 논문 유형 */}
       <Box ref={typeRef} sx={{ position: "relative" }}>
-        <Box sx={filterPillSx} onClick={() => toggleDropdown("type")}>
-          <Typography sx={filterTextSx}>
+        <Box
+          sx={{
+            display: "flex",
+            width: "164px",
+            height: "42px",
+            padding: "8px 8px 8px 16px",
+            justifyContent: "space-between",
+            alignItems: "center",
+            borderRadius: "216px",
+            backgroundColor:
+              filter.type !== null ? "#1E2026" : "background.default",
+            cursor: filter.type !== null ? "default" : "pointer",
+            flexShrink: 0,
+          }}
+          onClick={() => {
+            if (filter.type !== null) return;
+            toggleDropdown("type");
+          }}
+        >
+          <Typography
+            sx={{
+              display: "-webkit-box",
+              WebkitBoxOrient: "vertical",
+              WebkitLineClamp: 1,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              color: filter.type !== null ? "#FFF" : "label.alternative",
+              fontSize: "16px",
+              fontWeight: 400,
+              lineHeight: "24px",
+              letterSpacing: "-0.336px",
+            }}
+          >
             {filter.type ?? "논문 유형"}
           </Typography>
-          <Box sx={dropdownArrowSx}>
-            <KeyboardArrowDownIcon
-              sx={{ fontSize: 20, color: "label.alternative" }}
-            />
+          <Box
+            sx={{
+              display: "flex",
+              width: "40px",
+              height: "40px",
+              padding: "9px 10px 11px 10px",
+              justifyContent: "center",
+              alignItems: "center",
+              borderRadius: "24px",
+              flexShrink: 0,
+            }}
+          >
+            {filter.type !== null ? (
+              <CloseIcon
+                onClick={(e: React.MouseEvent<SVGSVGElement>) => {
+                  e.stopPropagation();
+                  onFilterChange({ ...filter, type: null });
+                }}
+                sx={{ fontSize: 20, color: "#FFF", cursor: "pointer" }}
+              />
+            ) : (
+              <KeyboardArrowDownIcon
+                sx={{ fontSize: 20, color: "label.alternative" }}
+              />
+            )}
           </Box>
         </Box>
         {openDropdown === "type" && (
@@ -237,21 +303,10 @@ const BookmarkFilterBar = ({
             {PAPER_TYPES.map((type) => (
               <Box
                 key={type}
-                sx={
-                  filter.type === type ? dropdownItemActiveSx : dropdownItemSx
-                }
+                sx={dropdownItemSx(filter.type === type)}
                 onClick={() => handleTypeSelect(type)}
               >
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    flex: "1 0 0",
-                  }}
-                >
-                  <Typography sx={dropdownItemTextSx}>{type}</Typography>
-                </Box>
+                <Typography sx={dropdownItemTextSx}>{type}</Typography>
               </Box>
             ))}
           </Box>
