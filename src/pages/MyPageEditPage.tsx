@@ -30,7 +30,7 @@ import {
   ROLE_OPTIONS,
   PURPOSE_OPTIONS,
   GENDER_OPTIONS,
-  birthYearToAgeGroup,
+  type MypageData,
 } from "../types/mypage";
 import { mypageApi } from "../api/mypage";
 import { useMypageQuery } from "../queries/useMypageQuery";
@@ -98,23 +98,17 @@ const ERROR_TEXT_SX: SxProps<Theme> = {
 
 const currentYear = new Date().getFullYear();
 
-const MyPageEditPage = () => {
+// ─── 폼 컴포넌트 ──────────────────────────────────────────
+
+const MyPageEditForm = ({ data }: { data: MypageData }) => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const queryClient = useQueryClient();
 
-  const { data, isPending } = useMypageQuery();
-
-  // 출생연도는 폼 외부에서 별도 관리
-  const [birthYear, setBirthYear] = useState<string>("");
-  const [birthYearError, setBirthYearError] = useState<string>("");
-
-  const koreanAge = (() => {
-    const year = Number(birthYear);
-    if (!birthYear || isNaN(year)) return null;
-    return currentYear - year + 1;
-  })();
+  const [birthYearString, setBirthYearString] = useState(
+    data.profile.birth_year ? String(data.profile.birth_year) : "",
+  );
 
   const { mutate: updateProfile, isPending: isSubmitting } = useMutation({
     mutationFn: (formData: ProfileEditForm) =>
@@ -128,70 +122,31 @@ const MyPageEditPage = () => {
   const {
     control,
     handleSubmit,
-    setValue,
     formState: { isValid, errors },
   } = useForm<ProfileEditForm>({
     resolver: zodResolver(profileEditSchema),
     mode: "onChange",
-    values: data
-      ? {
-          name: data.profile.name,
-          gender: data.profile.gender as ProfileEditForm["gender"],
-          age: data.profile.age as ProfileEditForm["age"],
-          role: data.profile.role as ProfileEditForm["role"],
-          research_field: data.profile.research_field,
-          purposes: data.profile.purposes as ProfileEditForm["purposes"],
-        }
-      : undefined,
+    defaultValues: {
+      name: data.profile.name,
+      gender: data.profile.gender as ProfileEditForm["gender"],
+      birth_year: data.profile.birth_year,
+      role: data.profile.role as ProfileEditForm["role"],
+      research_field: data.profile.research_field,
+      purposes: data.profile.purposes as ProfileEditForm["purposes"],
+    },
   });
 
   const watchedName = useWatch({ control, name: "name" }) ?? "";
-
-  const handleBirthYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value.replace(/\D/g, "").slice(0, 4);
-    setBirthYear(val);
-
-    if (val.length === 0) {
-      setBirthYearError("");
-      return;
-    }
-
-    if (val.length < 4) {
-      setBirthYearError("출생 연도는 4자리로 입력해주세요");
-      return;
-    }
-
-    const year = Number(val);
-    if (year < 1920 || year > currentYear) {
-      setBirthYearError("1920년부터 현재까지 입력할 수 있어요");
-      return;
-    }
-
-    setBirthYearError("");
-    setValue("age", birthYearToAgeGroup(year), { shouldValidate: true });
-  };
+  const watchedBirthYear = useWatch({ control, name: "birth_year" });
+  const koreanAge = watchedBirthYear
+    ? currentYear - watchedBirthYear + 1
+    : null;
 
   const onSubmit: SubmitHandler<ProfileEditForm> = (formData) => {
-    if (!birthYear || birthYearError) return;
     updateProfile(formData);
   };
 
   const handleCancel = () => navigate("/mypage");
-
-  if (isPending) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
 
   const cardSx: SxProps<Theme> = {
     width: isMobile ? "100%" : "480px",
@@ -418,78 +373,92 @@ const MyPageEditPage = () => {
       >
         <Typography sx={FIELD_LABEL_SX}>출생 연도</Typography>
       </Box>
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "flex-start",
-          gap: "8px",
-          alignSelf: "stretch",
-        }}
-      >
-        <Box
-          sx={{
-            display: "flex",
-            width: "100%",
-            height: "56px",
-            padding: "8px 24px",
-            alignItems: "center",
-            borderRadius: "216px",
-            border: "1px solid",
-            borderColor: birthYearError ? "status.negative" : "line.normal",
-          }}
-        >
-          <Box
-            component="input"
-            type="text"
-            inputMode="numeric"
-            placeholder="출생 연도"
-            value={birthYear}
-            onChange={handleBirthYearChange}
-            sx={{
-              flex: 1,
-              border: "none",
-              outline: "none",
-              fontSize: "16px",
-              fontWeight: 400,
-              lineHeight: "24px",
-              letterSpacing: "-0.336px",
-              color: birthYearError ? "#D0220B" : "label.normal",
-              backgroundColor: "transparent",
-              "&::placeholder": { color: "label.assistive" },
-            }}
-          />
-          {koreanAge !== null && (
-            <Typography
-              sx={{
-                fontSize: "16px",
-                fontWeight: 400,
-                lineHeight: "24px",
-                letterSpacing: "-0.336px",
-                color: "label.assistive",
-                whiteSpace: "nowrap",
-                ml: "auto",
-              }}
-            >
-              {koreanAge}세
-            </Typography>
-          )}
-        </Box>
-        {birthYearError && (
+      <Controller
+        name="birth_year"
+        control={control}
+        render={({ field }) => (
           <Box
             sx={{
               display: "flex",
-              height: "24px",
-              padding: "0 8px 0 12px",
-              alignItems: "center",
-              gap: "10px",
+              flexDirection: "column",
+              alignItems: "flex-start",
+              gap: "8px",
               alignSelf: "stretch",
             }}
           >
-            <Typography sx={ERROR_TEXT_SX}>{birthYearError}</Typography>
+            <Box
+              sx={{
+                display: "flex",
+                width: "100%",
+                height: "56px",
+                padding: "8px 24px",
+                alignItems: "center",
+                borderRadius: "216px",
+                border: "1px solid",
+                borderColor: errors.birth_year
+                  ? "status.negative"
+                  : "line.normal",
+              }}
+            >
+              <Box
+                component="input"
+                type="text"
+                inputMode="numeric"
+                placeholder="출생 연도"
+                value={birthYearString}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  const val = e.target.value.replace(/\D/g, "").slice(0, 4);
+                  setBirthYearString(val);
+                  field.onChange(val.length === 4 ? Number(val) : undefined);
+                }}
+                sx={{
+                  flex: 1,
+                  border: "none",
+                  outline: "none",
+                  fontSize: "16px",
+                  fontWeight: 400,
+                  lineHeight: "24px",
+                  letterSpacing: "-0.336px",
+                  color: errors.birth_year ? "#D0220B" : "label.normal",
+                  backgroundColor: "transparent",
+                  "&::placeholder": { color: "label.assistive" },
+                }}
+              />
+              {koreanAge !== null && (
+                <Typography
+                  sx={{
+                    fontSize: "16px",
+                    fontWeight: 400,
+                    lineHeight: "24px",
+                    letterSpacing: "-0.336px",
+                    color: "label.assistive",
+                    whiteSpace: "nowrap",
+                    ml: "auto",
+                  }}
+                >
+                  {koreanAge}세
+                </Typography>
+              )}
+            </Box>
+            {errors.birth_year && (
+              <Box
+                sx={{
+                  display: "flex",
+                  height: "24px",
+                  padding: "0 8px 0 12px",
+                  alignItems: "center",
+                  gap: "10px",
+                  alignSelf: "stretch",
+                }}
+              >
+                <Typography sx={ERROR_TEXT_SX}>
+                  {errors.birth_year.message}
+                </Typography>
+              </Box>
+            )}
           </Box>
         )}
-      </Box>
+      />
     </Box>
   );
 
@@ -710,8 +679,6 @@ const MyPageEditPage = () => {
     </Box>
   );
 
-  const isFormValid = isValid && birthYear.length === 4 && !birthYearError;
-
   const buttonArea = (isDesktop: boolean) => (
     <Box
       sx={{
@@ -722,7 +689,7 @@ const MyPageEditPage = () => {
           : { alignSelf: "stretch", gap: "8px" }),
       }}
     >
-      {!isFormValid && (
+      {!isValid && (
         <Box
           sx={{
             display: "flex",
@@ -768,7 +735,7 @@ const MyPageEditPage = () => {
         </Button>
         <Button
           onClick={handleSubmit(onSubmit)}
-          disabled={!isFormValid || isSubmitting}
+          disabled={!isValid || isSubmitting}
           sx={{
             flex: "1 0 0",
             height: "56px",
@@ -813,7 +780,6 @@ const MyPageEditPage = () => {
             회원 정보 수정
           </Typography>
         </Box>
-
         <Box
           sx={{
             px: "16px",
@@ -850,7 +816,6 @@ const MyPageEditPage = () => {
             </Box>
             {purposesField(false)}
           </Box>
-
           <Box sx={{ alignSelf: "stretch", pb: "16px" }}>
             {buttonArea(false)}
           </Box>
@@ -880,7 +845,6 @@ const MyPageEditPage = () => {
           }}
         >
           {headerRow}
-
           <Box sx={cardSx}>
             <Box
               sx={{
@@ -898,7 +862,6 @@ const MyPageEditPage = () => {
               {researchField}
             </Box>
           </Box>
-
           <Box sx={cardSx}>
             {purposesField(true)}
             {buttonArea(true)}
@@ -907,6 +870,31 @@ const MyPageEditPage = () => {
       </Box>
     </Box>
   );
+};
+
+// ─── 페이지 컴포넌트 ──────────────────────────────────────
+
+const MyPageEditPage = () => {
+  const { data, isPending } = useMypageQuery();
+
+  if (isPending) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (!data) return null;
+
+  return <MyPageEditForm data={data} />;
 };
 
 export default MyPageEditPage;
