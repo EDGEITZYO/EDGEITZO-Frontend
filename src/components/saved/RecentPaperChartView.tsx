@@ -10,13 +10,12 @@ import {
 import { useTheme } from "@mui/material/styles";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import { type SxProps, type Theme } from "@mui/material/styles";
-import { useQuery } from "@tanstack/react-query";
 import BubbleChart from "./BubbleChart";
 import ChartRightPanel from "./ChartRightPanel";
 import { type ChartFilter, type PeriodMode } from "../../types/saved";
-import { savedApi } from "../../api/saved";
 import { formatDateParam } from "../../utils/savedUtils";
 import ChartAxisOverlay from "./ChartAxisOverlay";
+import { useRecentPaperStatsQuery } from "../../queries/useSavedQuery";
 
 interface RecentPaperChartViewProps {
   periodMode: PeriodMode;
@@ -76,17 +75,10 @@ const RecentPaperChartView = ({
 
   const dateParam = formatDateParam(currentDate);
 
-  const { data, isPending, isError } = useQuery({
-    queryKey: ["recent-paper-stats", periodMode, dateParam],
-    queryFn: async () => {
-      const res = await savedApi.getRecentPaperStats({
-        period: periodMode,
-        date: dateParam,
-      });
-      return res.data.data;
-    },
-    staleTime: 1000 * 60 * 5,
-  });
+  const { data, isPending, isError } = useRecentPaperStatsQuery(
+    periodMode,
+    dateParam,
+  );
 
   const filter: ChartFilter = {
     publish: (searchParams.get("publish") as ChartFilter["publish"]) || null,
@@ -239,7 +231,6 @@ const RecentPaperChartView = ({
     >
       {LeftPanel}
 
-      {/* 데스크탑일 때 좌측 높이에 맞추기 위한 래퍼(Wrapper) 적용 */}
       {isDesktop ? (
         <Box sx={{ width: "455px", position: "relative", flexShrink: 0 }}>
           <Box

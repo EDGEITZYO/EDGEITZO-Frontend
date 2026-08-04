@@ -8,13 +8,19 @@ import BookmarkIcon from "@mui/icons-material/Bookmark";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { paperApi } from "../../api/paper";
 import { bookmarkApi } from "../../api/bookmark";
 import BookmarkFolderSelectDialog from "./BookmarkFolderSelectDialog";
 import SimilarPaperCard from "../paper/SimilarPaperCard";
 import PaperTypeBadge from "./PaperTypeBadge";
 import CloseIcon from "@mui/icons-material/Close";
+import {
+  usePaperDetailQuery,
+  usePaperSimilarQuery,
+} from "../../queries/usePaperQuery";
+import { useBookmarkCheckQuery } from "../../queries/useBookmarkQuery";
+import { bookmarkKeys, homeKeys, savedKeys } from "../../queries/keys";
 
 interface PaperDetailContentProps {
   paperId: string;
@@ -80,7 +86,7 @@ const TrustBadge = ({ label }: { label: "KCI" | "SCI" }) => (
   </Box>
 );
 
-// ─── 섹션 헤더 (초록, 연관된 논문 공통) ────────────────────
+// ─── 섹션 헤더 ────────────────────────────────────────────
 
 const SectionHeader = ({ title }: { title: string }) => (
   <Box
@@ -130,32 +136,11 @@ const PaperDetailContent = ({
     data: paperData,
     isPending: isPaperPending,
     isError: isPaperError,
-  } = useQuery({
-    queryKey: ["paper", paperId],
-    queryFn: async () => {
-      const res = await paperApi.getPaper(paperId);
-      return res.data.data;
-    },
-    staleTime: 1000 * 60 * 5,
-  });
+  } = usePaperDetailQuery(paperId);
 
-  const { data: similarData } = useQuery({
-    queryKey: ["paper", paperId, "similar"],
-    queryFn: async () => {
-      const res = await paperApi.getSimilarPapers(paperId);
-      return res.data.data;
-    },
-    staleTime: 1000 * 60 * 5,
-  });
+  const { data: similarData } = usePaperSimilarQuery(paperId);
 
-  const { data: bookmarkData } = useQuery({
-    queryKey: ["bookmark", paperId],
-    queryFn: async () => {
-      const res = await bookmarkApi.checkBookmark(paperId);
-      return res.data.data;
-    },
-    staleTime: 0,
-  });
+  const { data: bookmarkData } = useBookmarkCheckQuery(paperId);
 
   useEffect(() => {
     if (recentReadCalled.current) return;
@@ -163,9 +148,9 @@ const PaperDetailContent = ({
     paperApi
       .recordRecentRead(paperId, searchId)
       .then(() => {
-        queryClient.invalidateQueries({ queryKey: ["home"] });
-        queryClient.invalidateQueries({ queryKey: ["recent-papers"] });
-        queryClient.invalidateQueries({ queryKey: ["recent-paper-stats"] });
+        queryClient.invalidateQueries({ queryKey: homeKeys.all });
+        queryClient.invalidateQueries({ queryKey: savedKeys.all });
+        queryClient.invalidateQueries({ queryKey: savedKeys.allStats });
       })
       .catch(() => {});
   }, [paperId, searchId, queryClient]);
@@ -177,10 +162,12 @@ const PaperDetailContent = ({
       }
     },
     onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey: ["bookmark", paperId] });
-      const previous = queryClient.getQueryData(["bookmark", paperId]);
+      await queryClient.cancelQueries({
+        queryKey: bookmarkKeys.check(paperId),
+      });
+      const previous = queryClient.getQueryData(bookmarkKeys.check(paperId));
       queryClient.setQueryData(
-        ["bookmark", paperId],
+        bookmarkKeys.check(paperId),
         (old: { paper_id: string; bookmarked: boolean } | undefined) => ({
           paper_id: paperId,
           bookmarked: !old?.bookmarked,
@@ -189,13 +176,14 @@ const PaperDetailContent = ({
       return { previous };
     },
     onError: (_err, _vars, context) => {
-      queryClient.setQueryData(["bookmark", paperId], context?.previous);
+      queryClient.setQueryData(bookmarkKeys.check(paperId), context?.previous);
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["bookmark", paperId] });
-      queryClient.invalidateQueries({ queryKey: ["saved-bookmarks"] });
-      queryClient.invalidateQueries({ queryKey: ["saved-bookmark-folders"] });
-      queryClient.invalidateQueries({ queryKey: ["saved-bookmarks-total"] });
+      queryClient.invalidateQueries({ queryKey: bookmarkKeys.check(paperId) });
+      queryClient.invalidateQueries({ queryKey: bookmarkKeys.savedList() });
+      queryClient.invalidateQueries({ queryKey: bookmarkKeys.savedFolders() });
+      queryClient.invalidateQueries({ queryKey: bookmarkKeys.savedTotal() });
+      queryClient.invalidateQueries({ queryKey: bookmarkKeys.folders() });
     },
     onSuccess: () => {
       if (onBookmarkChange) {
@@ -213,10 +201,11 @@ const PaperDetailContent = ({
   };
 
   const handleBookmarkAdded = () => {
-    queryClient.invalidateQueries({ queryKey: ["bookmark", paperId] });
-    queryClient.invalidateQueries({ queryKey: ["saved-bookmarks"] });
-    queryClient.invalidateQueries({ queryKey: ["saved-bookmark-folders"] });
-    queryClient.invalidateQueries({ queryKey: ["saved-bookmarks-total"] });
+    queryClient.invalidateQueries({ queryKey: bookmarkKeys.check(paperId) });
+    queryClient.invalidateQueries({ queryKey: bookmarkKeys.savedList() });
+    queryClient.invalidateQueries({ queryKey: bookmarkKeys.savedFolders() });
+    queryClient.invalidateQueries({ queryKey: bookmarkKeys.savedTotal() });
+    queryClient.invalidateQueries({ queryKey: bookmarkKeys.folders() });
     if (onBookmarkChange) {
       onBookmarkChange(paperId, true);
     }

@@ -1,21 +1,13 @@
 import { Box, CircularProgress, Typography } from "@mui/material";
-import { useQuery } from "@tanstack/react-query";
 import Sidebar from "../components/layout/Sidebar";
 import PersonalMessage from "../components/home/PersonalMessage";
 import SearchBar from "../components/home/SearchBar";
 import RecentSearchSection from "../components/home/RecentSearchSection";
 import RecentPaperSection from "../components/home/RecentPaperSection";
-import { homeApi } from "../api/home";
+import { useHomeQuery } from "../queries/useHomeQuery";
 
 const HomePage = () => {
-  const { data, isPending, isError } = useQuery({
-    queryKey: ["home"],
-    queryFn: async () => {
-      const res = await homeApi.getHome();
-      return res.data.data;
-    },
-    staleTime: 1000 * 60 * 5,
-  });
+  const { data, isPending, isError } = useHomeQuery();
 
   if (isPending) {
     return (

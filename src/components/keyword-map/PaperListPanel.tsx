@@ -24,7 +24,7 @@ import {
   useKeywordMapActions,
 } from "../../stores/keywordMapStore";
 import { useNodePapersQuery } from "../../queries/useNodePapersQuery";
-import { keywordMapKeys } from "../../queries/keys";
+import { keywordMapKeys, bookmarkKeys } from "../../queries/keys";
 
 // ─── 타입 ─────────────────────────────────────────────────
 
@@ -290,10 +290,11 @@ const PaperListPanel = () => {
           queryClient.invalidateQueries({
             queryKey: keywordMapKeys.papers(panelNodeKey ?? "", paperFilter),
           });
-          queryClient.invalidateQueries({ queryKey: ["saved-bookmarks"] });
+          queryClient.invalidateQueries({ queryKey: bookmarkKeys.savedList() });
           queryClient.invalidateQueries({
-            queryKey: ["saved-bookmark-folders"],
+            queryKey: bookmarkKeys.savedFolders(),
           });
+          queryClient.invalidateQueries({ queryKey: bookmarkKeys.folders() });
         })
         .catch(() => {});
     } else {
@@ -305,8 +306,9 @@ const PaperListPanel = () => {
     queryClient.invalidateQueries({
       queryKey: keywordMapKeys.papers(panelNodeKey ?? "", paperFilter),
     });
-    queryClient.invalidateQueries({ queryKey: ["saved-bookmarks"] });
-    queryClient.invalidateQueries({ queryKey: ["saved-bookmark-folders"] });
+    queryClient.invalidateQueries({ queryKey: bookmarkKeys.savedList() });
+    queryClient.invalidateQueries({ queryKey: bookmarkKeys.savedFolders() });
+    queryClient.invalidateQueries({ queryKey: bookmarkKeys.folders() });
     setBookmarkDialogPaperId(null);
   };
 
@@ -542,7 +544,6 @@ const PaperListPanel = () => {
                 <CloseIcon sx={{ fontSize: 24, color: "label.normal" }} />
               )}
             </IconButton>
-            {/* panelView === "list" 조건 제거 — detail일 때도 타이틀 보임 */}
             <Typography
               sx={{
                 display: "-webkit-box",
@@ -630,7 +631,7 @@ const PaperListPanel = () => {
           </Box>
         )}
 
-        {/* list — 모바일: 필터 + 목록 묶음 */}
+        {/* list — 모바일 */}
         {panelView === "list" && isMobile && (
           <Box
             sx={{
