@@ -3,18 +3,17 @@ import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { Box, Typography, IconButton, CircularProgress } from "@mui/material";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import CloseFullscreenIcon from "@mui/icons-material/CloseFullscreen";
-import { useQuery } from "@tanstack/react-query";
 import RecentPaperHeader from "../components/saved/RecentPaperHeader";
 import BubbleChart from "../components/saved/BubbleChart";
 import ChartRightPanel from "../components/saved/ChartRightPanel";
 import { type ChartFilter, type PeriodMode } from "../types/saved";
-import { savedApi } from "../api/saved";
 import {
   parseDateParam,
   formatDateParam,
   isPeriodMode,
 } from "../utils/savedUtils";
 import ChartAxisOverlay from "../components/saved/ChartAxisOverlay";
+import { useRecentPaperStatsQuery } from "../queries/useSavedQuery";
 
 const labelBoxSx: SxProps<Theme> = {
   display: "flex",
@@ -54,17 +53,10 @@ const RecentPaperFullscreenPage = () => {
     citation: (searchParams.get("citation") as ChartFilter["citation"]) || null,
   };
 
-  const { data, isPending, isError } = useQuery({
-    queryKey: ["recent-paper-stats", periodMode, dateParam],
-    queryFn: async () => {
-      const res = await savedApi.getRecentPaperStats({
-        period: periodMode,
-        date: dateParam,
-      });
-      return res.data.data;
-    },
-    staleTime: 1000 * 60 * 5,
-  });
+  const { data, isPending, isError } = useRecentPaperStatsQuery(
+    periodMode,
+    dateParam,
+  );
 
   const updateParams = (updates: Record<string, string | null>) => {
     const next = new URLSearchParams(searchParams);

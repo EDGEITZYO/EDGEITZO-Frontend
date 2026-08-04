@@ -13,6 +13,7 @@ import {
   useBreadcrumbs,
   usePaperPanel,
 } from "../stores/keywordMapStore";
+import { homeKeys } from "../queries/keys";
 
 const KeywordMapPage = () => {
   const navigate = useNavigate();
@@ -30,7 +31,7 @@ const KeywordMapPage = () => {
   useEffect(() => {
     return () => {
       reset();
-      queryClient.invalidateQueries({ queryKey: ["home"] });
+      queryClient.invalidateQueries({ queryKey: homeKeys.all });
     };
   }, [reset, queryClient]);
 

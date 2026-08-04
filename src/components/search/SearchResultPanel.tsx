@@ -23,6 +23,7 @@ import PaperListCard from "./PaperListCard";
 import PaperDetailContent from "../common/PaperDetailContent";
 import { bookmarkApi } from "../../api/bookmark";
 import BookmarkFolderSelectDialog from "../common/BookmarkFolderSelectDialog";
+import { bookmarkKeys } from "../../queries/keys";
 
 type ResultPanelView = "list" | "detail";
 
@@ -185,7 +186,7 @@ const DropdownFilter = ({
   );
 };
 
-// ─── 토글 필터 (KCI, SCI) ────────────────────────────────
+// ─── 토글 필터 ────────────────────────────────────────────
 
 interface ToggleFilterProps {
   label: string;
@@ -284,13 +285,14 @@ const SearchResultPanel = ({
         .removeBookmark(paperId)
         .then(() => {
           onBookmarkToggle(paperId, false);
-          queryClient.invalidateQueries({ queryKey: ["saved-bookmarks"] });
+          queryClient.invalidateQueries({ queryKey: bookmarkKeys.savedList() });
           queryClient.invalidateQueries({
-            queryKey: ["saved-bookmark-folders"],
+            queryKey: bookmarkKeys.savedFolders(),
           });
           queryClient.invalidateQueries({
-            queryKey: ["saved-bookmarks-total"],
+            queryKey: bookmarkKeys.savedTotal(),
           });
+          queryClient.invalidateQueries({ queryKey: bookmarkKeys.folders() });
         })
         .catch(() => {});
     } else {
@@ -687,14 +689,14 @@ const SearchResultPanel = ({
           if (bookmarkDialogPaperId) {
             onBookmarkToggle(bookmarkDialogPaperId, true);
           }
-          queryClient.invalidateQueries({ queryKey: ["saved-bookmarks"] });
+          queryClient.invalidateQueries({ queryKey: bookmarkKeys.savedList() });
           queryClient.invalidateQueries({
-            queryKey: ["saved-bookmark-folders"],
+            queryKey: bookmarkKeys.savedFolders(),
           });
           queryClient.invalidateQueries({
-            queryKey: ["saved-bookmarks-total"],
+            queryKey: bookmarkKeys.savedTotal(),
           });
-
+          queryClient.invalidateQueries({ queryKey: bookmarkKeys.folders() });
           setBookmarkDialogPaperId(null);
         }}
       />

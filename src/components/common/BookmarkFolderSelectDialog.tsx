@@ -13,10 +13,12 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
 import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { bookmarkApi } from "../../api/bookmark";
 import { type BookmarkFolder, type FolderDialogMode } from "../../types/saved";
 import FolderDialog from "../saved/FolderDialog";
+import { useBookmarkFoldersQuery } from "../../queries/useBookmarkQuery";
+import { bookmarkKeys } from "../../queries/keys";
 
 interface BookmarkFolderSelectDialogProps {
   open: boolean;
@@ -36,21 +38,13 @@ const BookmarkFolderSelectDialog = ({
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [createFolderDialogOpen, setCreateFolderDialogOpen] = useState(false);
 
-  const { data: folders, isPending } = useQuery({
-    queryKey: ["bookmark-folders"],
-    queryFn: async () => {
-      const res = await bookmarkApi.getFolders();
-      return res.data.data;
-    },
-    staleTime: 1000 * 60 * 5,
-    enabled: open,
-  });
+  const { data: folders, isPending } = useBookmarkFoldersQuery(open);
 
   const { mutate: createFolder } = useMutation({
     mutationFn: (name: string) => bookmarkApi.createFolder(name),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["bookmark-folders"] });
-      queryClient.invalidateQueries({ queryKey: ["saved-bookmark-folders"] });
+      queryClient.invalidateQueries({ queryKey: bookmarkKeys.folders() });
+      queryClient.invalidateQueries({ queryKey: bookmarkKeys.savedFolders() });
       setCreateFolderDialogOpen(false);
     },
     onError: () => {
@@ -63,10 +57,10 @@ const BookmarkFolderSelectDialog = ({
     try {
       await bookmarkApi.addBookmark(paperId, folder.id);
       onBookmarkAdded();
-      queryClient.invalidateQueries({ queryKey: ["saved-bookmarks"] });
-      queryClient.invalidateQueries({ queryKey: ["saved-bookmark-folders"] });
-      queryClient.invalidateQueries({ queryKey: ["saved-bookmarks-total"] });
-      queryClient.invalidateQueries({ queryKey: ["bookmark-folders"] });
+      queryClient.invalidateQueries({ queryKey: bookmarkKeys.savedList() });
+      queryClient.invalidateQueries({ queryKey: bookmarkKeys.savedFolders() });
+      queryClient.invalidateQueries({ queryKey: bookmarkKeys.savedTotal() });
+      queryClient.invalidateQueries({ queryKey: bookmarkKeys.folders() });
       setSnackbarMessage("북마크에 추가되었습니다");
       setSnackbarOpen(true);
       onClose();
@@ -80,10 +74,7 @@ const BookmarkFolderSelectDialog = ({
     setCreateFolderDialogOpen(true);
   };
 
-  const handleCreateFolderConfirm = (
-    mode: FolderDialogMode,
-    name?: string,
-  ) => {
+  const handleCreateFolderConfirm = (mode: FolderDialogMode, name?: string) => {
     if (mode === "create" && name) {
       createFolder(name);
     }
