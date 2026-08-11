@@ -14,7 +14,6 @@ import { useKeywordMapActions } from "../../stores/keywordMapStore";
 const KeywordNode = memo(
   ({ id, data, selected }: NodeProps<KeywordNodeData>) => {
     const [isHovered, setIsHovered] = useState(false);
-    const [isExpanding, setIsExpanding] = useState(false);
     const [definition, setDefinition] = useState<KMNodeDefinition | null>(null);
     const [isFetchingDetail, setIsFetchingDetail] = useState(false);
 
@@ -56,16 +55,11 @@ const KeywordNode = memo(
     }, [id, data.label, data.tier, openPaperPanel, setBreadcrumbAtTier]);
 
     // expand 로직은 KeywordMapGraph에서 관리 — 이벤트만 올려줌
-    const handleExpand = useCallback(async () => {
-      setIsExpanding(true);
-      try {
-        // KeywordMapGraph의 onExpandNode 이벤트를 트리거하기 위해
-        // ReactFlow의 커스텀 이벤트 사용
-        const event = new CustomEvent("expandNode", { detail: { nodeId: id } });
-        window.dispatchEvent(event);
-      } finally {
-        setIsExpanding(false);
-      }
+    const handleExpand = useCallback(() => {
+      // KeywordMapGraph의 onExpandNode 이벤트를 트리거하기 위해
+      // ReactFlow의 커스텀 이벤트 사용
+      const event = new CustomEvent("expandNode", { detail: { nodeId: id } });
+      window.dispatchEvent(event);
     }, [id]);
 
     return (
@@ -211,7 +205,7 @@ const KeywordNode = memo(
                   cursor: "pointer",
                 }}
               >
-                {isExpanding ? (
+                {data.isExpanding ? (
                   <CircularProgress size={20} sx={{ color: "#fff" }} />
                 ) : (
                   <ArrowForwardIcon

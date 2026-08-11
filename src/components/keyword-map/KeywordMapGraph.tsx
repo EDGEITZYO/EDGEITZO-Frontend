@@ -98,6 +98,7 @@ const buildGraphFromResponse = (
         crossLinkCount: n.cross_link_count,
         hasMore: n.has_more,
         isSelected: false,
+        isExpanding: false,
       },
     }),
   );
@@ -220,6 +221,14 @@ const KeywordMapGraph = ({ keyword }: KeywordMapGraphProps) => {
 
       const existingNodeKeys = nodes.map((n) => n.id);
 
+      setNodes((nds) =>
+        nds.map((n) =>
+          n.id === nodeId
+            ? { ...n, data: { ...n.data, isExpanding: true } }
+            : n,
+        ),
+      );
+
       try {
         const res = await keywordMapApi.expandNode(nodeId, {
           existing_node_keys: existingNodeKeys,
@@ -241,6 +250,7 @@ const KeywordMapGraph = ({ keyword }: KeywordMapGraphProps) => {
             crossLinkCount: n.cross_link_count,
             hasMore: n.has_more,
             isSelected: false,
+            isExpanding: false,
           },
         }));
 
@@ -289,6 +299,14 @@ const KeywordMapGraph = ({ keyword }: KeywordMapGraphProps) => {
         });
       } catch {
         // TODO: 에러 토스트
+      } finally {
+        setNodes((nds) =>
+          nds.map((n) =>
+            n.id === nodeId
+              ? { ...n, data: { ...n.data, isExpanding: false } }
+              : n,
+          ),
+        );
       }
     };
 

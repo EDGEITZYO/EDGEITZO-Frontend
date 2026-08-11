@@ -24,6 +24,7 @@ export interface KeywordNodeData {
   crossLinkCount: number;
   hasMore: boolean;
   isSelected: boolean;
+  isExpanding: boolean;
 }
 
 // ─── 브레드크럼 ───────────────────────────────────────────
