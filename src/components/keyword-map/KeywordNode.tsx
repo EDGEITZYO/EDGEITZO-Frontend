@@ -94,8 +94,9 @@ const KeywordNode = memo(
               gap: "2px",
               borderRadius: "6px",
               border: "1px solid #D8DAE5",
-              background:
-                "linear-gradient(223deg, #FFF 74.02%, #6ED835 454.11%)",
+              background: selected
+                ? "linear-gradient(223deg, #FFF 74.02%, #6ED835 454.11%)"
+                : "#FFF",
               cursor: "pointer",
               position: "relative",
             }}

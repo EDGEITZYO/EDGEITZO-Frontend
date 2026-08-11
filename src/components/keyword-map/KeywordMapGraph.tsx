@@ -90,7 +90,7 @@ const buildGraphFromResponse = (
       type: "keywordNode",
       position: { x: 0, y: 0 },
       data: {
-        label: n.name_ko ?? n.key,
+        label: n.name_ko ?? n.name_en ?? n.key,
         tier: Math.min(n.tier, 3) as 0 | 1 | 2 | 3,
         side: n.side,
         paperCount: n.paper_count,
@@ -164,14 +164,17 @@ const KeywordMapGraph = ({ keyword }: KeywordMapGraphProps) => {
         nodes: layoutedNodes,
         edges: layoutedEdges,
         anchorKey: anchor.key,
-        anchorLabel: anchor.name_ko ?? anchor.key,
-        hasMoreParents: false,
+        anchorLabel: anchor.name_ko ?? anchor.name_en ?? anchor.key,
         hasMoreChildren: false,
       });
 
       if (isInitial) {
         setBreadcrumbs([
-          { nodeKey: anchor.key, label: anchor.name_ko ?? anchor.key, tier: 0 },
+          {
+            nodeKey: anchor.key,
+            label: anchor.name_ko ?? anchor.name_en ?? anchor.key,
+            tier: 0,
+          },
         ]);
         setTimeout(() => fitView({ padding: 0.1 }), 0);
       }
@@ -230,7 +233,7 @@ const KeywordMapGraph = ({ keyword }: KeywordMapGraphProps) => {
           type: "keywordNode",
           position: { x: 0, y: 0 },
           data: {
-            label: n.name_ko ?? n.key,
+            label: n.name_ko ?? n.name_en ?? n.key,
             tier: Math.min(n.tier, 3) as 0 | 1 | 2 | 3,
             side: n.side,
             paperCount: n.paper_count,
@@ -276,7 +279,6 @@ const KeywordMapGraph = ({ keyword }: KeywordMapGraphProps) => {
           edges: treeEdgesOnly,
           anchorKey: "",
           anchorLabel: "",
-          hasMoreParents: false,
           hasMoreChildren: false,
         });
 

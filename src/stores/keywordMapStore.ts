@@ -16,7 +16,6 @@ interface KeywordMapState {
   edges: Edge[];
   anchorKey: string;
   anchorLabel: string;
-  hasMoreParents: boolean;
   hasMoreChildren: boolean;
   breadcrumbs: BreadcrumbItem[];
   selectedNodeKey: string | null;
@@ -36,7 +35,6 @@ interface KeywordMapActions {
     edges: Edge[];
     anchorKey: string;
     anchorLabel: string;
-    hasMoreParents: boolean;
     hasMoreChildren: boolean;
   }) => void;
   setBreadcrumbs: (breadcrumbs: BreadcrumbItem[]) => void;
@@ -60,7 +58,6 @@ const initialState: KeywordMapState = {
   edges: [],
   anchorKey: "",
   anchorLabel: "",
-  hasMoreParents: false,
   hasMoreChildren: false,
   breadcrumbs: [],
   selectedNodeKey: null,
@@ -82,20 +79,12 @@ const useKeywordMapStore = create<KeywordMapState & KeywordMapActions>()(
   (set) => ({
     ...initialState,
 
-    setGraph: ({
-      nodes,
-      edges,
-      anchorKey,
-      anchorLabel,
-      hasMoreParents,
-      hasMoreChildren,
-    }) =>
+    setGraph: ({ nodes, edges, anchorKey, anchorLabel, hasMoreChildren }) =>
       set({
         nodes,
         edges,
         anchorKey,
         anchorLabel,
-        hasMoreParents,
         hasMoreChildren,
       }),
 
@@ -158,7 +147,6 @@ export const useKeywordMapGraph = () =>
       edges: state.edges,
       anchorKey: state.anchorKey,
       anchorLabel: state.anchorLabel,
-      hasMoreParents: state.hasMoreParents,
       hasMoreChildren: state.hasMoreChildren,
     })),
   );
