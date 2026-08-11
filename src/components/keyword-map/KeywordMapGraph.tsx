@@ -90,7 +90,7 @@ const buildGraphFromResponse = (
       type: "keywordNode",
       position: { x: 0, y: 0 },
       data: {
-        label: n.name_ko ?? n.key,
+        label: n.name_ko ?? n.name_en ?? n.key,
         tier: Math.min(n.tier, 3) as 0 | 1 | 2 | 3,
         side: n.side,
         paperCount: n.paper_count,
@@ -98,6 +98,7 @@ const buildGraphFromResponse = (
         crossLinkCount: n.cross_link_count,
         hasMore: n.has_more,
         isSelected: false,
+        isExpanding: false,
       },
     }),
   );
@@ -164,14 +165,17 @@ const KeywordMapGraph = ({ keyword }: KeywordMapGraphProps) => {
         nodes: layoutedNodes,
         edges: layoutedEdges,
         anchorKey: anchor.key,
-        anchorLabel: anchor.name_ko ?? anchor.key,
-        hasMoreParents: false,
+        anchorLabel: anchor.name_ko ?? anchor.name_en ?? anchor.key,
         hasMoreChildren: false,
       });
 
       if (isInitial) {
         setBreadcrumbs([
-          { nodeKey: anchor.key, label: anchor.name_ko ?? anchor.key, tier: 0 },
+          {
+            nodeKey: anchor.key,
+            label: anchor.name_ko ?? anchor.name_en ?? anchor.key,
+            tier: 0,
+          },
         ]);
         setTimeout(() => fitView({ padding: 0.1 }), 0);
       }
@@ -217,6 +221,14 @@ const KeywordMapGraph = ({ keyword }: KeywordMapGraphProps) => {
 
       const existingNodeKeys = nodes.map((n) => n.id);
 
+      setNodes((nds) =>
+        nds.map((n) =>
+          n.id === nodeId
+            ? { ...n, data: { ...n.data, isExpanding: true } }
+            : n,
+        ),
+      );
+
       try {
         const res = await keywordMapApi.expandNode(nodeId, {
           existing_node_keys: existingNodeKeys,
@@ -230,7 +242,7 @@ const KeywordMapGraph = ({ keyword }: KeywordMapGraphProps) => {
           type: "keywordNode",
           position: { x: 0, y: 0 },
           data: {
-            label: n.name_ko ?? n.key,
+            label: n.name_ko ?? n.name_en ?? n.key,
             tier: Math.min(n.tier, 3) as 0 | 1 | 2 | 3,
             side: n.side,
             paperCount: n.paper_count,
@@ -238,6 +250,7 @@ const KeywordMapGraph = ({ keyword }: KeywordMapGraphProps) => {
             crossLinkCount: n.cross_link_count,
             hasMore: n.has_more,
             isSelected: false,
+            isExpanding: false,
           },
         }));
 
@@ -276,7 +289,6 @@ const KeywordMapGraph = ({ keyword }: KeywordMapGraphProps) => {
           edges: treeEdgesOnly,
           anchorKey: "",
           anchorLabel: "",
-          hasMoreParents: false,
           hasMoreChildren: false,
         });
 
@@ -287,6 +299,14 @@ const KeywordMapGraph = ({ keyword }: KeywordMapGraphProps) => {
         });
       } catch {
         // TODO: 에러 토스트
+      } finally {
+        setNodes((nds) =>
+          nds.map((n) =>
+            n.id === nodeId
+              ? { ...n, data: { ...n.data, isExpanding: false } }
+              : n,
+          ),
+        );
       }
     };
 

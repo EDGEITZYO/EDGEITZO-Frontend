@@ -7,7 +7,7 @@ export type NodeTier = 0 | 1 | 2 | 3;
 
 // ─── 노드 side ────────────────────────────────────────────
 
-export type NodeSide = "anchor" | "parent" | "child";
+export type NodeSide = "anchor" | "child";
 
 // ─── 엣지 타입 ────────────────────────────────────────────
 
@@ -24,6 +24,7 @@ export interface KeywordNodeData {
   crossLinkCount: number;
   hasMore: boolean;
   isSelected: boolean;
+  isExpanding: boolean;
 }
 
 // ─── 브레드크럼 ───────────────────────────────────────────
