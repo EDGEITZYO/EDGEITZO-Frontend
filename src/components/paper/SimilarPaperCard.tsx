@@ -94,7 +94,9 @@ const SimilarPaperCard = ({
         borderRadius: "8px",
         border: "1px solid",
         borderColor: "line.neutral",
-        backgroundColor: isClickable ? "background.default" : "fill.normal",
+        backgroundColor: isClickable
+          ? "background.default"
+          : "background.paper",
         display: "flex",
         flexDirection: "column",
         gap: "12px",
@@ -104,75 +106,139 @@ const SimilarPaperCard = ({
       }}
     >
       {/* 배지들 */}
-      {(paper.trust_badge?.kci || paper.trust_badge?.sci) && (
+      {!paper.in_service ? (
         <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          {paper.trust_badge.kci && <TrustBadge label="KCI" />}
-          {paper.trust_badge.sci && <TrustBadge label="SCI" />}
+          <Box
+            sx={{
+              display: "flex",
+              padding: "3px 8px 4px 8px",
+              justifyContent: "center",
+              alignItems: "center",
+              borderRadius: "6px",
+              border: "1px solid",
+              borderColor: "label.normal",
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: "16px",
+                fontWeight: 600,
+                lineHeight: "24px",
+                letterSpacing: "-0.336px",
+                color: "label.normal",
+              }}
+            >
+              외부 논문
+            </Typography>
+          </Box>
         </Box>
+      ) : (
+        (paper.trust_badge?.citation_count != null ||
+          paper.trust_badge?.kci ||
+          paper.trust_badge?.sci) && (
+          <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            {paper.trust_badge?.citation_count != null && (
+              <Box
+                sx={{
+                  display: "flex",
+                  padding: "3px 8px 4px 8px",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: "10px",
+                  borderRadius: "6px",
+                  border: "1px solid",
+                  borderColor: "label.normal",
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: "16px",
+                    fontWeight: 600,
+                    lineHeight: "24px",
+                    letterSpacing: "-0.336px",
+                    color: "label.normal",
+                  }}
+                >
+                  인용수 {paper.trust_badge.citation_count}
+                </Typography>
+              </Box>
+            )}
+            {paper.trust_badge?.kci && <TrustBadge label="KCI" />}
+            {paper.trust_badge?.sci && <TrustBadge label="SCI" />}
+          </Box>
+        )
       )}
 
       {/* 제목 */}
       <Typography sx={titleSx}>{paper.title}</Typography>
 
       {/* 저자 */}
-      {authors.length > 0 && (
-        <Box>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              cursor: authors.length > 1 ? "pointer" : "default",
-            }}
-            onClick={(e: React.MouseEvent<HTMLDivElement>) => {
-              e.stopPropagation();
-              if (authors.length > 1) setAuthorExpanded((prev) => !prev);
-            }}
-          >
-            <Typography sx={authorTextSx}>
-              {authors.length > 1
-                ? `${authors[0]} 외 ${authors.length - 1}인`
-                : authors[0]}
-            </Typography>
-            {authors.length > 1 && (
-              <IconButton
-                sx={{
-                  display: "flex",
-                  width: "20px",
-                  height: "20px",
-                  padding: "5px",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  flexShrink: 0,
-                  borderRadius: "12px",
-                }}
+      {!paper.in_service ? (
+        <Typography sx={authorTextSx}>정보 없음</Typography>
+      ) : (
+        authors.length > 0 && (
+          <Box>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                cursor: authors.length > 1 ? "pointer" : "default",
+              }}
+              onClick={(e: React.MouseEvent<HTMLDivElement>) => {
+                e.stopPropagation();
+                if (authors.length > 1) setAuthorExpanded((prev) => !prev);
+              }}
+            >
+              <Typography sx={authorTextSx}>
+                {authors.length > 1
+                  ? `${authors[0]} 외 ${authors.length - 1}인`
+                  : authors[0]}
+              </Typography>
+              {authors.length > 1 && (
+                <IconButton
+                  sx={{
+                    display: "flex",
+                    width: "20px",
+                    height: "20px",
+                    padding: "5px",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    flexShrink: 0,
+                    borderRadius: "12px",
+                  }}
+                >
+                  {authorExpanded ? (
+                    <KeyboardArrowUpIcon sx={{ fontSize: 10 }} />
+                  ) : (
+                    <KeyboardArrowDownIcon sx={{ fontSize: 10 }} />
+                  )}
+                </IconButton>
+              )}
+            </Box>
+            {authorExpanded && (
+              <Typography
+                sx={{ ...authorTextSx, color: "label.assistive", mt: "4px" }}
               >
-                {authorExpanded ? (
-                  <KeyboardArrowUpIcon sx={{ fontSize: 10 }} />
-                ) : (
-                  <KeyboardArrowDownIcon sx={{ fontSize: 10 }} />
-                )}
-              </IconButton>
+                {authors.join(", ")}
+              </Typography>
             )}
           </Box>
-          {authorExpanded && (
-            <Typography
-              sx={{ ...authorTextSx, color: "label.assistive", mt: "4px" }}
-            >
-              {authors.join(", ")}
-            </Typography>
-          )}
-        </Box>
+        )
       )}
 
       {/* 저널 정보 */}
-      {(paper.journal_name || paper.pubyear) && (
-        <Typography sx={journalSx}>
-          {[paper.pubyear, paper.journal_name].filter(Boolean).join(" ")}
-        </Typography>
-      )}
+      {!paper.in_service
+        ? paper.pubyear && (
+            <Typography sx={journalSx}>{paper.pubyear}</Typography>
+          )
+        : (paper.journal_name || paper.pubyear) && (
+            <Typography sx={journalSx}>
+              {[paper.pubyear, paper.journal_name].filter(Boolean).join(" ")}
+            </Typography>
+          )}
 
-      {/* 키워드 */}
-      {paper.keywords && paper.keywords.length > 0 && (
+      {/* 키워드 — in_service일 때만 */}
+      {paper.in_service && paper.keywords && paper.keywords.length > 0 && (
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
           {paper.keywords.map((kw, index) => (
             <Box
