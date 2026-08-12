@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { type SxProps, type Theme, useTheme } from "@mui/material/styles";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import TopNavBar from "../components/layout/TopNavBar";
 import BookmarkFilterBar from "../components/saved/BookmarkFilterBar";
 import SavedPaperCard from "../components/saved/SavedPaperCard";
@@ -19,6 +19,11 @@ import { type BookmarkFilter, type FolderDialogState } from "../types/saved";
 import { bookmarkApi } from "../api/bookmark";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import {
+  useBookmarkFolderQuery,
+  useBookmarkSavedListQuery,
+} from "../queries/useBookmarkQuery";
+import { bookmarkKeys } from "../queries/keys";
 
 const PAGE_SIZE = 10;
 
@@ -193,35 +198,21 @@ const BookmarkFolderDetailPage = () => {
     setPage(1);
   };
 
-  // 폴더 단건 조회
-  const { data: folder, isPending: isFolderPending } = useQuery({
-    queryKey: ["bookmark-folder", folderId],
-    queryFn: async () => {
-      const res = await bookmarkApi.getFolder(folderId!);
-      return res.data.data;
-    },
-    enabled: !!folderId && folderId !== "all",
-    staleTime: 1000 * 60 * 5,
-  });
+  const { data: folder, isPending: isFolderPending } = useBookmarkFolderQuery(
+    folderId ?? "",
+  );
 
-  // 북마크 논문 목록
-  const { data: bookmarkData, isPending: isBookmarksPending } = useQuery({
-    queryKey: ["saved-bookmarks", folderId, filter, page],
-    queryFn: async () => {
-      const res = await bookmarkApi.getSavedBookmarks({
-        folder_id: folderId === "all" ? undefined : folderId,
-        page,
-        size: PAGE_SIZE,
-        year: filter.year ?? undefined,
-        type: filter.type ?? undefined,
-        kci: filter.kci ?? undefined,
-        sci: filter.sci ?? undefined,
-      });
-      return res.data.data;
-    },
-    enabled: !!folderId,
-    staleTime: 1000 * 60 * 5,
-  });
+  const { data: bookmarkData, isPending: isBookmarksPending } =
+    useBookmarkSavedListQuery({
+      folderId,
+      folder_id: folderId === "all" ? undefined : folderId,
+      page,
+      size: PAGE_SIZE,
+      year: filter.year ?? undefined,
+      type: filter.type ?? undefined,
+      kci: filter.kci ?? undefined,
+      sci: filter.sci ?? undefined,
+    });
 
   const papers = bookmarkData?.items ?? [];
   const totalCount = bookmarkData?.total ?? 0;
@@ -232,14 +223,17 @@ const BookmarkFolderDetailPage = () => {
     mutationFn: (paperId: string) => bookmarkApi.removeBookmark(paperId),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["saved-bookmarks", folderId],
+        queryKey: bookmarkKeys.savedList(folderId),
       });
-      queryClient.invalidateQueries({ queryKey: ["saved-bookmarks", "all"] });
       queryClient.invalidateQueries({
-        queryKey: ["bookmark-folder", folderId],
+        queryKey: bookmarkKeys.savedList("all"),
       });
-      queryClient.invalidateQueries({ queryKey: ["saved-bookmark-folders"] });
-      queryClient.invalidateQueries({ queryKey: ["saved-bookmarks-total"] });
+      queryClient.invalidateQueries({
+        queryKey: bookmarkKeys.folder(folderId!),
+      });
+      queryClient.invalidateQueries({ queryKey: bookmarkKeys.savedFolders() });
+      queryClient.invalidateQueries({ queryKey: bookmarkKeys.savedTotal() });
+      queryClient.invalidateQueries({ queryKey: bookmarkKeys.folders() });
       setSnackbarMessage("북마크가 삭제되었어요");
       setSnackbarOpen(true);
     },
@@ -255,9 +249,9 @@ const BookmarkFolderDetailPage = () => {
       bookmarkApi.updateFolder(folderId!, name),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["bookmark-folder", folderId],
+        queryKey: bookmarkKeys.folder(folderId!),
       });
-      queryClient.invalidateQueries({ queryKey: ["saved-bookmark-folders"] });
+      queryClient.invalidateQueries({ queryKey: bookmarkKeys.savedFolders() });
     },
     onError: () => {
       setSnackbarMessage("폴더 수정에 실패했어요");
@@ -269,7 +263,7 @@ const BookmarkFolderDetailPage = () => {
   const { mutate: deleteFolder } = useMutation({
     mutationFn: () => bookmarkApi.deleteFolder(folderId!),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["saved-bookmark-folders"] });
+      queryClient.invalidateQueries({ queryKey: bookmarkKeys.savedFolders() });
       navigate("/saved/bookmark");
     },
     onError: () => {

@@ -19,6 +19,7 @@ import {
 } from "../types/search";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import CloseIcon from "@mui/icons-material/Close";
+import { homeKeys } from "../queries/keys";
 
 // ─── Location State ───────────────────────────────────────
 
@@ -200,7 +201,7 @@ const SearchPage = () => {
             },
             onDone: (response) => {
               setSessionId(response.session_id);
-              queryClient.invalidateQueries({ queryKey: ["home"] });
+              queryClient.invalidateQueries({ queryKey: homeKeys.all });
 
               const newBookmarks: Record<string, boolean> = {};
               response.result_items.forEach(
@@ -324,7 +325,6 @@ const SearchPage = () => {
       const messageIndex = messages.findIndex((m) => m.id === messageId);
       if (messageIndex === -1) return;
       const targetMessage = messages[messageIndex];
-      // 해당 메시지 이후(AI 답변 포함) 전부 제거
       setMessages((prev) => prev.slice(0, messageIndex));
       handleSend(targetMessage.content);
     },
@@ -337,7 +337,6 @@ const SearchPage = () => {
     (messageId: string, newContent: string) => {
       const messageIndex = messages.findIndex((m) => m.id === messageId);
       if (messageIndex === -1) return;
-      // 해당 메시지 이후 전부 제거하고 수정된 내용으로 재전송
       setMessages((prev) => prev.slice(0, messageIndex));
       handleSend(newContent);
     },

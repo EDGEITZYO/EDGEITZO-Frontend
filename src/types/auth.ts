@@ -48,7 +48,7 @@ export interface LoginRequest {
 export interface ProfileRequest {
   name: string;
   gender: "남성" | "여성" | "선택 안함";
-  age: string;
+  birth_year: number;
   role: string;
   research_field: string;
   purposes: string[];

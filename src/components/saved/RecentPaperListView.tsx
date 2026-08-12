@@ -1,17 +1,19 @@
 import { useState } from "react";
 import { Box, Typography, CircularProgress } from "@mui/material";
 import { type SxProps, type Theme } from "@mui/material/styles";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import SavedPaperCard from "./SavedPaperCard";
 import { type RecentPaper, type PeriodMode } from "../../types/saved";
-import { savedApi } from "../../api/saved";
 import { formatDateParam } from "../../utils/savedUtils";
 import { bookmarkApi } from "../../api/bookmark";
 import BookmarkFolderSelectDialog from "../common/BookmarkFolderSelectDialog";
 import FolderDialog from "./FolderDialog";
 import { type FolderDialogState } from "../../types/saved";
+import { useRecentPapersQuery } from "../../queries/useSavedQuery";
+import { bookmarkKeys, savedKeys } from "../../queries/keys";
+import { savedApi } from "../../api/saved";
 
 const PAGE_SIZE = 10;
 
@@ -128,27 +130,27 @@ const RecentPaperListView = ({
 
   const dateParam = formatDateParam(currentDate);
 
-  const { data, isPending, isError } = useQuery({
-    queryKey: ["recent-papers", periodMode, dateParam],
-    queryFn: async () => {
-      const res = await savedApi.getRecentPapers({
-        period: periodMode,
-        date: dateParam,
-      });
-      return res.data.data;
-    },
-    staleTime: 1000 * 60 * 5,
-  });
+  const { data, isPending, isError } = useRecentPapersQuery(
+    periodMode,
+    dateParam,
+  );
 
   const { mutate: removeBookmark } = useMutation({
     mutationFn: (paperId: string) => bookmarkApi.removeBookmark(paperId),
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["recent-papers"] });
-      queryClient.invalidateQueries({ queryKey: ["saved-bookmarks"] });
-      queryClient.invalidateQueries({ queryKey: ["saved-bookmark-folders"] });
-      queryClient.invalidateQueries({ queryKey: ["saved-bookmarks-total"] });
-      queryClient.invalidateQueries({ queryKey: ["bookmark"] });
-      queryClient.invalidateQueries({ queryKey: ["bookmark-folders"] });
+      queryClient.invalidateQueries({ queryKey: savedKeys.all });
+      queryClient.invalidateQueries({ queryKey: bookmarkKeys.savedList() });
+      queryClient.invalidateQueries({ queryKey: bookmarkKeys.savedFolders() });
+      queryClient.invalidateQueries({ queryKey: bookmarkKeys.savedTotal() });
+      queryClient.invalidateQueries({ queryKey: bookmarkKeys.check("") });
+      queryClient.invalidateQueries({ queryKey: bookmarkKeys.folders() });
+    },
+  });
+
+  const { mutate: deleteRecentPaper } = useMutation({
+    mutationFn: (paperId: string) => savedApi.deleteRecentPaper(paperId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: savedKeys.all });
     },
   });
 
@@ -184,8 +186,7 @@ const RecentPaperListView = ({
   };
 
   const handleDelete = (paperId: string) => {
-    // TODO: 최근 읽은 논문 삭제 API 백엔드 미구현
-    console.log("delete", paperId);
+    deleteRecentPaper(paperId);
   };
 
   // 날짜별 그루핑 (pagedPapers 기준)
@@ -337,7 +338,7 @@ const RecentPaperListView = ({
         onClose={() => setBookmarkPaperId(null)}
         paperId={bookmarkPaperId ?? ""}
         onBookmarkAdded={() => {
-          queryClient.invalidateQueries({ queryKey: ["recent-papers"] });
+          queryClient.invalidateQueries({ queryKey: savedKeys.all });
           setBookmarkPaperId(null);
         }}
       />

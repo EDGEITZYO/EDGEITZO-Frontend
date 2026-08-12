@@ -40,14 +40,11 @@ const OnboardingPage = () => {
 
   const handleStart = async () => {
     if (!gender || !birthYear || !job) return;
-    const currentYear = new Date().getFullYear();
-    const age = Math.floor((currentYear - birthYear + 1) / 10) * 10;
-    const ageGroup = `${age}대`;
     try {
       await authApi.createProfile({
         name,
         gender,
-        age: ageGroup,
+        birth_year: birthYear,
         role: job,
         research_field: researchField,
         purposes,

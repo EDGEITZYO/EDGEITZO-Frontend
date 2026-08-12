@@ -9,7 +9,7 @@ export interface MypageProfile {
   provider: string;
   name: string;
   gender: string;
-  age: string;
+  birth_year: number;
   role: string;
   research_field: string;
   purposes: string[];
@@ -50,20 +50,11 @@ const PURPOSES: [Purpose, ...Purpose[]] = [
   "연구자 탐색",
 ];
 
-export const AGE_OPTIONS = [
-  "20대",
-  "30대",
-  "40대",
-  "50대",
-  "60대",
-  "70대",
-  "80대 이상",
-] as const;
-export type AgeGroup = (typeof AGE_OPTIONS)[number];
-
 export const ROLE_OPTIONS = ROLES;
 export const PURPOSE_OPTIONS = PURPOSES;
 export const GENDER_OPTIONS = GENDERS;
+
+const CURRENT_YEAR = new Date().getFullYear();
 
 export const profileEditSchema = z.object({
   name: z
@@ -72,7 +63,10 @@ export const profileEditSchema = z.object({
     .max(10, "이름은 10자 이하로 입력해주세요")
     .regex(/^[a-zA-Z0-9가-힣]*$/, "특수문자는 입력할 수 없어요"),
   gender: z.enum(GENDERS, { message: "성별을 선택해주세요" }),
-  age: z.enum(AGE_OPTIONS, { message: "나이를 선택해주세요" }),
+  birth_year: z
+    .number({ message: "출생 연도를 입력해주세요" })
+    .min(1920, "1920년부터 현재까지 입력할 수 있어요")
+    .max(CURRENT_YEAR, "1920년부터 현재까지 입력할 수 있어요"),
   role: z.enum(ROLES, { message: "역할을 선택해주세요" }),
   research_field: z.string().min(1, "전공·연구 분야를 입력해주세요"),
   purposes: z
@@ -81,13 +75,3 @@ export const profileEditSchema = z.object({
 });
 
 export type ProfileEditForm = z.infer<typeof profileEditSchema>;
-
-// ─── 유틸 ─────────────────────────────────────────────────
-
-export const birthYearToAgeGroup = (birthYear: number): AgeGroup => {
-  const koreanAge = new Date().getFullYear() - birthYear + 1;
-  const decade = Math.floor(koreanAge / 10) * 10;
-  if (decade >= 80) return "80대 이상";
-  if (decade < 20) return "20대";
-  return `${decade}대` as AgeGroup;
-};

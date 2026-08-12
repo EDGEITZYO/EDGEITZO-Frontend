@@ -7,7 +7,7 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import { type SxProps, type Theme } from "@mui/material/styles";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import BookmarkFolderGrid from "./BookmarkFolderGrid";
 import FolderDialog from "./FolderDialog";
 import {
@@ -16,6 +16,11 @@ import {
   type FolderDialogMode,
 } from "../../types/saved";
 import { bookmarkApi } from "../../api/bookmark";
+import {
+  useBookmarkSavedFoldersQuery,
+  useBookmarkSavedTotalQuery,
+} from "../../queries/useBookmarkQuery";
+import { bookmarkKeys } from "../../queries/keys";
 
 const containerSx: SxProps<Theme> = {
   display: "flex",
@@ -76,37 +81,22 @@ const BookmarkContent = () => {
   const [dialogState, setDialogState] =
     useState<FolderDialogState>(INITIAL_DIALOG_STATE);
 
-  const { data: folders, isPending } = useQuery({
-    queryKey: ["saved-bookmark-folders"],
-    queryFn: async () => {
-      const res = await bookmarkApi.getSavedFolders();
-      return res.data.data;
-    },
-    staleTime: 1000 * 60 * 5,
-  });
-
-  const { data: totalCount } = useQuery({
-    queryKey: ["saved-bookmarks-total"],
-    queryFn: async () => {
-      const res = await bookmarkApi.getSavedBookmarks({ page: 1, size: 1 });
-      return res.data.data.total;
-    },
-    staleTime: 1000 * 60 * 5,
-  });
+  const { data: folders, isPending } = useBookmarkSavedFoldersQuery();
+  const { data: totalCount } = useBookmarkSavedTotalQuery();
 
   const { mutate: updateFolder } = useMutation({
     mutationFn: ({ folderId, name }: { folderId: string; name: string }) =>
       bookmarkApi.updateFolder(folderId, name),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["saved-bookmark-folders"] });
-      queryClient.invalidateQueries({ queryKey: ["bookmark-folder"] });
+      queryClient.invalidateQueries({ queryKey: bookmarkKeys.savedFolders() });
+      queryClient.invalidateQueries({ queryKey: bookmarkKeys.folder("") });
     },
   });
 
   const { mutate: deleteFolder } = useMutation({
     mutationFn: (folderId: string) => bookmarkApi.deleteFolder(folderId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["saved-bookmark-folders"] });
+      queryClient.invalidateQueries({ queryKey: bookmarkKeys.savedFolders() });
     },
   });
 
