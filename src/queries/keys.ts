@@ -42,3 +42,8 @@ export const savedKeys = {
   recentPaperStats: (periodMode: string, dateParam: string) =>
     ["recent-paper-stats", periodMode, dateParam] as const,
 };
+
+export const citationKeys = {
+  graph: (paperId: string, direction: string) =>
+    ["citation", paperId, direction] as const,
+};
