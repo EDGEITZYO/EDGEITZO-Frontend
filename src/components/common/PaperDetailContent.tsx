@@ -21,6 +21,7 @@ import {
 } from "../../queries/usePaperQuery";
 import { useBookmarkCheckQuery } from "../../queries/useBookmarkQuery";
 import { bookmarkKeys, homeKeys, savedKeys } from "../../queries/keys";
+import CitationMiniGraph from "../citation/CitationMiniGraph";
 
 interface PaperDetailContentProps {
   paperId: string;
@@ -673,6 +674,9 @@ const PaperDetailContent = ({
           </Box>
         </Box>
       )}
+
+      {/* 논문 관계 */}
+      <CitationMiniGraph paperId={paperId} />
 
       <BookmarkFolderSelectDialog
         open={bookmarkDialogOpen}
