@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
 import { Box, Typography, IconButton, useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { ReactFlowProvider } from "reactflow";
 import SearchIcon from "@mui/icons-material/Search";
 import type { CitationTab } from "../../types/citation";
 import { useCitationGraphActions } from "../../stores/citationGraphStore";
 import { useCitationGraphQuery } from "../../queries/useCitationQuery";
 import CitationGraphCanvas from "./CitationGraphCanvas";
+import CitationFullPanel from "./CitationFullPanel";
 
 interface CitationMiniGraphProps {
   paperId: string;
+  paperTitle: string;
 }
 
 // ─── 탭 토글 ─────────────────────────────────────────────
@@ -88,7 +89,7 @@ const MagnifyButton = ({ onClick }: { onClick: () => void }) => (
 
 // ─── 메인 컴포넌트 ────────────────────────────────────────
 
-const CitationMiniGraph = ({ paperId }: CitationMiniGraphProps) => {
+const CitationMiniGraph = ({ paperId, paperTitle }: CitationMiniGraphProps) => {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
   const [tab, setTab] = useState<CitationTab>("reference");
@@ -254,24 +255,30 @@ const CitationMiniGraph = ({ paperId }: CitationMiniGraphProps) => {
                   </Typography>
                 </Box>
               ) : (
-                <ReactFlowProvider>
-                  <CitationGraphCanvas
-                    rawNodes={currentNodes}
-                    rawEdges={currentEdges}
-                    centerKey={centerKey}
-                    tab={tab}
-                    selectedNodeKey={null}
-                    onNodeClick={() => {}}
-                  />
-                </ReactFlowProvider>
+                <CitationGraphCanvas
+                  rawNodes={currentNodes}
+                  rawEdges={currentEdges}
+                  centerKey={centerKey}
+                  tab={tab}
+                  selectedNodeKey={null}
+                  papers={referenceData?.papers ?? []}
+                  expandingNodeKey={null}
+                  onNodeClick={() => {}}
+                />
               )}
             </Box>
           </Box>
         )}
       </Box>
 
-      {/* TODO: 전체화면 패널 — CitationFullPanel 구현 후 연결 */}
-      {isFullPanelOpen && <></>}
+      {isFullPanelOpen && (
+        <CitationFullPanel
+          paperId={paperId}
+          paperTitle={paperTitle}
+          initialTab={tab}
+          onClose={handleCloseFullPanel}
+        />
+      )}
     </>
   );
 };

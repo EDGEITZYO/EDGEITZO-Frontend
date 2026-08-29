@@ -676,7 +676,7 @@ const PaperDetailContent = ({
       )}
 
       {/* 논문 관계 */}
-      <CitationMiniGraph paperId={paperId} />
+      <CitationMiniGraph paperId={paperId} paperTitle={paperData.title ?? ""} />
 
       <BookmarkFolderSelectDialog
         open={bookmarkDialogOpen}

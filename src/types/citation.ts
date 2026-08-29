@@ -1,5 +1,6 @@
 export type CitationDirection = "reference" | "citing";
 export type CitationTab = "reference" | "relation"; // 참고문헌 | 인용관계
+import type { PaperType } from "./paper";
 
 // ─── 노드 ────────────────────────────────────────────────
 
@@ -37,7 +38,7 @@ export interface CitationPaperCard {
   doi: string | null;
   abstract: string | null;
   keywords: string[] | null;
-  paper_type: string | null;
+  paper_type: PaperType | null;
   kci_registered: boolean | null;
   sci_indexed: boolean | null;
   citation_count: number | null;
