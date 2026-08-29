@@ -23,6 +23,7 @@ export interface CitationNodeData {
   isCenter: boolean;
   isSelected: boolean;
   isExpanding: boolean;
+  isLeft: boolean;
   paper: CitationPaperCard | null;
 }
 
@@ -32,7 +33,7 @@ interface NodeTooltipProps {
   paper: CitationPaperCard;
   hasMore: boolean;
   isExpanding: boolean;
-  direction: CitationDirection;
+  isLeft: boolean;
   onViewPaper: () => void;
   onExpand: () => void;
 }
@@ -41,7 +42,7 @@ const NodeTooltip = ({
   paper,
   hasMore,
   isExpanding,
-  direction,
+  isLeft,
   onViewPaper,
   onExpand,
 }: NodeTooltipProps) => {
@@ -59,20 +60,16 @@ const NodeTooltip = ({
     navigator.clipboard.writeText(text).catch(() => {});
   };
 
-  // 좌측 노드(reference): 버튼/툴팁이 노드 우측에 위치
-  // 우측 노드(citing): 버튼/툴팁이 노드 좌측에 위치
-  const isLeft = direction === "reference";
-
   const containerSx = isLeft
     ? {
         position: "absolute" as const,
-        left: "calc(100% + 12px)",
+        right: "calc(100% + 12px)",
         bottom: 0,
         zIndex: 10,
       }
     : {
         position: "absolute" as const,
-        right: "calc(100% + 12px)",
+        left: "calc(100% + 12px)",
         bottom: 0,
         zIndex: 10,
       };
@@ -86,11 +83,9 @@ const NodeTooltip = ({
           height: "40px",
           alignItems: "center",
           gap: "4px",
-          mb: "0px",
           position: "absolute",
           bottom: 0,
-          ...(isLeft ? { left: 0 } : { right: 0 }),
-          transform: "translateY(-100%) translateY(-8px)",
+          ...(isLeft ? { right: 0 } : { left: 0 }),
         }}
       >
         {/* 논문 보기 버튼 */}
@@ -148,6 +143,9 @@ const NodeTooltip = ({
       {/* 논문 정보 */}
       <Box
         sx={{
+          position: "absolute",
+          top: "18px",
+          ...(isLeft ? { right: 0 } : { left: 0 }),
           display: "flex",
           width: "360px",
           padding: "12px 16px 16px 16px",
@@ -501,6 +499,7 @@ const CitationNode = ({ id, data }: NodeProps<CitationNodeData>) => {
           border: data.isSelected
             ? `2px solid ${borderColor}`
             : "2px solid transparent",
+          position: "relative",
         }}
       >
         <Handle
@@ -593,19 +592,18 @@ const CitationNode = ({ id, data }: NodeProps<CitationNodeData>) => {
             {data.title ?? data.title_en ?? "제목 없음"}
           </Typography>
         </Box>
+        {/* 선택 시 툴팁 */}
+        {data.isSelected && data.paper && (
+          <NodeTooltip
+            paper={data.paper}
+            hasMore={data.has_more}
+            isExpanding={data.isExpanding}
+            isLeft={data.isLeft}
+            onViewPaper={handleViewPaper}
+            onExpand={handleExpand}
+          />
+        )}
       </Box>
-
-      {/* 선택 시 툴팁 */}
-      {data.isSelected && data.paper && (
-        <NodeTooltip
-          paper={data.paper}
-          hasMore={data.has_more}
-          isExpanding={data.isExpanding}
-          direction={data.direction}
-          onViewPaper={handleViewPaper}
-          onExpand={handleExpand}
-        />
-      )}
     </Box>
   );
 };

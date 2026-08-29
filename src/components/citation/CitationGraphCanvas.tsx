@@ -38,6 +38,7 @@ const makeNodeData = (
   direction: CitationDirection,
   isCenter: boolean,
   isSelected: boolean,
+  isLeft: boolean,
   papers: CitationPaperCard[],
 ): CitationNodeData => ({
   title: node.title,
@@ -50,6 +51,7 @@ const makeNodeData = (
   isCenter,
   isSelected,
   isExpanding: false,
+  isLeft,
   paper: papers.find((p) => p.key === node.key) ?? null,
 });
 
@@ -87,7 +89,6 @@ const getReferenceLayout = (
     const w = isCenter ? CENTER_SIZE : NODE_WIDTH;
     const h = isCenter ? CENTER_SIZE : NODE_HEIGHT;
     const isLeft = leftNodes.some((n) => n.key === node.key);
-    const direction: CitationDirection = isLeft ? "reference" : "reference";
 
     return {
       id: node.key,
@@ -95,9 +96,10 @@ const getReferenceLayout = (
       position: { x: x - w / 2, y: y - h / 2 },
       data: makeNodeData(
         node,
-        direction,
+        "reference",
         isCenter,
         node.key === selectedNodeKey,
+        isLeft,
         papers,
       ),
     };
@@ -172,40 +174,46 @@ const getRelationLayout = (
         direction,
         isCenter,
         node.key === selectedNodeKey,
+        false,
         papers,
       ),
     };
   });
 
-  const layoutedEdges: Edge[] = edges.map((edge) => {
-    const isReference = edge.source === centerKey; // center→child면 reference
+  const layoutedEdges: Edge[] = edges
+    .map((edge) => {
+      const isReference = edge.source === centerKey;
 
-    if (isReference) {
-      // reference: 좌측 노드 우측 → center 좌측 (좌→우)
-      return {
-        id: `${edge.source}-${edge.target}`,
-        source: edge.target, // 좌측 노드가 실제 source
-        target: centerKey, // center가 실제 target
-        type: "citationEdge",
-        sourceHandle: "source-right",
-        targetHandle: "target-left",
-        style: { stroke: "#35CE89", strokeWidth: 1 },
-        markerEnd: { type: MarkerType.Arrow, color: "#35CE89" },
-      };
-    } else {
-      // citing: center 우측 → 우측 노드 좌측 (좌→우)
-      return {
-        id: `${edge.source}-${edge.target}`,
-        source: centerKey, // center가 실제 source
-        target: edge.source, // 우측 노드가 실제 target
-        type: "citationEdge",
-        sourceHandle: "right",
-        targetHandle: "target-left",
-        style: { stroke: "#35CE89", strokeWidth: 1 },
-        markerEnd: { type: MarkerType.Arrow, color: "#35CE89" },
-      };
-    }
-  });
+      // dagre에 없는 노드 참조 방지
+      const sourceNode = g.node(edge.source);
+      const targetNode = g.node(edge.target);
+      if (!sourceNode || !targetNode) return null;
+
+      if (isReference) {
+        return {
+          id: `${edge.source}-${edge.target}`,
+          source: edge.target,
+          target: centerKey,
+          type: "citationEdge",
+          sourceHandle: "source-right",
+          targetHandle: "target-left",
+          style: { stroke: "#35CE89", strokeWidth: 1 },
+          markerEnd: { type: MarkerType.Arrow, color: "#35CE89" },
+        };
+      } else {
+        return {
+          id: `${edge.source}-${edge.target}`,
+          source: centerKey,
+          target: edge.source,
+          type: "citationEdge",
+          sourceHandle: "right",
+          targetHandle: "target-left",
+          style: { stroke: "#35CE89", strokeWidth: 1 },
+          markerEnd: { type: MarkerType.Arrow, color: "#35CE89" },
+        };
+      }
+    })
+    .filter((e) => e !== null) as Edge[];
 
   return { nodes: layoutedNodes, edges: layoutedEdges };
 };
