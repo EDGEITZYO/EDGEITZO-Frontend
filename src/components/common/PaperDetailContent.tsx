@@ -540,7 +540,7 @@ const PaperDetailContent = ({
         </Box>
 
         {/* 키워드 */}
-        {paperData.keywords_ko.length > 0 && (
+        {(paperData.keywords_ko?.length ?? 0) > 0 && (
           <Box
             sx={{
               display: "flex",

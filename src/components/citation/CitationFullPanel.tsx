@@ -7,7 +7,6 @@ import MenuIcon from "@mui/icons-material/Menu";
 import type { CitationTab } from "../../types/citation";
 import {
   useCitationGraphData,
-  useCitationNodeCount,
   useCitationPapers,
   useCitationSelectedNode,
   useCitationTab,
@@ -16,6 +15,7 @@ import {
 import { citationApi } from "../../api/citation";
 import CitationGraphCanvas from "./CitationGraphCanvas";
 import CitationPaperListPanel from "./CitationPaperListPanel";
+import { createPortal } from "react-dom";
 
 // ─── 탭 토글 ─────────────────────────────────────────────
 
@@ -141,7 +141,11 @@ const CitationFullPanel = ({
     citingEdges,
   } = useCitationGraphData();
   const papers = useCitationPapers();
-  const nodeCount = useCitationNodeCount();
+  const currentNodeCount =
+    tab === "reference"
+      ? referenceNodes.filter((n) => n.key !== centerKey).length
+      : referenceNodes.filter((n) => n.key !== centerKey).length +
+        citingNodes.filter((n) => n.key !== centerKey).length;
   const selectedNodeKey = useCitationSelectedNode();
   const { setTab, expandNode, selectNode, reset } = useCitationGraphActions();
 
@@ -168,6 +172,11 @@ const CitationFullPanel = ({
         : [...referenceEdges, ...citingEdges],
     [tab, referenceEdges, citingEdges],
   );
+
+  const panelPapers =
+    tab === "reference"
+      ? papers.filter((p) => referenceNodes.some((n) => n.key === p.key))
+      : papers;
 
   // 초기 탭 설정
   useEffect(() => {
@@ -279,7 +288,7 @@ const CitationFullPanel = ({
     onClose();
   };
 
-  return (
+  return createPortal(
     <Box
       sx={{
         position: "fixed",
@@ -308,6 +317,14 @@ const CitationFullPanel = ({
           flexShrink: 0,
         }}
       >
+        {/* 로고 */}
+        <Box
+          component="img"
+          src="/logo_icon.svg"
+          alt="Biome 로고"
+          sx={{ width: "36px", height: "36px", flexShrink: 0 }}
+        />
+        {/* 뒤로가기 */}
         <IconButton
           onClick={handleClose}
           sx={{ p: 0, width: "28px", height: "28px", flexShrink: 0 }}
@@ -368,10 +385,8 @@ const CitationFullPanel = ({
           gap: "32px",
           flex: 1,
           alignSelf: "stretch",
-          borderRadius: "8px",
           position: "relative",
           overflow: "hidden",
-          backgroundColor: "#FFF",
         }}
       >
         {/* 상단 컨트롤 */}
@@ -437,7 +452,7 @@ const CitationFullPanel = ({
                     letterSpacing: "-0.336px",
                   }}
                 >
-                  노드 {nodeCount}/100
+                  노드 {currentNodeCount}/100
                 </Typography>
               </Box>
             </Box>
@@ -473,6 +488,10 @@ const CitationFullPanel = ({
             papers={papers}
             expandingNodeKey={expandingNodeKey}
             onNodeClick={handleNodeClick}
+            onPaneClick={() => {
+              setIsPanelOpen(false);
+              selectNode(null);
+            }}
           />
           {/* 토스트 */}
           {toastMessage && <Toast message={toastMessage} />}
@@ -481,7 +500,7 @@ const CitationFullPanel = ({
         {/* 우측 패널 */}
         {isPanelOpen && (
           <CitationPaperListPanel
-            papers={papers}
+            papers={panelPapers}
             selectedNodeKey={selectedNodeKey}
             onClose={() => {
               setIsPanelOpen(false);
@@ -490,7 +509,8 @@ const CitationFullPanel = ({
           />
         )}
       </Box>
-    </Box>
+    </Box>,
+    document.body,
   );
 };
 

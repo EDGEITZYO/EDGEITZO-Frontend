@@ -167,7 +167,7 @@ const getRelationLayout = (
       g.setEdge(edge.target, edge.source);
     }
   });
-  
+
   try {
     dagre.layout(g);
   } catch {
@@ -254,6 +254,7 @@ interface CitationGraphCanvasProps {
   papers: CitationPaperCard[];
   expandingNodeKey: string | null;
   onNodeClick: (nodeKey: string) => void;
+  onPaneClick?: () => void;
 }
 
 // ─── Inner (useReactFlow 접근용) ──────────────────────────
@@ -267,6 +268,7 @@ const CitationGraphInner = ({
   papers,
   expandingNodeKey,
   onNodeClick,
+  onPaneClick,
 }: CitationGraphCanvasProps) => {
   const { setCenter, getNode } = useReactFlow();
 
@@ -336,6 +338,7 @@ const CitationGraphInner = ({
       minZoom={0.3}
       maxZoom={1.5}
       proOptions={{ hideAttribution: true }}
+      onPaneClick={onPaneClick}
     >
       <Background color="#E9EAF2" gap={16} />
     </ReactFlow>

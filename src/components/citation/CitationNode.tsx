@@ -318,7 +318,7 @@ const NodeTooltip = ({
               </Typography>
             )}
             <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              {paper.paper_type && (
+              {!paper.in_service ? (
                 <Box
                   sx={{
                     display: "flex",
@@ -338,57 +338,84 @@ const NodeTooltip = ({
                       letterSpacing: "-0.26px",
                     }}
                   >
-                    {paper.paper_type}
+                    외부 논문
                   </Typography>
                 </Box>
-              )}
-              {citationCount !== null && citationCount !== undefined && (
-                <Box
-                  sx={{
-                    display: "flex",
-                    padding: "3px 8px 4px 8px",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    borderRadius: "6px",
-                    border: "1px solid #FFF",
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      color: "#FFF",
-                      fontSize: "13px",
-                      fontWeight: 400,
-                      lineHeight: "22px",
-                      letterSpacing: "-0.26px",
-                    }}
-                  >
-                    인용수 {citationCount}
-                  </Typography>
-                </Box>
-              )}
-              {kciRegistered && (
-                <Box
-                  sx={{
-                    display: "flex",
-                    padding: "3px 8px 4px 8px",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    borderRadius: "6px",
-                    border: "1px solid #3BA502",
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      color: "#3BA502",
-                      fontSize: "13px",
-                      fontWeight: 400,
-                      lineHeight: "22px",
-                      letterSpacing: "-0.26px",
-                    }}
-                  >
-                    KCI
-                  </Typography>
-                </Box>
+              ) : (
+                <>
+                  {paper.paper_type && (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        padding: "3px 8px 4px 8px",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        borderRadius: "6px",
+                        border: "1px solid #FFF",
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          color: "#FFF",
+                          fontSize: "13px",
+                          fontWeight: 400,
+                          lineHeight: "22px",
+                          letterSpacing: "-0.26px",
+                        }}
+                      >
+                        {paper.paper_type}
+                      </Typography>
+                    </Box>
+                  )}
+                  {citationCount !== null && citationCount !== undefined && (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        padding: "3px 8px 4px 8px",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        borderRadius: "6px",
+                        border: "1px solid #FFF",
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          color: "#FFF",
+                          fontSize: "13px",
+                          fontWeight: 400,
+                          lineHeight: "22px",
+                          letterSpacing: "-0.26px",
+                        }}
+                      >
+                        인용수 {citationCount}
+                      </Typography>
+                    </Box>
+                  )}
+                  {kciRegistered && (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        padding: "3px 8px 4px 8px",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        borderRadius: "6px",
+                        border: "1px solid #3BA502",
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          color: "#3BA502",
+                          fontSize: "13px",
+                          fontWeight: 400,
+                          lineHeight: "22px",
+                          letterSpacing: "-0.26px",
+                        }}
+                      >
+                        KCI
+                      </Typography>
+                    </Box>
+                  )}
+                </>
               )}
             </Box>
           </Box>

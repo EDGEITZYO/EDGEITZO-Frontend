@@ -416,15 +416,15 @@ const CitationPaperListPanel = ({
       }
     : {
         position: "absolute" as const,
-        top: "12px",
-        right: "12px",
-        bottom: "12px",
+        top: 0,
+        right: 0,
+        bottom: 0,
         zIndex: 20,
         ...(panelView === "detail"
-          ? { left: "12px" }
+          ? { left: 0 }
           : isDesktop
             ? { width: "calc((100% - 12px) * 734 / (930 + 734))" }
-            : { left: "12px" }),
+            : { left: 0 }),
       };
 
   return (
@@ -477,7 +477,7 @@ const CitationPaperListPanel = ({
               <Box component="span" sx={{ color: "label.normal" }}>
                 논문 리스트{" "}
               </Box>
-              <Box component="span" sx={{ color: "primary.normal" }}>
+              <Box component="span" sx={{ color: "primary.main" }}>
                 {filteredPapers.length}건
               </Box>
             </Typography>
@@ -517,7 +517,7 @@ const CitationPaperListPanel = ({
                 <Box component="span" sx={{ color: "label.normal" }}>
                   논문 리스트{" "}
                 </Box>
-                <Box component="span" sx={{ color: "primary.normal" }}>
+                <Box component="span" sx={{ color: "primary.main" }}>
                   {filteredPapers.length}건
                 </Box>
               </Typography>

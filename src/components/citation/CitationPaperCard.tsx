@@ -70,10 +70,7 @@ const CitationPaperCard = ({
               flexWrap: "wrap",
             }}
           >
-            {paper.paper_type && (
-              <PaperTypeBadge paperType={paper.paper_type} />
-            )}
-            {citationCount !== null && citationCount !== undefined && (
+            {!paper.in_service ? (
               <Box
                 sx={{
                   display: "inline-flex",
@@ -88,53 +85,82 @@ const CitationPaperCard = ({
                     fontSize: "16px",
                     fontWeight: 600,
                     color: "label.normal",
+                    whiteSpace: "nowrap",
                   }}
                 >
-                  인용수 {citationCount}
+                  외부 논문
                 </Typography>
               </Box>
-            )}
-            {kciRegistered && (
-              <Box
-                sx={{
-                  display: "inline-flex",
-                  padding: "3px 8px 4px 8px",
-                  borderRadius: "6px",
-                  border: "1px solid",
-                  borderColor: "secondary.dark",
-                }}
-              >
-                <Typography
-                  sx={{
-                    fontSize: "16px",
-                    fontWeight: 600,
-                    color: "secondary.dark",
-                  }}
-                >
-                  KCI
-                </Typography>
-              </Box>
-            )}
-            {sciIndexed && (
-              <Box
-                sx={{
-                  display: "inline-flex",
-                  padding: "3px 8px 4px 8px",
-                  borderRadius: "6px",
-                  border: "1px solid",
-                  borderColor: "secondary.dark",
-                }}
-              >
-                <Typography
-                  sx={{
-                    fontSize: "16px",
-                    fontWeight: 600,
-                    color: "secondary.dark",
-                  }}
-                >
-                  SCI
-                </Typography>
-              </Box>
+            ) : (
+              <>
+                {paper.paper_type && (
+                  <PaperTypeBadge paperType={paper.paper_type} />
+                )}
+                {citationCount !== null && citationCount !== undefined && (
+                  <Box
+                    sx={{
+                      display: "inline-flex",
+                      padding: "3px 8px 4px 8px",
+                      borderRadius: "6px",
+                      border: "1px solid",
+                      borderColor: "label.normal",
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontSize: "16px",
+                        fontWeight: 600,
+                        color: "label.normal",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      인용수 {citationCount}
+                    </Typography>
+                  </Box>
+                )}
+                {kciRegistered && (
+                  <Box
+                    sx={{
+                      display: "inline-flex",
+                      padding: "3px 8px 4px 8px",
+                      borderRadius: "6px",
+                      border: "1px solid",
+                      borderColor: "secondary.dark",
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontSize: "16px",
+                        fontWeight: 600,
+                        color: "secondary.dark",
+                      }}
+                    >
+                      KCI
+                    </Typography>
+                  </Box>
+                )}
+                {sciIndexed && (
+                  <Box
+                    sx={{
+                      display: "inline-flex",
+                      padding: "3px 8px 4px 8px",
+                      borderRadius: "6px",
+                      border: "1px solid",
+                      borderColor: "secondary.dark",
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontSize: "16px",
+                        fontWeight: 600,
+                        color: "secondary.dark",
+                      }}
+                    >
+                      SCI
+                    </Typography>
+                  </Box>
+                )}
+              </>
             )}
           </Box>
           {paper.in_service && onBookmark && (
@@ -370,10 +396,7 @@ const CitationPaperCard = ({
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              {paper.paper_type && (
-                <PaperTypeBadge paperType={paper.paper_type} />
-              )}
-              {citationCount !== null && citationCount !== undefined && (
+              {!paper.in_service ? (
                 <Box
                   sx={{
                     display: "inline-flex",
@@ -391,51 +414,79 @@ const CitationPaperCard = ({
                       whiteSpace: "nowrap",
                     }}
                   >
-                    인용수 {citationCount}
+                    외부 논문
                   </Typography>
                 </Box>
-              )}
-              {kciRegistered && (
-                <Box
-                  sx={{
-                    display: "inline-flex",
-                    padding: "3px 8px 4px 8px",
-                    borderRadius: "6px",
-                    border: "1px solid",
-                    borderColor: "secondary.dark",
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      fontSize: "16px",
-                      fontWeight: 600,
-                      color: "secondary.dark",
-                    }}
-                  >
-                    KCI
-                  </Typography>
-                </Box>
-              )}
-              {sciIndexed && (
-                <Box
-                  sx={{
-                    display: "inline-flex",
-                    padding: "3px 8px 4px 8px",
-                    borderRadius: "6px",
-                    border: "1px solid",
-                    borderColor: "secondary.dark",
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      fontSize: "16px",
-                      fontWeight: 600,
-                      color: "secondary.dark",
-                    }}
-                  >
-                    SCI
-                  </Typography>
-                </Box>
+              ) : (
+                <>
+                  {paper.paper_type && (
+                    <PaperTypeBadge paperType={paper.paper_type} />
+                  )}
+                  {citationCount !== null && citationCount !== undefined && (
+                    <Box
+                      sx={{
+                        display: "inline-flex",
+                        padding: "3px 8px 4px 8px",
+                        borderRadius: "6px",
+                        border: "1px solid",
+                        borderColor: "label.normal",
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontSize: "16px",
+                          fontWeight: 600,
+                          color: "label.normal",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        인용수 {citationCount}
+                      </Typography>
+                    </Box>
+                  )}
+                  {kciRegistered && (
+                    <Box
+                      sx={{
+                        display: "inline-flex",
+                        padding: "3px 8px 4px 8px",
+                        borderRadius: "6px",
+                        border: "1px solid",
+                        borderColor: "secondary.dark",
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontSize: "16px",
+                          fontWeight: 600,
+                          color: "secondary.dark",
+                        }}
+                      >
+                        KCI
+                      </Typography>
+                    </Box>
+                  )}
+                  {sciIndexed && (
+                    <Box
+                      sx={{
+                        display: "inline-flex",
+                        padding: "3px 8px 4px 8px",
+                        borderRadius: "6px",
+                        border: "1px solid",
+                        borderColor: "secondary.dark",
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontSize: "16px",
+                          fontWeight: 600,
+                          color: "secondary.dark",
+                        }}
+                      >
+                        SCI
+                      </Typography>
+                    </Box>
+                  )}
+                </>
               )}
             </Box>
             {journalInfo && (
