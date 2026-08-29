@@ -43,6 +43,7 @@ const makeNodeData = (
   title: node.title,
   title_en: node.title_en,
   pubyear: node.pubyear,
+  authors: papers.find((p) => p.key === node.key)?.authors ?? null,
   in_service: node.in_service,
   has_more: node.has_more,
   direction,
@@ -148,7 +149,9 @@ const getRelationLayout = (
     });
   });
 
-  edges.forEach((edge) => g.setEdge(edge.source, edge.target));
+  edges.forEach((edge) => {
+    g.setEdge(edge.target, edge.source);
+  });
   dagre.layout(g);
 
   const centerX = g.node(centerKey).x;
@@ -175,36 +178,33 @@ const getRelationLayout = (
   });
 
   const layoutedEdges: Edge[] = edges.map((edge) => {
-    const isFromCenter = edge.source === centerKey;
-    const targetX = g.node(edge.target).x;
-    const sourceX = g.node(edge.source).x;
+    const isReference = edge.source === centerKey; // center→child면 reference
 
-    const sourceHandle = isFromCenter
-      ? targetX > centerX
-        ? "right"
-        : "left"
-      : sourceX < centerX
-        ? "source-right"
-        : "source-left";
-
-    const targetHandle = isFromCenter
-      ? targetX > centerX
-        ? "target-left"
-        : "target-right"
-      : targetX < centerX
-        ? "target-right"
-        : "target-left";
-
-    return {
-      id: `${edge.source}-${edge.target}`,
-      source: edge.source,
-      target: edge.target,
-      type: "citationEdge",
-      sourceHandle,
-      targetHandle,
-      style: { stroke: "#35CE89", strokeWidth: 1 },
-      markerEnd: { type: MarkerType.Arrow, color: "#35CE89" },
-    };
+    if (isReference) {
+      // reference: 좌측 노드 우측 → center 좌측 (좌→우)
+      return {
+        id: `${edge.source}-${edge.target}`,
+        source: edge.target, // 좌측 노드가 실제 source
+        target: centerKey, // center가 실제 target
+        type: "citationEdge",
+        sourceHandle: "source-right",
+        targetHandle: "target-left",
+        style: { stroke: "#35CE89", strokeWidth: 1 },
+        markerEnd: { type: MarkerType.Arrow, color: "#35CE89" },
+      };
+    } else {
+      // citing: center 우측 → 우측 노드 좌측 (좌→우)
+      return {
+        id: `${edge.source}-${edge.target}`,
+        source: centerKey, // center가 실제 source
+        target: edge.source, // 우측 노드가 실제 target
+        type: "citationEdge",
+        sourceHandle: "right",
+        targetHandle: "target-left",
+        style: { stroke: "#35CE89", strokeWidth: 1 },
+        markerEnd: { type: MarkerType.Arrow, color: "#35CE89" },
+      };
+    }
   });
 
   return { nodes: layoutedNodes, edges: layoutedEdges };

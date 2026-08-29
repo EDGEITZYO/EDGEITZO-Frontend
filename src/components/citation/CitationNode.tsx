@@ -16,6 +16,7 @@ export interface CitationNodeData {
   title: string | null;
   title_en: string | null;
   pubyear: number | null;
+  authors: string[] | null;
   in_service: boolean;
   has_more: boolean;
   direction: CitationDirection;
@@ -476,6 +477,7 @@ const CitationNode = ({ id, data }: NodeProps<CitationNodeData>) => {
               lineHeight: "24px",
               letterSpacing: "-0.336px",
               textAlign: "center",
+              whiteSpace: "nowrap",
             }}
           >
             현재 논문
@@ -545,6 +547,7 @@ const CitationNode = ({ id, data }: NodeProps<CitationNodeData>) => {
             boxSizing: "border-box",
           }}
         >
+          {/* 저자 + 발행연도 */}
           <Typography
             sx={{
               display: "-webkit-box",
@@ -560,8 +563,18 @@ const CitationNode = ({ id, data }: NodeProps<CitationNodeData>) => {
               letterSpacing: "-0.336px",
             }}
           >
-            {data.pubyear ?? ""}
+            {[
+              data.pubyear,
+              data.authors && data.authors.length > 0
+                ? data.authors.length > 1
+                  ? `${data.authors[0]} 외 ${data.authors.length - 1}인`
+                  : data.authors[0]
+                : null,
+            ]
+              .filter(Boolean)
+              .join(" ")}
           </Typography>
+          {/* 제목 */}
           <Typography
             sx={{
               display: "-webkit-box",
