@@ -310,10 +310,14 @@ const CitationGraphInner = ({
     if (!selectedNodeKey) return;
     const node = getNode(selectedNodeKey);
     if (!node) return;
-    const nodeX = node.position.x + NODE_WIDTH / 2;
-    const nodeY = node.position.y + NODE_HEIGHT / 2;
-    // 우측 패널 너비(400px) 고려해서 좌측으로 오프셋
-    setCenter(nodeX - 200, nodeY, { duration: 300, zoom: 1 });
+
+    const timer = setTimeout(() => {
+      const nodeX = node.position.x + NODE_WIDTH / 2;
+      const nodeY = node.position.y + NODE_HEIGHT / 2;
+      setCenter(nodeX, nodeY, { duration: 300, zoom: 1 });
+    }, 100); // 패널 열린 후 레이아웃 반영될 때까지 대기
+
+    return () => clearTimeout(timer);
   }, [selectedNodeKey, getNode, setCenter]);
 
   const handleNodeClick = useCallback(

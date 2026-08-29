@@ -375,128 +375,140 @@ const CitationFullPanel = ({
         </Box>
       </Box>
 
-      {/* 그래프 영역 */}
+      {/* 그래프 + 서브패널 래퍼 */}
       <Box
         sx={{
           display: "flex",
-          padding: "32px",
-          flexDirection: "column",
-          alignItems: "flex-start",
-          gap: "32px",
+          flexDirection: "row",
           flex: 1,
           alignSelf: "stretch",
-          position: "relative",
+          gap: "10px",
           overflow: "hidden",
         }}
       >
-        {/* 상단 컨트롤 */}
+        {/* 그래프 영역 */}
         <Box
           sx={{
             display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            alignSelf: "stretch",
-            flexShrink: 0,
+            padding: "32px",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            gap: "32px",
+            flex: 1,
+            position: "relative",
+            overflow: "hidden",
           }}
         >
-          {/* 뒤로가기 + 토글 + 노드 카운트 */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: "16px" }}>
-            {/* 뒤로가기 */}
-            <Box
-              onClick={handleClose}
-              sx={{
-                display: "flex",
-                width: "36px",
-                height: "36px",
-                padding: "6px",
-                justifyContent: "center",
-                alignItems: "center",
-                borderRadius: "8px",
-                border: "1px solid #D8DAE5",
-                backgroundColor: "#FFF",
-                cursor: "pointer",
-              }}
-            >
-              <ArrowBackIosNewIcon
-                sx={{ width: "24px", height: "24px", color: "label.normal" }}
-              />
-            </Box>
+          {/* 상단 컨트롤 */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              alignSelf: "stretch",
+              flexShrink: 0,
+            }}
+          >
+            {/* 뒤로가기 + 토글 + 노드 카운트 */}
+            <Box sx={{ display: "flex", alignItems: "center", gap: "16px" }}>
+              {/* 뒤로가기 */}
+              <Box
+                onClick={handleClose}
+                sx={{
+                  display: "flex",
+                  width: "36px",
+                  height: "36px",
+                  padding: "6px",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  borderRadius: "8px",
+                  border: "1px solid #D8DAE5",
+                  backgroundColor: "#FFF",
+                  cursor: "pointer",
+                }}
+              >
+                <ArrowBackIosNewIcon
+                  sx={{ width: "24px", height: "24px", color: "label.normal" }}
+                />
+              </Box>
 
-            <TabToggle tab={tab} onChange={handleTabChange} />
+              <TabToggle tab={tab} onChange={handleTabChange} />
 
-            {/* 노드 카운트 */}
-            <Box
-              sx={{
-                display: "flex",
-                padding: "4px",
-                alignItems: "center",
-                borderRadius: "43.478px",
-                backgroundColor: "#E9EAF2",
-              }}
-            >
+              {/* 노드 카운트 */}
               <Box
                 sx={{
                   display: "flex",
-                  padding: "4px 8px",
-                  justifyContent: "center",
+                  padding: "4px",
                   alignItems: "center",
                   borderRadius: "43.478px",
+                  backgroundColor: "#E9EAF2",
                 }}
               >
-                <Typography
+                <Box
                   sx={{
-                    color: "#292B33",
-                    fontSize: "16px",
-                    fontWeight: 400,
-                    lineHeight: "24px",
-                    letterSpacing: "-0.336px",
+                    display: "flex",
+                    padding: "4px 8px",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    borderRadius: "43.478px",
                   }}
                 >
-                  노드 {currentNodeCount}/100
-                </Typography>
+                  <Typography
+                    sx={{
+                      color: "#292B33",
+                      fontSize: "16px",
+                      fontWeight: 400,
+                      lineHeight: "24px",
+                      letterSpacing: "-0.336px",
+                    }}
+                  >
+                    노드 {currentNodeCount}/100
+                  </Typography>
+                </Box>
               </Box>
             </Box>
+
+            {/* 햄버거 */}
+            {!isPanelOpen && (
+              <Box
+                onClick={() => setIsPanelOpen((prev) => !prev)}
+                sx={{
+                  display: "flex",
+                  width: "36px",
+                  height: "36px",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  borderRadius: "8px",
+                  border: "1px solid #D8DAE5",
+                  backgroundColor: "#FFF",
+                  cursor: "pointer",
+                }}
+              >
+                <MenuIcon sx={{ width: "24px", height: "24px" }} />
+              </Box>
+            )}
           </Box>
 
-          {/* 햄버거 */}
-          <Box
-            onClick={() => setIsPanelOpen((prev) => !prev)}
-            sx={{
-              display: "flex",
-              width: "36px",
-              height: "36px",
-              justifyContent: "center",
-              alignItems: "center",
-              borderRadius: "8px",
-              border: "1px solid #D8DAE5",
-              backgroundColor: "#FFF",
-              cursor: "pointer",
-            }}
-          >
-            <MenuIcon sx={{ width: "24px", height: "24px" }} />
+          {/* ReactFlow 그래프 */}
+          <Box sx={{ flex: 1, width: "100%", position: "relative" }}>
+            <CitationGraphCanvas
+              rawNodes={currentNodes}
+              rawEdges={currentEdges}
+              centerKey={centerKey}
+              tab={tab}
+              selectedNodeKey={selectedNodeKey}
+              papers={papers}
+              expandingNodeKey={expandingNodeKey}
+              onNodeClick={handleNodeClick}
+              onPaneClick={() => {
+                setIsPanelOpen(false);
+                selectNode(null);
+              }}
+            />
+            {/* 토스트 */}
+            {toastMessage && <Toast message={toastMessage} />}
           </Box>
         </Box>
-
-        {/* ReactFlow 그래프 */}
-        <Box sx={{ flex: 1, width: "100%", position: "relative" }}>
-          <CitationGraphCanvas
-            rawNodes={currentNodes}
-            rawEdges={currentEdges}
-            centerKey={centerKey}
-            tab={tab}
-            selectedNodeKey={selectedNodeKey}
-            papers={papers}
-            expandingNodeKey={expandingNodeKey}
-            onNodeClick={handleNodeClick}
-            onPaneClick={() => {
-              setIsPanelOpen(false);
-              selectNode(null);
-            }}
-          />
-          {/* 토스트 */}
-          {toastMessage && <Toast message={toastMessage} />}
-        </Box>
-
         {/* 우측 패널 */}
         {isPanelOpen && (
           <CitationPaperListPanel

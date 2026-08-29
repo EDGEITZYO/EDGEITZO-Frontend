@@ -415,16 +415,8 @@ const CitationPaperListPanel = ({
         zIndex: 20,
       }
     : {
-        position: "absolute" as const,
-        top: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 20,
-        ...(panelView === "detail"
-          ? { left: 0 }
-          : isDesktop
-            ? { width: "calc((100% - 12px) * 734 / (930 + 734))" }
-            : { left: 0 }),
+        width: "calc((100% - 12px) * 734 / (930 + 734))",
+        flexShrink: 0,
       };
 
   return (

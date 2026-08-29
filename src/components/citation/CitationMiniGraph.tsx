@@ -105,7 +105,11 @@ const CitationMiniGraph = ({ paperId, paperTitle }: CitationMiniGraphProps) => {
     useCitationGraphQuery(paperId, "reference");
 
   const { data: citingData, isPending: isCitingPending } =
-    useCitationGraphQuery(paperId, "citing", tab === "relation");
+    useCitationGraphQuery(
+      paperId,
+      "citing",
+      tab === "relation" || isFullPanelOpen,
+    );
 
   useEffect(() => {
     if (referenceData) initReference(referenceData);
