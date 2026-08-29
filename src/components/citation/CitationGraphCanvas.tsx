@@ -81,29 +81,40 @@ const getReferenceLayout = (
     g.setEdge(centerKey, n.key);
   });
 
-  dagre.layout(g);
+  try {
+    dagre.layout(g);
+  } catch {
+    return { nodes: [], edges: [] };
+  }
 
-  const layoutedNodes: Node<CitationNodeData>[] = nodes.map((node) => {
-    const { x, y } = g.node(node.key);
-    const isCenter = node.key === centerKey;
-    const w = isCenter ? CENTER_SIZE : NODE_WIDTH;
-    const h = isCenter ? CENTER_SIZE : NODE_HEIGHT;
-    const isLeft = leftNodes.some((n) => n.key === node.key);
+  const centerDagNode = g.node(centerKey);
+  if (!centerDagNode) return { nodes: [], edges: [] };
 
-    return {
-      id: node.key,
-      type: "citationNode",
-      position: { x: x - w / 2, y: y - h / 2 },
-      data: makeNodeData(
-        node,
-        "reference",
-        isCenter,
-        node.key === selectedNodeKey,
-        isLeft,
-        papers,
-      ),
-    };
-  });
+  const layoutedNodes: Node<CitationNodeData>[] = nodes
+    .map((node) => {
+      const dagNode = g.node(node.key);
+      if (!dagNode) return null;
+      const { x, y } = dagNode;
+      const isCenter = node.key === centerKey;
+      const w = isCenter ? CENTER_SIZE : NODE_WIDTH;
+      const h = isCenter ? CENTER_SIZE : NODE_HEIGHT;
+      const isLeft = leftNodes.some((n) => n.key === node.key);
+
+      return {
+        id: node.key,
+        type: "citationNode",
+        position: { x: x - w / 2, y: y - h / 2 },
+        data: makeNodeData(
+          node,
+          "reference",
+          isCenter,
+          node.key === selectedNodeKey,
+          isLeft,
+          papers,
+        ),
+      };
+    })
+    .filter((n) => n !== null) as Node<CitationNodeData>[];
 
   const leftEdges: Edge[] = leftNodes.map((node) => ({
     id: `${centerKey}-${node.key}`,
@@ -152,33 +163,47 @@ const getRelationLayout = (
   });
 
   edges.forEach((edge) => {
-    g.setEdge(edge.target, edge.source);
+    if (g.hasNode(edge.source) && g.hasNode(edge.target)) {
+      g.setEdge(edge.target, edge.source);
+    }
   });
-  dagre.layout(g);
+  
+  try {
+    dagre.layout(g);
+  } catch {
+    return { nodes: [], edges: [] };
+  }
 
-  const centerX = g.node(centerKey).x;
+  const centerNode = g.node(centerKey);
+  if (!centerNode) return { nodes: [], edges: [] };
 
-  const layoutedNodes: Node<CitationNodeData>[] = nodes.map((node) => {
-    const { x, y } = g.node(node.key);
-    const isCenter = node.key === centerKey;
-    const w = isCenter ? CENTER_SIZE : NODE_WIDTH;
-    const h = isCenter ? CENTER_SIZE : NODE_HEIGHT;
-    const direction: CitationDirection = x < centerX ? "reference" : "citing";
+  const centerX = centerNode.x;
 
-    return {
-      id: node.key,
-      type: "citationNode",
-      position: { x: x - w / 2, y: y - h / 2 },
-      data: makeNodeData(
-        node,
-        direction,
-        isCenter,
-        node.key === selectedNodeKey,
-        false,
-        papers,
-      ),
-    };
-  });
+  const layoutedNodes: Node<CitationNodeData>[] = nodes
+    .map((node) => {
+      const dagNode = g.node(node.key);
+      if (!dagNode) return null;
+      const { x, y } = dagNode;
+      const isCenter = node.key === centerKey;
+      const w = isCenter ? CENTER_SIZE : NODE_WIDTH;
+      const h = isCenter ? CENTER_SIZE : NODE_HEIGHT;
+      const direction: CitationDirection = x < centerX ? "reference" : "citing";
+
+      return {
+        id: node.key,
+        type: "citationNode",
+        position: { x: x - w / 2, y: y - h / 2 },
+        data: makeNodeData(
+          node,
+          direction,
+          isCenter,
+          node.key === selectedNodeKey,
+          false,
+          papers,
+        ),
+      };
+    })
+    .filter((n) => n !== null) as Node<CitationNodeData>[];
 
   const layoutedEdges: Edge[] = edges
     .map((edge) => {

@@ -121,6 +121,9 @@ const CitationMiniGraph = ({ paperId, paperTitle }: CitationMiniGraphProps) => {
   };
 
   const handleOpenFullPanel = () => {
+    // 패널 열기 전에 스토어 먼저 채우기
+    if (referenceData) initReference(referenceData);
+    if (citingData) initCiting(citingData);
     setStoreTab(tab);
     setIsFullPanelOpen(true);
   };
