@@ -387,10 +387,9 @@ const CitationFullPanel = ({
         <Box
           sx={{
             display: isDetailView ? "none" : "flex",
-            padding: "32px",
             flexDirection: "column",
             alignItems: "flex-start",
-            gap: "32px",
+            gap: "12px",
             flex: isDetailView ? "none" : 1,
             position: "relative",
             overflow: "hidden",
@@ -403,6 +402,7 @@ const CitationFullPanel = ({
               justifyContent: "space-between",
               alignItems: "center",
               alignSelf: "stretch",
+              padding: "32px 32px 0 32px",
               flexShrink: 0,
             }}
           >
