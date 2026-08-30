@@ -94,6 +94,9 @@ const CitationMiniGraph = ({ paperId, paperTitle }: CitationMiniGraphProps) => {
   const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
   const [tab, setTab] = useState<CitationTab>("reference");
   const [isFullPanelOpen, setIsFullPanelOpen] = useState(false);
+  const [miniSelectedNodeKey, setMiniSelectedNodeKey] = useState<string | null>(
+    null,
+  );
   const {
     initReference,
     initCiting,
@@ -267,10 +270,16 @@ const CitationMiniGraph = ({ paperId, paperTitle }: CitationMiniGraphProps) => {
                   rawEdges={currentEdges}
                   centerKey={centerKey}
                   tab={tab}
-                  selectedNodeKey={null}
+                  selectedNodeKey={miniSelectedNodeKey}
                   papers={referenceData?.papers ?? []}
                   expandingNodeKey={null}
-                  onNodeClick={() => {}}
+                  isMini={true}
+                  onNodeClick={(nodeKey) =>
+                    setMiniSelectedNodeKey(
+                      miniSelectedNodeKey === nodeKey ? null : nodeKey,
+                    )
+                  }
+                  onPaneClick={() => setMiniSelectedNodeKey(null)}
                 />
               )}
             </Box>

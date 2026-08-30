@@ -28,6 +28,7 @@ export interface CitationNodeData {
   tier: number;
   tab: CitationTab;
   paper: CitationPaperCard | null;
+  isMini: boolean;
 }
 
 // ─── 툴팁 (논문 정보 + 버튼) ─────────────────────────────
@@ -428,6 +429,194 @@ const NodeTooltip = ({
   );
 };
 
+// ─── MiniNodeInfo ─────────────────────────────────────────
+
+interface MiniNodeInfoProps {
+  paper: CitationPaperCard;
+  isLeft: boolean;
+}
+
+const MiniNodeInfo = ({ paper, isLeft }: MiniNodeInfoProps) => {
+  const authors = paper.authors ?? [];
+  const journalInfo = [paper.pub_year, paper.journal_name]
+    .filter(Boolean)
+    .join(" · ");
+  const citationCount =
+    paper.trust_badge?.citation_count ?? paper.citation_count;
+  const kciRegistered = paper.trust_badge?.kci ?? paper.kci_registered;
+
+  const containerSx = isLeft
+    ? {
+        position: "absolute" as const,
+        right: "calc(100% + 12px)",
+        top: 0,
+        zIndex: 10,
+      }
+    : {
+        position: "absolute" as const,
+        left: "calc(100% + 12px)",
+        top: 0,
+        zIndex: 10,
+      };
+
+  return (
+    <Box
+      sx={{
+        ...containerSx,
+        display: "flex",
+        width: "360px",
+        padding: "12px 16px 16px 16px",
+        flexDirection: "column",
+        alignItems: "flex-start",
+        gap: "10px",
+        borderRadius: "12px",
+        background: "rgba(30, 32, 38, 0.90)",
+        backdropFilter: "blur(2px)",
+      }}
+    >
+      {/* 제목 */}
+      <Typography
+        sx={{
+          display: "-webkit-box",
+          WebkitBoxOrient: "vertical",
+          WebkitLineClamp: 3,
+          overflow: "hidden",
+          color: "#F7F8FA",
+          fontSize: "16px",
+          fontWeight: 400,
+          lineHeight: "24px",
+          letterSpacing: "-0.336px",
+        }}
+      >
+        {paper.title ?? paper.title_en ?? "제목 없음"}
+      </Typography>
+
+      {/* 저자 */}
+      {authors.length > 0 && (
+        <Typography
+          sx={{
+            color: "#FFF",
+            fontSize: "13px",
+            fontWeight: 400,
+            lineHeight: "22px",
+            letterSpacing: "-0.26px",
+          }}
+        >
+          {authors.length > 1
+            ? `${authors[0]} 외 ${authors.length - 1}인`
+            : authors[0]}
+        </Typography>
+      )}
+
+      {/* 저널 + 배지 */}
+      <Box sx={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+        {journalInfo && (
+          <Typography
+            sx={{
+              color: "#D8DAE5",
+              fontSize: "13px",
+              fontWeight: 400,
+              lineHeight: "22px",
+              letterSpacing: "-0.26px",
+            }}
+          >
+            {journalInfo}
+          </Typography>
+        )}
+        <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          {!paper.in_service ? (
+            <Box
+              sx={{
+                display: "flex",
+                padding: "3px 8px 4px 8px",
+                borderRadius: "6px",
+                border: "1px solid #FFF",
+              }}
+            >
+              <Typography
+                sx={{
+                  color: "#FFF",
+                  fontSize: "13px",
+                  fontWeight: 400,
+                  lineHeight: "22px",
+                }}
+              >
+                외부 논문
+              </Typography>
+            </Box>
+          ) : (
+            <>
+              {paper.paper_type && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    padding: "3px 8px 4px 8px",
+                    borderRadius: "6px",
+                    border: "1px solid #FFF",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      color: "#FFF",
+                      fontSize: "13px",
+                      fontWeight: 400,
+                      lineHeight: "22px",
+                    }}
+                  >
+                    {paper.paper_type}
+                  </Typography>
+                </Box>
+              )}
+              {citationCount !== null && citationCount !== undefined && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    padding: "3px 8px 4px 8px",
+                    borderRadius: "6px",
+                    border: "1px solid #FFF",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      color: "#FFF",
+                      fontSize: "13px",
+                      fontWeight: 400,
+                      lineHeight: "22px",
+                    }}
+                  >
+                    인용수 {citationCount}
+                  </Typography>
+                </Box>
+              )}
+              {kciRegistered && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    padding: "3px 8px 4px 8px",
+                    borderRadius: "6px",
+                    border: "1px solid #3BA502",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      color: "#3BA502",
+                      fontSize: "13px",
+                      fontWeight: 400,
+                      lineHeight: "22px",
+                    }}
+                  >
+                    KCI
+                  </Typography>
+                </Box>
+              )}
+            </>
+          )}
+        </Box>
+      </Box>
+    </Box>
+  );
+};
+
 // ─── CitationNode ─────────────────────────────────────────
 
 const CitationNode = ({ id, data }: NodeProps<CitationNodeData>) => {
@@ -635,16 +824,20 @@ const CitationNode = ({ id, data }: NodeProps<CitationNodeData>) => {
           </Typography>
         </Box>
         {/* 선택 시 툴팁 */}
-        {data.isSelected && data.paper && (
-          <NodeTooltip
-            paper={data.paper}
-            hasMore={data.has_more}
-            isExpanding={data.isExpanding}
-            isLeft={data.isLeft}
-            onViewPaper={handleViewPaper}
-            onExpand={handleExpand}
-          />
-        )}
+        {data.isSelected &&
+          data.paper &&
+          (data.isMini ? (
+            <MiniNodeInfo paper={data.paper} isLeft={data.isLeft} />
+          ) : (
+            <NodeTooltip
+              paper={data.paper}
+              hasMore={data.has_more}
+              isExpanding={data.isExpanding}
+              isLeft={data.isLeft}
+              onViewPaper={handleViewPaper}
+              onExpand={handleExpand}
+            />
+          ))}
       </Box>
     </Box>
   );

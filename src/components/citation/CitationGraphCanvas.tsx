@@ -41,6 +41,7 @@ const makeNodeData = (
   isLeft: boolean,
   papers: CitationPaperCard[],
   tab: CitationTab,
+  isMini: boolean,
 ): CitationNodeData => ({
   title: node.title,
   title_en: node.title_en,
@@ -56,16 +57,18 @@ const makeNodeData = (
   tier: node.tier,
   tab,
   paper: papers.find((p) => p.key === node.key) ?? null,
+  isMini,
 });
 
 // ─── 참고문헌 레이아웃 ────────────────────────────────────
 
 const getReferenceLayout = (
   nodes: PaperCitationNode[],
-  edges: PaperCitationEdge[], // 추가
+  edges: PaperCitationEdge[],
   centerKey: string,
   selectedNodeKey: string | null,
   papers: CitationPaperCard[],
+  isMini: boolean,
 ): { nodes: Node<CitationNodeData>[]; edges: Edge[] } => {
   const childNodes = nodes.filter((n) => n.key !== centerKey && n.tier === 1);
   const leftNodes = childNodes.filter((_, i) => i % 2 !== 0);
@@ -151,6 +154,7 @@ const getReferenceLayout = (
           isLeft,
           papers,
           "reference",
+          isMini,
         ),
       };
     })
@@ -229,6 +233,7 @@ const getRelationLayout = (
   centerKey: string,
   selectedNodeKey: string | null,
   papers: CitationPaperCard[],
+  isMini: boolean,
 ): { nodes: Node<CitationNodeData>[]; edges: Edge[] } => {
   const g = new dagre.graphlib.Graph();
   g.setDefaultEdgeLabel(() => ({}));
@@ -281,6 +286,7 @@ const getRelationLayout = (
           false,
           papers,
           "relation",
+          isMini,
         ),
       };
     })
@@ -374,6 +380,7 @@ interface CitationGraphCanvasProps {
   expandingNodeKey: string | null;
   onNodeClick: (nodeKey: string) => void;
   onPaneClick?: () => void;
+  isMini?: boolean;
 }
 
 // ─── Inner (useReactFlow 접근용) ──────────────────────────
@@ -388,6 +395,7 @@ const CitationGraphInner = ({
   expandingNodeKey,
   onNodeClick,
   onPaneClick,
+  isMini,
 }: CitationGraphCanvasProps) => {
   const { setCenter, getNode } = useReactFlow();
 
@@ -399,6 +407,7 @@ const CitationGraphInner = ({
         centerKey,
         selectedNodeKey,
         papers,
+        isMini ?? false,
       );
     }
     return getRelationLayout(
@@ -407,8 +416,9 @@ const CitationGraphInner = ({
       centerKey,
       selectedNodeKey,
       papers,
+      isMini ?? false,
     );
-  }, [rawNodes, rawEdges, centerKey, tab, selectedNodeKey, papers]);
+  }, [rawNodes, rawEdges, centerKey, tab, selectedNodeKey, papers, isMini]);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(layoutedNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(layoutedEdges);
