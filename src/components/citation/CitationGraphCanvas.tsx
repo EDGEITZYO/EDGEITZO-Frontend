@@ -40,6 +40,7 @@ const makeNodeData = (
   isSelected: boolean,
   isLeft: boolean,
   papers: CitationPaperCard[],
+  tab: CitationTab,
 ): CitationNodeData => ({
   title: node.title,
   title_en: node.title_en,
@@ -52,6 +53,8 @@ const makeNodeData = (
   isSelected,
   isExpanding: false,
   isLeft,
+  tier: node.tier,
+  tab,
   paper: papers.find((p) => p.key === node.key) ?? null,
 });
 
@@ -147,6 +150,7 @@ const getReferenceLayout = (
           node.key === selectedNodeKey,
           isLeft,
           papers,
+          "reference",
         ),
       };
     })
@@ -209,7 +213,7 @@ const getReferenceLayout = (
         markerEnd: { type: MarkerType.Arrow, color: "#3BA502" },
       };
     });
-  console.log('deeperEdges:', deeperEdges);
+  console.log("deeperEdges:", deeperEdges);
 
   return {
     nodes: layoutedNodes,
@@ -276,6 +280,7 @@ const getRelationLayout = (
           node.key === selectedNodeKey,
           false,
           papers,
+          "relation",
         ),
       };
     })
@@ -291,6 +296,17 @@ const getRelationLayout = (
       const isToCenter = edge.target === centerKey;
       const centerX = g.node(centerKey).x;
 
+      // 엣지 색상 결정
+      const getEdgeColor = () => {
+        if (isFromCenter || isToCenter) return "#35CE89";
+        const srcNode = nodes.find((n) => n.key === edge.source);
+        const tgtNode = nodes.find((n) => n.key === edge.target);
+        const minTier = Math.min(srcNode?.tier ?? 1, tgtNode?.tier ?? 1);
+        if (minTier === 1) return "#029B56";
+        return "#03C26C";
+      };
+      const edgeColor = getEdgeColor();
+
       if (isFromCenter) {
         return {
           id: `${edge.source}-${edge.target}`,
@@ -299,8 +315,8 @@ const getRelationLayout = (
           type: "citationEdge",
           sourceHandle: "source-right",
           targetHandle: "target-left",
-          style: { stroke: "#35CE89", strokeWidth: 1 },
-          markerEnd: { type: MarkerType.Arrow, color: "#35CE89" },
+          style: { stroke: edgeColor, strokeWidth: 1 },
+          markerEnd: { type: MarkerType.Arrow, color: edgeColor },
         };
       } else if (isToCenter) {
         return {
@@ -310,8 +326,8 @@ const getRelationLayout = (
           type: "citationEdge",
           sourceHandle: "right",
           targetHandle: "target-left",
-          style: { stroke: "#35CE89", strokeWidth: 1 },
-          markerEnd: { type: MarkerType.Arrow, color: "#35CE89" },
+          style: { stroke: edgeColor, strokeWidth: 1 },
+          markerEnd: { type: MarkerType.Arrow, color: edgeColor },
         };
       } else {
         const isSourceLeft = sourceNode.x < centerX;
@@ -324,8 +340,8 @@ const getRelationLayout = (
             type: "citationEdge",
             sourceHandle: "source-right",
             targetHandle: "target-left",
-            style: { stroke: "#35CE89", strokeWidth: 1 },
-            markerEnd: { type: MarkerType.Arrow, color: "#35CE89" },
+            style: { stroke: edgeColor, strokeWidth: 1 },
+            markerEnd: { type: MarkerType.Arrow, color: edgeColor },
           };
         } else {
           return {
@@ -335,8 +351,8 @@ const getRelationLayout = (
             type: "citationEdge",
             sourceHandle: "source-left",
             targetHandle: "target-right",
-            style: { stroke: "#35CE89", strokeWidth: 1 },
-            markerStart: { type: MarkerType.Arrow, color: "#35CE89" },
+            style: { stroke: edgeColor, strokeWidth: 1 },
+            markerStart: { type: MarkerType.Arrow, color: edgeColor },
           };
         }
       }

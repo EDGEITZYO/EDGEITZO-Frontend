@@ -9,6 +9,7 @@ import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { useState } from "react";
 import type {
   CitationDirection,
+  CitationTab,
   CitationPaperCard,
 } from "../../types/citation";
 
@@ -24,6 +25,8 @@ export interface CitationNodeData {
   isSelected: boolean;
   isExpanding: boolean;
   isLeft: boolean;
+  tier: number;
+  tab: CitationTab;
   paper: CitationPaperCard | null;
 }
 
@@ -512,8 +515,20 @@ const CitationNode = ({ id, data }: NodeProps<CitationNodeData>) => {
     );
   }
 
-  const isReference = data.direction === "reference";
-  const borderColor = isReference ? "#3BA502" : "#029B56";
+  const getNodeStyle = () => {
+    if (data.tab === "reference") {
+      return { borderColor: "#3BA502", background: "#FFF" };
+    }
+    if (data.tier === 1) {
+      return { borderColor: "#029B56", background: "#FFF" };
+    }
+    if (data.tier % 2 === 0) {
+      return { borderColor: "#03C26C", background: "#E6F9F0" };
+    }
+    return { borderColor: "#03C26C", background: "#FFF" };
+  };
+
+  const { borderColor, background } = getNodeStyle();
 
   return (
     <Box sx={{ position: "relative" }}>
@@ -568,7 +583,7 @@ const CitationNode = ({ id, data }: NodeProps<CitationNodeData>) => {
             borderRadius: "6px",
             border: "1px solid",
             borderColor,
-            background: "#FFF",
+            background,
             cursor: "pointer",
             boxSizing: "border-box",
           }}
