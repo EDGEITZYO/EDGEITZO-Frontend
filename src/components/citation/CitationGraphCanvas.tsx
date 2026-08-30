@@ -427,6 +427,7 @@ const CitationGraphInner = ({
     setNodes(
       layoutedNodes.map((n) => ({
         ...n,
+        zIndex: n.id === selectedNodeKey ? 1000 : 1,
         data: {
           ...n.data,
           isSelected: n.id === selectedNodeKey,

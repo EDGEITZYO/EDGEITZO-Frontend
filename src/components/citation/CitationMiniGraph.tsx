@@ -272,7 +272,14 @@ const CitationMiniGraph = ({ paperId, paperTitle }: CitationMiniGraphProps) => {
                   centerKey={centerKey}
                   tab={tab}
                   selectedNodeKey={miniSelectedNodeKey}
-                  papers={referenceData?.papers ?? []}
+                  papers={
+                    tab === "relation"
+                      ? [
+                          ...(referenceData?.papers ?? []),
+                          ...(citingData?.papers ?? []),
+                        ]
+                      : (referenceData?.papers ?? [])
+                  }
                   expandingNodeKey={null}
                   isMini={true}
                   onNodeClick={(nodeKey) =>
