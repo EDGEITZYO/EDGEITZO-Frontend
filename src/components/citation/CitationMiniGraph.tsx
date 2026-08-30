@@ -266,6 +266,7 @@ const CitationMiniGraph = ({ paperId, paperTitle }: CitationMiniGraphProps) => {
                 </Box>
               ) : (
                 <CitationGraphCanvas
+                  key={tab}
                   rawNodes={currentNodes}
                   rawEdges={currentEdges}
                   centerKey={centerKey}

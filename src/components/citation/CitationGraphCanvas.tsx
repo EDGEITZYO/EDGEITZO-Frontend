@@ -455,6 +455,15 @@ const CitationGraphInner = ({
     return () => clearTimeout(timer);
   }, [selectedNodeKey, getNode, setCenter]);
 
+  useEffect(() => {
+    if (!isMini || !centerKey) return;
+    const node = getNode(centerKey);
+    if (!node) return;
+    const nodeX = node.position.x + CENTER_SIZE / 2;
+    const nodeY = node.position.y + CENTER_SIZE / 2;
+    setCenter(nodeX, nodeY, { duration: 0, zoom: 0.8 });
+  }, [centerKey, isMini, getNode, setCenter]);
+
   const handleNodeClick = useCallback(
     (_: React.MouseEvent, node: Node<CitationNodeData>) => {
       if (node.data.isCenter) return;
@@ -470,14 +479,15 @@ const CitationGraphInner = ({
       onNodesChange={onNodesChange}
       onEdgesChange={onEdgesChange}
       onNodeClick={handleNodeClick}
+      onPaneClick={onPaneClick}
       nodeTypes={nodeTypes}
       edgeTypes={edgeTypes}
-      fitView
+      fitView={!isMini}
+      defaultViewport={isMini ? { x: 0, y: 0, zoom: 0.8 } : undefined}
       fitViewOptions={{ padding: 0.2 }}
       minZoom={0.3}
       maxZoom={1.5}
       proOptions={{ hideAttribution: true }}
-      onPaneClick={onPaneClick}
     >
       <Background color="#E9EAF2" gap={16} />
     </ReactFlow>
