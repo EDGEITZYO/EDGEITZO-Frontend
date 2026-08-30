@@ -489,6 +489,7 @@ const CitationFullPanel = ({
           {/* ReactFlow 그래프 */}
           <Box sx={{ flex: 1, width: "100%", position: "relative" }}>
             <CitationGraphCanvas
+              key={tab}
               rawNodes={currentNodes}
               rawEdges={currentEdges}
               centerKey={centerKey}
