@@ -27,6 +27,7 @@ type PanelView = "list" | "detail";
 interface CitationPaperListPanelProps {
   papers: CitationPaperCard[];
   selectedNodeKey: string | null;
+  onDetailViewChange: (isDetail: boolean) => void;
   onClose: () => void;
 }
 
@@ -246,6 +247,7 @@ const ToggleFilter = ({
 const CitationPaperListPanel = ({
   papers,
   selectedNodeKey,
+  onDetailViewChange,
   onClose,
 }: CitationPaperListPanelProps) => {
   const theme = useTheme();
@@ -326,12 +328,14 @@ const CitationPaperListPanel = ({
   const handlePaperClick = (paperId: string) => {
     setSelectedPaperId(paperId);
     setPanelView("detail");
+    onDetailViewChange(true);
   };
 
   const handleClose = () => {
     if (panelView === "detail") {
       setPanelView("list");
       setSelectedPaperId(null);
+      onDetailViewChange(false);
     } else {
       onClose();
     }
@@ -412,10 +416,13 @@ const CitationPaperListPanel = ({
         left: 0,
         right: 0,
         bottom: 0,
-        zIndex: 20,
+        zIndex: 1500,
       }
     : {
-        width: "calc((100% - 12px) * 734 / (930 + 734))",
+        width:
+          panelView === "detail"
+            ? "100%"
+            : "calc((100% - 12px) * 734 / (930 + 734))",
         flexShrink: 0,
       };
 
@@ -641,12 +648,14 @@ const CitationPaperListPanel = ({
               onClose={() => {
                 setPanelView("list");
                 setSelectedPaperId(null);
+                onDetailViewChange(false);
               }}
               onBookmarkChange={() => {
                 queryClient.invalidateQueries({
                   queryKey: bookmarkKeys.savedList(),
                 });
               }}
+              showCitationGraph={false}
             />
           </Box>
         )}

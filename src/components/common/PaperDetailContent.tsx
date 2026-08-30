@@ -29,6 +29,7 @@ interface PaperDetailContentProps {
   onRelatedPaperClick?: (paperId: string) => void;
   onClose?: () => void;
   onBookmarkChange?: (paperId: string, isBookmarked: boolean) => void;
+  showCitationGraph?: boolean;
 }
 
 // ─── 배지 ────────────────────────────────────────────────
@@ -125,6 +126,7 @@ const PaperDetailContent = ({
   onRelatedPaperClick,
   onClose,
   onBookmarkChange,
+  showCitationGraph = true,
 }: PaperDetailContentProps) => {
   const queryClient = useQueryClient();
   const theme = useTheme();
@@ -676,7 +678,12 @@ const PaperDetailContent = ({
       )}
 
       {/* 논문 관계 */}
-      <CitationMiniGraph paperId={paperId} paperTitle={paperData.title ?? ""} />
+      {(showCitationGraph ?? true) && (
+        <CitationMiniGraph
+          paperId={paperId}
+          paperTitle={paperData.title ?? ""}
+        />
+      )}
 
       <BookmarkFolderSelectDialog
         open={bookmarkDialogOpen}

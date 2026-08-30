@@ -131,7 +131,7 @@ const CitationFullPanel = ({
 }: CitationFullPanelProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-
+  const [isDetailView, setIsDetailView] = useState(false);
   const tab = useCitationTab();
   const {
     centerKey,
@@ -389,12 +389,12 @@ const CitationFullPanel = ({
         {/* 그래프 영역 */}
         <Box
           sx={{
-            display: "flex",
+            display: isDetailView ? "none" : "flex",
             padding: "32px",
             flexDirection: "column",
             alignItems: "flex-start",
             gap: "32px",
-            flex: 1,
+            flex: isDetailView ? "none" : 1,
             position: "relative",
             overflow: "hidden",
           }}
@@ -514,6 +514,7 @@ const CitationFullPanel = ({
           <CitationPaperListPanel
             papers={panelPapers}
             selectedNodeKey={selectedNodeKey}
+            onDetailViewChange={setIsDetailView}
             onClose={() => {
               setIsPanelOpen(false);
               selectNode(null);
