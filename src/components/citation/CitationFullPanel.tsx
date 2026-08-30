@@ -16,6 +16,7 @@ import { citationApi } from "../../api/citation";
 import CitationGraphCanvas from "./CitationGraphCanvas";
 import CitationPaperListPanel from "./CitationPaperListPanel";
 import { createPortal } from "react-dom";
+import useCitationGraphStore from "../../stores/citationGraphStore";
 
 // ─── 탭 토글 ─────────────────────────────────────────────
 
@@ -133,13 +134,9 @@ const CitationFullPanel = ({
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [isDetailView, setIsDetailView] = useState(false);
   const tab = useCitationTab();
-  const {
-    centerKey,
-    referenceNodes,
-    referenceEdges,
-    citingNodes,
-    citingEdges,
-  } = useCitationGraphData();
+  const { centerKey, referenceNodes, citingNodes, citingEdges } =
+    useCitationGraphData();
+  const referenceEdges = useCitationGraphStore((state) => state.referenceEdges);
   const papers = useCitationPapers();
   const currentNodeCount =
     tab === "reference"

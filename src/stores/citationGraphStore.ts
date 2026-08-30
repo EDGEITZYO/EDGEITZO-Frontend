@@ -97,6 +97,18 @@ const useCitationGraphStore = create<
       const newNodes = response.new_nodes.filter(
         (n) => !existingKeys.has(n.key),
       );
+      const existingReferenceEdgeIds = new Set(
+        state.referenceEdges.map((e) => `${e.source}-${e.target}`),
+      );
+      const existingCitingEdgeIds = new Set(
+        state.citingEdges.map((e) => `${e.source}-${e.target}`),
+      );
+
+      const newEdges = response.new_edges.filter((e) =>
+        isReference
+          ? !existingReferenceEdgeIds.has(`${e.source}-${e.target}`)
+          : !existingCitingEdgeIds.has(`${e.source}-${e.target}`),
+      );
       const newPapers = response.papers.filter(
         (p) => !state.papers.some((existing) => existing.key === p.key),
       );
@@ -111,11 +123,11 @@ const useCitationGraphStore = create<
       return {
         referenceNodes: updatedReferenceNodes,
         referenceEdges: isReference
-          ? [...state.referenceEdges, ...response.new_edges]
+          ? [...state.referenceEdges, ...newEdges]
           : state.referenceEdges,
         citingNodes: updatedCitingNodes,
         citingEdges: !isReference
-          ? [...state.citingEdges, ...response.new_edges]
+          ? [...state.citingEdges, ...newEdges]
           : state.citingEdges,
         papers: [...state.papers, ...newPapers],
         nodeCount:

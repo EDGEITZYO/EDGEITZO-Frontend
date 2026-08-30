@@ -59,19 +59,23 @@ const makeNodeData = (
 
 const getReferenceLayout = (
   nodes: PaperCitationNode[],
+  edges: PaperCitationEdge[], // 추가
   centerKey: string,
   selectedNodeKey: string | null,
   papers: CitationPaperCard[],
 ): { nodes: Node<CitationNodeData>[]; edges: Edge[] } => {
-  const childNodes = nodes.filter((n) => n.key !== centerKey);
+  const childNodes = nodes.filter((n) => n.key !== centerKey && n.tier === 1);
   const leftNodes = childNodes.filter((_, i) => i % 2 !== 0);
   const rightNodes = childNodes.filter((_, i) => i % 2 === 0);
+  const leftKeys = new Set(leftNodes.map((n) => n.key));
 
   const g = new dagre.graphlib.Graph();
   g.setDefaultEdgeLabel(() => ({}));
   g.setGraph({ rankdir: "LR", ranksep: RANKSEP, nodesep: NODESEP });
 
   g.setNode(centerKey, { width: CENTER_SIZE, height: CENTER_SIZE });
+
+  // tier 1 노드
   leftNodes.forEach((n) => {
     g.setNode(n.key, { width: NODE_WIDTH, height: NODE_HEIGHT });
     g.setEdge(n.key, centerKey);
@@ -79,6 +83,36 @@ const getReferenceLayout = (
   rightNodes.forEach((n) => {
     g.setNode(n.key, { width: NODE_WIDTH, height: NODE_HEIGHT });
     g.setEdge(centerKey, n.key);
+  });
+
+  // tier 2 이상 노드
+  nodes
+    .filter((n) => n.key !== centerKey && n.tier > 1)
+    .forEach((n) => {
+      g.setNode(n.key, { width: NODE_WIDTH, height: NODE_HEIGHT });
+    });
+
+  // tier 2 이상 엣지 — 부모가 좌측이면 뒤집기, 우측이면 그대로
+  edges.forEach((edge) => {
+    if (!g.hasNode(edge.source) || !g.hasNode(edge.target)) return;
+    const sourceNode = nodes.find((n) => n.key === edge.source);
+    const targetNode = nodes.find((n) => n.key === edge.target);
+    if (!sourceNode || !targetNode) return;
+    if (sourceNode.tier === 0 || targetNode.tier === 0) return; // center 관련 엣지 제외 (이미 처리됨)
+
+    // 부모 노드가 좌측인지 판단
+    const parentKey =
+      sourceNode.tier < targetNode.tier ? edge.source : edge.target;
+    const isParentLeft =
+      leftKeys.has(parentKey) ||
+      (nodes.find((n) => n.key === parentKey)?.tier === 1 &&
+        leftKeys.has(parentKey));
+
+    if (isParentLeft) {
+      g.setEdge(edge.target, edge.source); // 뒤집기 → 더 왼쪽
+    } else {
+      g.setEdge(edge.source, edge.target); // 그대로 → 더 오른쪽
+    }
   });
 
   try {
@@ -98,7 +132,9 @@ const getReferenceLayout = (
       const isCenter = node.key === centerKey;
       const w = isCenter ? CENTER_SIZE : NODE_WIDTH;
       const h = isCenter ? CENTER_SIZE : NODE_HEIGHT;
-      const isLeft = leftNodes.some((n) => n.key === node.key);
+      const isLeft =
+        leftKeys.has(node.key) ||
+        (!isCenter && x < centerDagNode.x && node.tier > 1);
 
       return {
         id: node.key,
@@ -116,6 +152,7 @@ const getReferenceLayout = (
     })
     .filter((n) => n !== null) as Node<CitationNodeData>[];
 
+  // 렌더링 엣지
   const leftEdges: Edge[] = leftNodes.map((node) => ({
     id: `${centerKey}-${node.key}`,
     source: centerKey,
@@ -138,7 +175,46 @@ const getReferenceLayout = (
     markerEnd: { type: MarkerType.Arrow, color: "#3BA502" },
   }));
 
-  return { nodes: layoutedNodes, edges: [...leftEdges, ...rightEdges] };
+  // tier 2 이상 렌더링 엣지
+  const deeperEdges: Edge[] = edges
+    .filter((edge) => {
+      const sourceNode = nodes.find((n) => n.key === edge.source);
+      const targetNode = nodes.find((n) => n.key === edge.target);
+      if (!sourceNode || !targetNode) return false;
+      // center 관련 엣지 제외
+      if (edge.source === centerKey || edge.target === centerKey) return false;
+      return sourceNode.tier > 0 && targetNode.tier > 0;
+    })
+    .map((edge) => {
+      const sourceNode = nodes.find((n) => n.key === edge.source)!;
+      const targetNode = nodes.find((n) => n.key === edge.target)!;
+      const parentKey =
+        sourceNode.tier < targetNode.tier ? edge.source : edge.target;
+      const childKey =
+        sourceNode.tier < targetNode.tier ? edge.target : edge.source;
+      const isParentLeft =
+        leftKeys.has(parentKey) ||
+        (!leftKeys.has(parentKey) &&
+          nodes.find((n) => n.key === parentKey) &&
+          g.node(parentKey)?.x < centerDagNode.x);
+
+      return {
+        id: `${edge.source}-${edge.target}`,
+        source: parentKey,
+        target: childKey,
+        type: "citationEdge",
+        sourceHandle: isParentLeft ? "source-left" : "source-right",
+        targetHandle: isParentLeft ? "target-right" : "target-left",
+        style: { stroke: "#3BA502", strokeWidth: 1 },
+        markerEnd: { type: MarkerType.Arrow, color: "#3BA502" },
+      };
+    });
+  console.log('deeperEdges:', deeperEdges);
+
+  return {
+    nodes: layoutedNodes,
+    edges: [...leftEdges, ...rightEdges, ...deeperEdges],
+  };
 };
 
 // ─── 인용관계 레이아웃 ────────────────────────────────────
@@ -207,14 +283,15 @@ const getRelationLayout = (
 
   const layoutedEdges: Edge[] = edges
     .map((edge) => {
-      const isReference = edge.source === centerKey;
-
-      // dagre에 없는 노드 참조 방지
       const sourceNode = g.node(edge.source);
       const targetNode = g.node(edge.target);
       if (!sourceNode || !targetNode) return null;
 
-      if (isReference) {
+      const isFromCenter = edge.source === centerKey;
+      const isToCenter = edge.target === centerKey;
+      const centerX = g.node(centerKey).x;
+
+      if (isFromCenter) {
         return {
           id: `${edge.source}-${edge.target}`,
           source: edge.target,
@@ -225,7 +302,7 @@ const getRelationLayout = (
           style: { stroke: "#35CE89", strokeWidth: 1 },
           markerEnd: { type: MarkerType.Arrow, color: "#35CE89" },
         };
-      } else {
+      } else if (isToCenter) {
         return {
           id: `${edge.source}-${edge.target}`,
           source: centerKey,
@@ -236,6 +313,32 @@ const getRelationLayout = (
           style: { stroke: "#35CE89", strokeWidth: 1 },
           markerEnd: { type: MarkerType.Arrow, color: "#35CE89" },
         };
+      } else {
+        const isSourceLeft = sourceNode.x < centerX;
+
+        if (isSourceLeft) {
+          return {
+            id: `${edge.source}-${edge.target}`,
+            source: edge.target,
+            target: edge.source,
+            type: "citationEdge",
+            sourceHandle: "source-right",
+            targetHandle: "target-left",
+            style: { stroke: "#35CE89", strokeWidth: 1 },
+            markerEnd: { type: MarkerType.Arrow, color: "#35CE89" },
+          };
+        } else {
+          return {
+            id: `${edge.source}-${edge.target}`,
+            source: edge.source,
+            target: edge.target,
+            type: "citationEdge",
+            sourceHandle: "source-left",
+            targetHandle: "target-right",
+            style: { stroke: "#35CE89", strokeWidth: 1 },
+            markerStart: { type: MarkerType.Arrow, color: "#35CE89" },
+          };
+        }
       }
     })
     .filter((e) => e !== null) as Edge[];
@@ -274,7 +377,13 @@ const CitationGraphInner = ({
 
   const { nodes: layoutedNodes, edges: layoutedEdges } = useMemo(() => {
     if (tab === "reference") {
-      return getReferenceLayout(rawNodes, centerKey, selectedNodeKey, papers);
+      return getReferenceLayout(
+        rawNodes,
+        rawEdges,
+        centerKey,
+        selectedNodeKey,
+        papers,
+      );
     }
     return getRelationLayout(
       rawNodes,

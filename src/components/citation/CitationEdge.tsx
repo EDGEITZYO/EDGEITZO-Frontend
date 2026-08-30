@@ -9,6 +9,7 @@ const CitationEdge = ({
   targetY,
   targetPosition,
   markerEnd,
+  markerStart,
   style,
 }: EdgeProps) => {
   const [edgePath] = getSmoothStepPath({
@@ -29,6 +30,7 @@ const CitationEdge = ({
       strokeWidth={style?.strokeWidth ?? 1}
       fill="none"
       markerEnd={markerEnd}
+      markerStart={markerStart}
     />
   );
 };
