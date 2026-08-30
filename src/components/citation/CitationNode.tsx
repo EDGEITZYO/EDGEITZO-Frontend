@@ -533,25 +533,25 @@ const CitationNode = ({ id, data }: NodeProps<CitationNodeData>) => {
           type="target"
           position={Position.Left}
           id="target-left"
-          style={{ opacity: 0 }}
+          style={{ opacity: 0, left: 8 }}
         />
         <Handle
           type="target"
           position={Position.Right}
           id="target-right"
-          style={{ opacity: 0 }}
+          style={{ opacity: 0, right: 8 }}
         />
         <Handle
           type="source"
           position={Position.Left}
           id="source-left"
-          style={{ opacity: 0 }}
+          style={{ opacity: 0, left: 8 }}
         />
         <Handle
           type="source"
           position={Position.Right}
           id="source-right"
-          style={{ opacity: 0 }}
+          style={{ opacity: 0, right: 8 }}
         />
 
         {/* 노드 박스 */}
