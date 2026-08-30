@@ -273,6 +273,7 @@ const getRelationLayout = (
       const w = isCenter ? CENTER_SIZE : NODE_WIDTH;
       const h = isCenter ? CENTER_SIZE : NODE_HEIGHT;
       const direction: CitationDirection = x < centerX ? "reference" : "citing";
+      const isLeft = x < centerX;
 
       return {
         id: node.key,
@@ -283,7 +284,7 @@ const getRelationLayout = (
           direction,
           isCenter,
           node.key === selectedNodeKey,
-          false,
+          isLeft,
           papers,
           "relation",
           isMini,
