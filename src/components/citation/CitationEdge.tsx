@@ -1,4 +1,4 @@
-import { type EdgeProps, getSmoothStepPath, Position } from "reactflow";
+import { type EdgeProps, getSmoothStepPath } from "reactflow";
 
 const CitationEdge = ({
   id,
