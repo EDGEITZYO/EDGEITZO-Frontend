@@ -1,8 +1,7 @@
 import { memo, useCallback } from "react";
 import { Handle, Position, type NodeProps } from "reactflow";
 import { Box, Typography, IconButton, CircularProgress } from "@mui/material";
-import OpenInNewIcon from "@mui/icons-material/OpenInNew";
-import AddIcon from "@mui/icons-material/Add";
+import { BookOpen, ArrowRight } from "lucide-react";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
@@ -110,9 +109,7 @@ const NodeTooltip = ({
             cursor: "pointer",
           }}
         >
-          <OpenInNewIcon
-            sx={{ width: "24px", height: "24px", color: "#FFF" }}
-          />
+          <BookOpen size={24} color="#FFF" />
         </Box>
 
         {/* 확장 버튼 */}
@@ -138,7 +135,7 @@ const NodeTooltip = ({
             {isExpanding ? (
               <CircularProgress size={16} sx={{ color: "#FFF" }} />
             ) : (
-              <AddIcon sx={{ width: "24px", height: "24px", color: "#FFF" }} />
+              <ArrowRight size={24} color="#FFF" />
             )}
           </Box>
         )}
