@@ -217,7 +217,6 @@ const getReferenceLayout = (
         markerEnd: { type: MarkerType.Arrow, color: "#3BA502" },
       };
     });
-  console.log("deeperEdges:", deeperEdges);
 
   return {
     nodes: layoutedNodes,
