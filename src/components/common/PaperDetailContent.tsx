@@ -21,6 +21,7 @@ import {
 } from "../../queries/usePaperQuery";
 import { useBookmarkCheckQuery } from "../../queries/useBookmarkQuery";
 import { bookmarkKeys, homeKeys, savedKeys } from "../../queries/keys";
+import CitationMiniGraph from "../citation/CitationMiniGraph";
 
 interface PaperDetailContentProps {
   paperId: string;
@@ -28,6 +29,7 @@ interface PaperDetailContentProps {
   onRelatedPaperClick?: (paperId: string) => void;
   onClose?: () => void;
   onBookmarkChange?: (paperId: string, isBookmarked: boolean) => void;
+  showCitationGraph?: boolean;
 }
 
 // ─── 배지 ────────────────────────────────────────────────
@@ -124,6 +126,7 @@ const PaperDetailContent = ({
   onRelatedPaperClick,
   onClose,
   onBookmarkChange,
+  showCitationGraph = true,
 }: PaperDetailContentProps) => {
   const queryClient = useQueryClient();
   const theme = useTheme();
@@ -539,7 +542,7 @@ const PaperDetailContent = ({
         </Box>
 
         {/* 키워드 */}
-        {paperData.keywords_ko.length > 0 && (
+        {(paperData.keywords_ko?.length ?? 0) > 0 && (
           <Box
             sx={{
               display: "flex",
@@ -672,6 +675,14 @@ const PaperDetailContent = ({
             ))}
           </Box>
         </Box>
+      )}
+
+      {/* 논문 관계 */}
+      {(showCitationGraph ?? true) && (
+        <CitationMiniGraph
+          paperId={paperId}
+          paperTitle={paperData.title ?? ""}
+        />
       )}
 
       <BookmarkFolderSelectDialog
