@@ -1,15 +1,7 @@
 import { useRef, useState } from "react";
-import { Box, IconButton, InputBase, Tooltip, Typography } from "@mui/material";
+import { Box, IconButton, InputBase, Typography } from "@mui/material";
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
-// TODO: API 연동 시 실제 추천 검색어 데이터로 교체
-const MOCK_RECOMMENDED: string[] = [
-  "세포 노화와 미토콘드리아 기능 저하",
-  "SASP 분비 기전",
-  "분자생물학 노화 최신 연구",
-  "분자생물학 노화 최신 연구",
-];
 
 type SearchMode = "AI" | "키워드";
 
@@ -34,12 +26,6 @@ const SearchBar = () => {
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") handleSubmit();
-  };
-
-  const handleRecommendedClick = (keyword: string) => {
-    navigate("/search", {
-      state: { query: keyword, title: keyword, directSearch: true },
-    });
   };
 
   // ─── 토글 컴포넌트 ───────────────────────────────────────
@@ -221,114 +207,6 @@ const SearchBar = () => {
         >
           {Toggle}
           <Box sx={{ marginLeft: "auto" }}>{SubmitButton}</Box>
-        </Box>
-      </Box>
-
-      {/* 추천 검색어 — 데스크탑/태블릿만 */}
-      <Box
-        sx={{
-          display: { xs: "none", sm: "flex" },
-          alignItems: "flex-start",
-          gap: "8px",
-          paddingLeft: "8px",
-        }}
-      >
-        {/* 검색 추천 라벨 */}
-        <Box
-          sx={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "2px",
-            padding: "8px 13px",
-            borderRadius: "24px",
-            flexShrink: 0,
-          }}
-        >
-          <Typography
-            sx={{
-              fontSize: "16px",
-              fontWeight: 400,
-              lineHeight: "24px",
-              letterSpacing: "-0.336px",
-              color: "label.alternative",
-              whiteSpace: "nowrap",
-            }}
-          >
-            검색 추천
-          </Typography>
-          <Tooltip title="AI가 추천하는 검색어예요" placement="top">
-            <Box
-              component="span"
-              sx={{
-                display: "inline-flex",
-                alignItems: "center",
-                cursor: "pointer",
-                color: "label.alternative",
-              }}
-            >
-              {/* lucide info icon */}
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18Z"
-                  stroke="#73757F"
-                  strokeWidth="1.5"
-                />
-                <path
-                  d="M12 14.4001V12.0001M12 9.6001V9.60012"
-                  stroke="#73757F"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </Box>
-          </Tooltip>
-        </Box>
-
-        {/* 추천 검색어 칩 목록 */}
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "flex-start",
-            flexWrap: { sm: "wrap", lg: "nowrap" },
-            gap: "8px",
-            flex: 1,
-          }}
-        >
-          {MOCK_RECOMMENDED.map((keyword, index) => (
-            <Box
-              key={index}
-              onClick={() => handleRecommendedClick(keyword)}
-              sx={{
-                display: "inline-flex",
-                alignItems: "center",
-                padding: "8px 13px",
-                borderRadius: "24px",
-                backgroundColor: "fill.normal",
-                cursor: "pointer",
-                flexShrink: { lg: 0 },
-                "&:hover": { backgroundColor: "fill.strong" },
-              }}
-            >
-              <Typography
-                sx={{
-                  fontSize: "16px",
-                  fontWeight: 400,
-                  lineHeight: "24px",
-                  letterSpacing: "-0.336px",
-                  color: "label.alternative",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {keyword}
-              </Typography>
-            </Box>
-          ))}
         </Box>
       </Box>
     </Box>
