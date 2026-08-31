@@ -21,6 +21,8 @@ import type {
   CitationTab,
 } from "../../types/citation";
 import CitationEdge from "./CitationEdge";
+import { useTheme } from "@mui/material/styles";
+import { useMediaQuery } from "@mui/material";
 
 const NODE_WIDTH = 360;
 const NODE_HEIGHT = 76;
@@ -398,6 +400,8 @@ const CitationGraphInner = ({
   isMini,
 }: CitationGraphCanvasProps) => {
   const { setCenter, getNode } = useReactFlow();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const { nodes: layoutedNodes, edges: layoutedEdges } = useMemo(() => {
     if (tab === "reference") {
@@ -450,11 +454,11 @@ const CitationGraphInner = ({
     const timer = setTimeout(() => {
       const nodeX = node.position.x + NODE_WIDTH / 2;
       const nodeY = node.position.y + NODE_HEIGHT / 2;
-      setCenter(nodeX, nodeY, { duration: 300, zoom: 1 });
+      setCenter(nodeX, nodeY, { duration: 300, zoom: isMobile ? 0.6 : 1 });
     }, 100); // 패널 열린 후 레이아웃 반영될 때까지 대기
 
     return () => clearTimeout(timer);
-  }, [selectedNodeKey, getNode, setCenter]);
+  }, [selectedNodeKey, getNode, setCenter, isMobile]);
 
   useEffect(() => {
     if (!isMini || !centerKey) return;
