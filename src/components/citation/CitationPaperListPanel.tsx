@@ -435,7 +435,7 @@ const CitationPaperListPanel = ({
       }
     : {
         width:
-          panelView === "detail"
+          panelView === "detail" || !isDesktop
             ? "100%"
             : "calc((100% - 12px) * 734 / (930 + 734))",
         flexShrink: 0,

@@ -131,6 +131,7 @@ const CitationFullPanel = ({
   onClose,
 }: CitationFullPanelProps) => {
   const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [isDetailView, setIsDetailView] = useState(false);
   const tab = useCitationTab();
@@ -205,10 +206,10 @@ const CitationFullPanel = ({
   const handleNodeClick = useCallback(
     (nodeKey: string) => {
       selectNode(nodeKey);
-      setIsPanelOpen(true);
+      if (isDesktop) setIsPanelOpen(true);
       setViewDetailPaperId(null);
     },
-    [selectNode],
+    [selectNode, isDesktop],
   );
 
   // expand
