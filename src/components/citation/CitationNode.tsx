@@ -625,9 +625,11 @@ const CitationNode = ({ id, data }: NodeProps<CitationNodeData>) => {
 
   const handleViewPaper = useCallback(() => {
     window.dispatchEvent(
-      new CustomEvent("citationViewPaper", { detail: { nodeId: id } }),
+      new CustomEvent("citationViewPaper", {
+        detail: { nodeId: id, paperId: data.paper?.paper_id },
+      }),
     );
-  }, [id]);
+  }, [id, data.paper?.paper_id]);
 
   if (data.isCenter) {
     const isReference = data.direction === "reference";

@@ -145,7 +145,9 @@ const CitationFullPanel = ({
         citingNodes.filter((n) => n.key !== centerKey).length;
   const selectedNodeKey = useCitationSelectedNode();
   const { setTab, expandNode, selectNode, reset } = useCitationGraphActions();
-
+  const [viewDetailPaperId, setViewDetailPaperId] = useState<string | null>(
+    null,
+  );
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [expandingNodeKey, setExpandingNodeKey] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -204,6 +206,7 @@ const CitationFullPanel = ({
     (nodeKey: string) => {
       selectNode(nodeKey);
       setIsPanelOpen(true);
+      setViewDetailPaperId(null);
     },
     [selectNode],
   );
@@ -270,9 +273,10 @@ const CitationFullPanel = ({
   // 논문 보기
   useEffect(() => {
     const handleViewPaper = (e: Event) => {
-      const { nodeId } = (e as CustomEvent).detail;
+      const { nodeId, paperId } = (e as CustomEvent).detail;
       selectNode(nodeId);
       setIsPanelOpen(true);
+      if (paperId) setViewDetailPaperId(paperId);
     };
     window.addEventListener("citationViewPaper", handleViewPaper);
     return () =>
@@ -512,10 +516,13 @@ const CitationFullPanel = ({
           <CitationPaperListPanel
             papers={panelPapers}
             selectedNodeKey={selectedNodeKey}
+            viewDetailPaperId={viewDetailPaperId}
             onDetailViewChange={setIsDetailView}
+            onViewDetailHandled={() => setViewDetailPaperId(null)}
             onClose={() => {
               setIsPanelOpen(false);
               selectNode(null);
+              setViewDetailPaperId(null);
             }}
           />
         )}

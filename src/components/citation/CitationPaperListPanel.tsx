@@ -27,7 +27,9 @@ type PanelView = "list" | "detail";
 interface CitationPaperListPanelProps {
   papers: CitationPaperCard[];
   selectedNodeKey: string | null;
+  viewDetailPaperId: string | null;
   onDetailViewChange: (isDetail: boolean) => void;
+  onViewDetailHandled: () => void;
   onClose: () => void;
 }
 
@@ -247,7 +249,9 @@ const ToggleFilter = ({
 const CitationPaperListPanel = ({
   papers,
   selectedNodeKey,
+  viewDetailPaperId,
   onDetailViewChange,
+  onViewDetailHandled,
   onClose,
 }: CitationPaperListPanelProps) => {
   const theme = useTheme();
@@ -330,6 +334,17 @@ const CitationPaperListPanel = ({
     setPanelView("detail");
     onDetailViewChange(true);
   };
+
+  useEffect(() => {
+    if (viewDetailPaperId) {
+      setTimeout(() => {
+        setSelectedPaperId(viewDetailPaperId);
+        setPanelView("detail");
+        onDetailViewChange(true);
+        onViewDetailHandled();
+      }, 0);
+    }
+  }, [viewDetailPaperId, onDetailViewChange, onViewDetailHandled]);
 
   const handleClose = () => {
     if (panelView === "detail") {
