@@ -540,11 +540,26 @@ const SearchPage = () => {
     ],
   );
 
+  const pendingVisibleIdsRef = useRef<Set<string>>(new Set());
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const handlePaperVisible = useCallback(
     (paperId: string) => {
       if (selectionReasonMap[paperId] !== undefined) return;
-      const keywords = activePanelData?.filters.keywords ?? [];
-      fetchSelectionReasons([paperId], keywords);
+
+      pendingVisibleIdsRef.current.add(paperId);
+
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+
+      debounceTimerRef.current = setTimeout(() => {
+        const ids = Array.from(pendingVisibleIdsRef.current);
+        pendingVisibleIdsRef.current.clear();
+        if (ids.length === 0) return;
+        const keywords = activePanelData?.filters.keywords ?? [];
+        fetchSelectionReasons(ids, keywords);
+      }, 300);
     },
     [selectionReasonMap, activePanelData, fetchSelectionReasons],
   );
