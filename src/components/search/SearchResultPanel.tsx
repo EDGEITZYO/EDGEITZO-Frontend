@@ -54,6 +54,7 @@ interface SearchResultPanelProps {
   }) => void;
   isFilterLoading: boolean;
   selectionReasonMap: Record<string, SelectionReasonState>;
+  onPaperVisible: (paperId: string) => void;
 }
 
 const SORT_OPTIONS: { label: string; value: SortOrder }[] = [
@@ -325,6 +326,7 @@ const SearchResultPanel = ({
   isDesktop,
   isFilterLoading,
   selectionReasonMap,
+  onPaperVisible,
 }: SearchResultPanelProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -519,6 +521,7 @@ const SearchResultPanel = ({
             onClick={() => handlePaperClick(paper.paper_id)}
             onBookmark={() => handleBookmark(paper.paper_id)}
             onFeedback={onFeedback}
+            onVisible={onPaperVisible}
           />
         ))
       )}

@@ -540,6 +540,15 @@ const SearchPage = () => {
     ],
   );
 
+  const handlePaperVisible = useCallback(
+    (paperId: string) => {
+      if (selectionReasonMap[paperId] !== undefined) return;
+      const keywords = activePanelData?.filters.keywords ?? [];
+      fetchSelectionReasons([paperId], keywords);
+    },
+    [selectionReasonMap, activePanelData, fetchSelectionReasons],
+  );
+
   // ─── 네비게이션 ────────────────────────────────────────
 
   const handleBackClick = () => {
@@ -723,6 +732,7 @@ const SearchPage = () => {
                 onFilterChange={handleFilterChange}
                 isFilterLoading={isFilterLoading}
                 selectionReasonMap={selectionReasonMap}
+                onPaperVisible={handlePaperVisible}
               />
             )}
           </>
@@ -760,6 +770,7 @@ const SearchPage = () => {
                 onFilterChange={handleFilterChange}
                 isFilterLoading={isFilterLoading}
                 selectionReasonMap={selectionReasonMap}
+                onPaperVisible={handlePaperVisible}
               />
             )}
           </Box>

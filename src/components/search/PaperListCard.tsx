@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -26,6 +26,7 @@ interface PaperListCardProps {
   onClick: () => void;
   onBookmark: () => void;
   onFeedback: (paperId: string, feedback: FeedbackType) => void;
+  onVisible: (paperId: string) => void;
 }
 
 interface SelectionReasonBoxProps {
@@ -144,6 +145,7 @@ const PaperListCard = ({
   onClick,
   onBookmark,
   selectionReason,
+  onVisible,
 }: PaperListCardProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -158,6 +160,25 @@ const PaperListCard = ({
 
   const highlightStart = selectionReason?.highlight_start ?? null;
   const highlightEnd = selectionReason?.highlight_end ?? null;
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+    if (selectionReason !== undefined) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          onVisible(paper.paper_id);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [paper.paper_id, selectionReason, onVisible]);
   const [isAuthorExpanded, setIsAuthorExpanded] = useState(false);
 
   const journalInfo = [paper.year, paper.journal_name]
@@ -168,6 +189,7 @@ const PaperListCard = ({
   if (isMobile) {
     return (
       <Box
+        ref={cardRef}
         onClick={onClick}
         sx={{
           display: "flex",
@@ -440,6 +462,7 @@ const PaperListCard = ({
   // 데스크탑/태블릿
   return (
     <Box
+      ref={cardRef}
       onClick={onClick}
       sx={{
         display: "flex",
