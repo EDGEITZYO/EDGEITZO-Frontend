@@ -152,9 +152,8 @@ const PaperListCard = ({
   // 선정 이유 콘텐츠 결정
   const reasonContent = (() => {
     if (selectionReason === null) return "skeleton" as const;
-    if (selectionReason === undefined || selectionReason.reason === null) {
-      return paper.abstract ?? null;
-    }
+    if (selectionReason === undefined) return "skeleton" as const;
+    if (selectionReason.reason === null) return paper.abstract ?? null;
     return selectionReason.reason;
   })();
 
