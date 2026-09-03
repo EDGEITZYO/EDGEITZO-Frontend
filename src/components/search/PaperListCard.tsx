@@ -30,7 +30,7 @@ interface PaperListCardProps {
 }
 
 interface SelectionReasonBoxProps {
-  reasonContent: "skeleton" | string | null;
+  reasonContent: "skeleton" | "no_reason" | string | null;
   highlightStart: number | null;
   highlightEnd: number | null;
   isMobileBox: boolean;
@@ -68,7 +68,72 @@ const SelectionReasonBox = ({
   highlightEnd,
   isMobileBox,
 }: SelectionReasonBoxProps) => {
-  if (reasonContent === null) return null;
+  if (reasonContent === null) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          padding: "10px 12px",
+          flexDirection: "column",
+          alignItems: "flex-start",
+          gap: "8px",
+          alignSelf: "stretch",
+          borderRadius: "6px",
+          backgroundColor: "background.paper",
+        }}
+      >
+        <Typography
+          sx={{
+            display: "-webkit-box",
+            WebkitBoxOrient: "vertical",
+            WebkitLineClamp: 1,
+            overflow: "hidden",
+            color: "label.alternative",
+            textOverflow: "ellipsis",
+            fontSize: "13px",
+            fontWeight: 400,
+            lineHeight: "22px",
+            letterSpacing: "-0.26px",
+          }}
+        >
+          해당 논문은 초록을 제공하지 않아요.
+        </Typography>
+      </Box>
+    );
+  }
+  if (reasonContent === "no_reason") {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          padding: "10px 12px",
+          flexDirection: "column",
+          alignItems: "flex-start",
+          gap: "8px",
+          alignSelf: "stretch",
+          borderRadius: "6px",
+          backgroundColor: "background.paper",
+        }}
+      >
+        <Typography
+          sx={{
+            display: "-webkit-box",
+            WebkitBoxOrient: "vertical",
+            WebkitLineClamp: 1,
+            overflow: "hidden",
+            color: "label.alternative",
+            textOverflow: "ellipsis",
+            fontSize: "13px",
+            fontWeight: 400,
+            lineHeight: "22px",
+            letterSpacing: "-0.26px",
+          }}
+        >
+          선정 사유를 불러오지 못했어요.
+        </Typography>
+      </Box>
+    );
+  }
   return (
     <Box
       sx={{
@@ -120,10 +185,6 @@ const SelectionReasonBox = ({
       ) : (
         <Typography
           sx={{
-            display: "-webkit-box",
-            WebkitBoxOrient: "vertical",
-            WebkitLineClamp: isMobileBox ? 3 : 5,
-            overflow: "hidden",
             alignSelf: "stretch",
             color: "label.alternative",
             fontSize: "13px",
@@ -153,7 +214,8 @@ const PaperListCard = ({
   const reasonContent = (() => {
     if (selectionReason === null) return "skeleton" as const;
     if (selectionReason === undefined) return "skeleton" as const;
-    if (selectionReason.reason === null) return paper.abstract ?? null;
+    if (selectionReason.reason === null && paper.abstract === null) return null;
+    if (selectionReason.reason === null) return "no_reason" as const;
     return selectionReason.reason;
   })();
 
