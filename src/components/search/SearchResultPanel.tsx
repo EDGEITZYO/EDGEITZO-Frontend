@@ -15,6 +15,7 @@ import {
   type SortOrder,
   type SearchFilters,
   type SearchPaper,
+  type SelectionReasonState,
 } from "../../types/search";
 import { type PaperType } from "../../types/paper";
 import PaperListCard from "./PaperListCard";
@@ -52,6 +53,8 @@ interface SearchResultPanelProps {
     sci: boolean;
   }) => void;
   isFilterLoading: boolean;
+  selectionReasonMap: Record<string, SelectionReasonState>;
+  onPaperVisible: (paperId: string) => void;
 }
 
 const SORT_OPTIONS: { label: string; value: SortOrder }[] = [
@@ -322,6 +325,8 @@ const SearchResultPanel = ({
   onFilterChange,
   isDesktop,
   isFilterLoading,
+  selectionReasonMap,
+  onPaperVisible,
 }: SearchResultPanelProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -512,9 +517,11 @@ const SearchResultPanel = ({
             paper={paper}
             isBookmarked={bookmarkMap[paper.paper_id] ?? false}
             feedback={feedbacks[paper.paper_id]}
+            selectionReason={selectionReasonMap[paper.paper_id]}
             onClick={() => handlePaperClick(paper.paper_id)}
             onBookmark={() => handleBookmark(paper.paper_id)}
             onFeedback={onFeedback}
+            onVisible={onPaperVisible}
           />
         ))
       )}
