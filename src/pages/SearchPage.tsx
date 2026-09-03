@@ -88,6 +88,7 @@ const SearchPage = () => {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const filterAbortControllerRef = useRef<AbortController | null>(null);
   const initSentRef = useRef(false);
 
   // ─── 검색 결과 상태 ────────────────────────────────────
@@ -460,19 +461,26 @@ const SearchPage = () => {
       setFilterKci(filters.kci);
       setFilterSci(filters.sci);
 
+      filterAbortControllerRef.current?.abort();
+      const controller = new AbortController();
+      filterAbortControllerRef.current = controller;
+
       setIsFilterLoading(true);
       try {
-        const response = await searchChat({
-          session_id: sessionId,
-          message: "",
-          chip_id: null,
-          chip_type: null,
-          sort_order: sortOrder,
-          pub_year_start: filters.year,
-          paper_type: filters.paperType,
-          kci_only: filters.kci || null,
-          sci_only: filters.sci || null,
-        });
+        const response = await searchChat(
+          {
+            session_id: sessionId,
+            message: "",
+            chip_id: null,
+            chip_type: null,
+            sort_order: sortOrder,
+            pub_year_start: filters.year,
+            paper_type: filters.paperType,
+            kci_only: filters.kci || null,
+            sci_only: filters.sci || null,
+          },
+          controller.signal,
+        );
         setActivePanelData({
           result_items: response.result_items,
           filters: response.filters,
@@ -485,9 +493,9 @@ const SearchPage = () => {
         if (newPaperIds.length > 0) {
           fetchSelectionReasons(newPaperIds, response.filters.keywords);
         }
-      } catch {
-        // 에러 처리
-      } finally {
+        setIsFilterLoading(false);
+      } catch (err) {
+        if (err instanceof Error && err.name === "CanceledError") return;
         setIsFilterLoading(false);
       }
     },
@@ -498,19 +506,25 @@ const SearchPage = () => {
     async (sort: SortOrder) => {
       setSortOrder(sort);
       if (!sessionId) return;
+      filterAbortControllerRef.current?.abort();
+      const controller = new AbortController();
+      filterAbortControllerRef.current = controller;
       setIsFilterLoading(true);
       try {
-        const response = await searchChat({
-          session_id: sessionId,
-          message: "",
-          chip_id: null,
-          chip_type: null,
-          sort_order: sort,
-          pub_year_start: filterYear,
-          paper_type: filterPaperType,
-          kci_only: filterKci || null,
-          sci_only: filterSci || null,
-        });
+        const response = await searchChat(
+          {
+            session_id: sessionId,
+            message: "",
+            chip_id: null,
+            chip_type: null,
+            sort_order: sort,
+            pub_year_start: filterYear,
+            paper_type: filterPaperType,
+            kci_only: filterKci || null,
+            sci_only: filterSci || null,
+          },
+          controller.signal,
+        );
         setActivePanelData({
           result_items: response.result_items,
           filters: response.filters,
@@ -523,9 +537,9 @@ const SearchPage = () => {
         if (newPaperIds.length > 0) {
           fetchSelectionReasons(newPaperIds, response.filters.keywords);
         }
-      } catch {
-        // 에러 처리
-      } finally {
+        setIsFilterLoading(false);
+      } catch (err) {
+        if (err instanceof Error && err.name === "CanceledError") return;
         setIsFilterLoading(false);
       }
     },

@@ -130,13 +130,14 @@ export const searchChatStream = async ({
 
 export const searchChat = async (
   body: SearchChatRequest,
+  signal?: AbortSignal,
 ): Promise<ChatResponse> => {
   const { data } = await apiClient.post<{
     success: boolean;
     message: string;
     data: ChatResponse;
     meta: unknown;
-  }>("/search/chat", body);
+  }>("/search/chat", body, { signal });
   return data.data;
 };
 
