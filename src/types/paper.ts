@@ -1,6 +1,10 @@
 // ─── 공통 ─────────────────────────────────────────────────
 
-export type PaperType = "학술 저널" | "박사학위 논문" | "석사학위 논문" | "학위논문";
+export type PaperType =
+  | "학술 저널"
+  | "박사학위 논문"
+  | "석사학위 논문"
+  | "학위논문";
 
 // ─── 논문 단건 조회 ────────────────────────────────────────
 
@@ -58,6 +62,7 @@ export interface SimilarPaper {
   author: string;
   pubyear: number;
   material_type: string;
+  paper_type: PaperType | null;
   in_service: boolean;
   paper_id: string | null;
   journal_name: string | null;

@@ -4,6 +4,7 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import { type SimilarPaper } from "../../types/paper";
+import PaperTypeBadge from "../common/PaperTypeBadge";
 
 interface SimilarPaperCardProps {
   paper: SimilarPaper;
@@ -133,40 +134,37 @@ const SimilarPaperCard = ({
           </Box>
         </Box>
       ) : (
-        (paper.trust_badge?.citation_count != null ||
-          paper.trust_badge?.kci ||
-          paper.trust_badge?.sci) && (
-          <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            {paper.trust_badge?.citation_count != null && (
-              <Box
+        <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          {paper.paper_type && <PaperTypeBadge paperType={paper.paper_type} />}
+          {paper.trust_badge?.citation_count != null && (
+            <Box
+              sx={{
+                display: "flex",
+                padding: "3px 8px 4px 8px",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: "10px",
+                borderRadius: "6px",
+                border: "1px solid",
+                borderColor: "label.normal",
+              }}
+            >
+              <Typography
                 sx={{
-                  display: "flex",
-                  padding: "3px 8px 4px 8px",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  gap: "10px",
-                  borderRadius: "6px",
-                  border: "1px solid",
-                  borderColor: "label.normal",
+                  fontSize: "16px",
+                  fontWeight: 600,
+                  lineHeight: "24px",
+                  letterSpacing: "-0.336px",
+                  color: "label.normal",
                 }}
               >
-                <Typography
-                  sx={{
-                    fontSize: "16px",
-                    fontWeight: 600,
-                    lineHeight: "24px",
-                    letterSpacing: "-0.336px",
-                    color: "label.normal",
-                  }}
-                >
-                  인용수 {paper.trust_badge.citation_count}
-                </Typography>
-              </Box>
-            )}
-            {paper.trust_badge?.kci && <TrustBadge label="KCI" />}
-            {paper.trust_badge?.sci && <TrustBadge label="SCI" />}
-          </Box>
-        )
+                인용수 {paper.trust_badge.citation_count}
+              </Typography>
+            </Box>
+          )}
+          {paper.trust_badge?.kci && <TrustBadge label="KCI" />}
+          {paper.trust_badge?.sci && <TrustBadge label="SCI" />}
+        </Box>
       )}
 
       {/* 제목 */}
