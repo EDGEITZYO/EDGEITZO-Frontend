@@ -179,6 +179,7 @@ export type SearchChatSseEvent =
   | { type: "fetching" }
   | { type: "token"; text: string }
   | ({ type: "done" } & ChatResponse)
+  | ({ type: "selection_reason" } & SelectionReason)
   | { type: "error"; message: string };
 
 // ─── directSearch용 (이번 범위 외, 유지) ─────────────────
@@ -191,3 +192,16 @@ export interface SearchPapersRequest {
   page: number;
   size: number;
 }
+
+// ─── 논문 선정 이유 ──────────────────────────────────────
+
+export interface SelectionReason {
+  paper_id: string;
+  reason: string | null;
+  highlight_start: number | null;
+  highlight_end: number | null;
+  cached: boolean;
+}
+
+// null = 아직 미도착 (스켈레톤), undefined = 생성 실패 또는 없음
+export type SelectionReasonState = SelectionReason | null | undefined;

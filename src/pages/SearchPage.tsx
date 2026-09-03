@@ -7,7 +7,12 @@ import TopNavBar from "../components/layout/TopNavBar";
 import ExitConfirmDialog from "../components/search/ExitConfirmDialog";
 import SearchChatArea from "../components/search/SearchChatArea";
 import SearchResultPanel from "../components/search/SearchResultPanel";
-import { searchChatStream, searchChat, postFeedback } from "../api/search";
+import {
+  searchChatStream,
+  searchChat,
+  postFeedback,
+  postSelectionReasons,
+} from "../api/search";
 import {
   type SearchView,
   type ChatMessage,
@@ -16,6 +21,7 @@ import {
   type ChipType,
   type SearchFilters,
   type SearchPaper,
+  type SelectionReasonState,
 } from "../types/search";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import CloseIcon from "@mui/icons-material/Close";
@@ -90,6 +96,9 @@ const SearchPage = () => {
   );
   const [sortOrder, setSortOrder] = useState<SortOrder>("relevance");
   const [feedbacks, setFeedbacks] = useState<Record<string, FeedbackType>>({});
+  const [selectionReasonMap, setSelectionReasonMap] = useState<
+    Record<string, SelectionReasonState>
+  >({});
   const [bookmarkMap, setBookmarkMap] = useState<Record<string, boolean>>({});
   const [filterYear, setFilterYear] = useState<number | null>(null);
   const [filterPaperType, setFilterPaperType] = useState<string | null>(null);
@@ -98,6 +107,51 @@ const SearchPage = () => {
   const [isFilterLoading, setIsFilterLoading] = useState(false);
 
   // ─── SSE 핸들러 ────────────────────────────────────────
+
+  const fetchSelectionReasons = useCallback(
+    (paperIds: string[], keywords: string[]) => {
+      // 스켈레톤 세팅
+      setSelectionReasonMap((prev) => {
+        const next = { ...prev };
+        paperIds.forEach((id) => {
+          next[id] = null;
+        });
+        return next;
+      });
+
+      // 10건씩 나눠서 동시 요청
+      const batches: string[][] = [];
+      for (let i = 0; i < paperIds.length; i += 10) {
+        batches.push(paperIds.slice(i, i + 10));
+      }
+      batches.forEach((batch) => {
+        postSelectionReasons({ keywords, paper_ids: batch })
+          .then((items) => {
+            setSelectionReasonMap((prev) => {
+              const next = { ...prev };
+              items.forEach((item) => {
+                next[item.paper_id] = item;
+              });
+              // 응답 안 온 ID는 undefined (생성 실패)
+              batch.forEach((id) => {
+                if (next[id] === null) next[id] = undefined;
+              });
+              return next;
+            });
+          })
+          .catch(() => {
+            setSelectionReasonMap((prev) => {
+              const next = { ...prev };
+              batch.forEach((id) => {
+                if (next[id] === null) next[id] = undefined;
+              });
+              return next;
+            });
+          });
+      });
+    },
+    [],
+  );
 
   const handleSend = useCallback(
     async (
@@ -213,6 +267,15 @@ const SearchPage = () => {
                 );
               });
               setBookmarkMap((prev) => ({ ...prev, ...newBookmarks }));
+              // 상위 10건 스켈레톤 세팅
+              const initialReasonMap: Record<string, SelectionReasonState> = {};
+              response.result_items.slice(0, 10).forEach((p) => {
+                initialReasonMap[p.paper_id] = null;
+              });
+              setSelectionReasonMap((prev) => ({
+                ...prev,
+                ...initialReasonMap,
+              }));
 
               setMessages((prev) =>
                 prev.map((m) =>
@@ -264,6 +327,12 @@ const SearchPage = () => {
                 setView("result");
                 setIsPanelOpen(true);
               }
+            },
+            onSelectionReason: (item) => {
+              setSelectionReasonMap((prev) => ({
+                ...prev,
+                [item.paper_id]: item,
+              }));
             },
             onError: (errorMessage) => {
               setMessages((prev) =>
@@ -409,13 +478,20 @@ const SearchPage = () => {
           filters: response.filters,
           total_count: response.total_count,
         });
+        const existingIds = new Set(Object.keys(selectionReasonMap));
+        const newPaperIds = response.result_items
+          .map((p) => p.paper_id)
+          .filter((id) => !existingIds.has(id));
+        if (newPaperIds.length > 0) {
+          fetchSelectionReasons(newPaperIds, response.filters.keywords);
+        }
       } catch {
         // 에러 처리
       } finally {
         setIsFilterLoading(false);
       }
     },
-    [sessionId, sortOrder],
+    [sessionId, sortOrder, selectionReasonMap, fetchSelectionReasons],
   );
 
   const handleSortChange = useCallback(
@@ -440,13 +516,52 @@ const SearchPage = () => {
           filters: response.filters,
           total_count: response.total_count,
         });
+        const existingIds = new Set(Object.keys(selectionReasonMap));
+        const newPaperIds = response.result_items
+          .map((p) => p.paper_id)
+          .filter((id) => !existingIds.has(id));
+        if (newPaperIds.length > 0) {
+          fetchSelectionReasons(newPaperIds, response.filters.keywords);
+        }
       } catch {
         // 에러 처리
       } finally {
         setIsFilterLoading(false);
       }
     },
-    [sessionId, filterYear, filterPaperType, filterKci, filterSci],
+    [
+      sessionId,
+      filterYear,
+      filterPaperType,
+      filterKci,
+      filterSci,
+      selectionReasonMap,
+      fetchSelectionReasons,
+    ],
+  );
+
+  const pendingVisibleIdsRef = useRef<Set<string>>(new Set());
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handlePaperVisible = useCallback(
+    (paperId: string) => {
+      if (selectionReasonMap[paperId] !== undefined) return;
+
+      pendingVisibleIdsRef.current.add(paperId);
+
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+
+      debounceTimerRef.current = setTimeout(() => {
+        const ids = Array.from(pendingVisibleIdsRef.current);
+        pendingVisibleIdsRef.current.clear();
+        if (ids.length === 0) return;
+        const keywords = activePanelData?.filters.keywords ?? [];
+        fetchSelectionReasons(ids, keywords);
+      }, 300);
+    },
+    [selectionReasonMap, activePanelData, fetchSelectionReasons],
   );
 
   // ─── 네비게이션 ────────────────────────────────────────
@@ -631,6 +746,8 @@ const SearchPage = () => {
                 filterSci={filterSci}
                 onFilterChange={handleFilterChange}
                 isFilterLoading={isFilterLoading}
+                selectionReasonMap={selectionReasonMap}
+                onPaperVisible={handlePaperVisible}
               />
             )}
           </>
@@ -667,6 +784,8 @@ const SearchPage = () => {
                 filterSci={filterSci}
                 onFilterChange={handleFilterChange}
                 isFilterLoading={isFilterLoading}
+                selectionReasonMap={selectionReasonMap}
+                onPaperVisible={handlePaperVisible}
               />
             )}
           </Box>

@@ -7,6 +7,7 @@ import {
   type SearchChatSseEvent,
   type SearchPapersRequest,
   type SearchPaper,
+  type SelectionReason,
 } from "../types/search";
 
 // ─── SSE 콜백 타입 ────────────────────────────────────────
@@ -18,6 +19,7 @@ interface SearchChatStreamCallbacks {
   onFetching: () => void;
   onToken: (text: string) => void;
   onDone: (response: ChatResponse) => void;
+  onSelectionReason: (item: SelectionReason) => void;
   onError: (message: string) => void;
 }
 
@@ -105,6 +107,9 @@ export const searchChatStream = async ({
           case "done":
             callbacks.onDone(event);
             break;
+          case "selection_reason":
+            callbacks.onSelectionReason(event);
+            break;
           case "error":
             callbacks.onError(event.message);
             return;
@@ -159,4 +164,23 @@ export const searchPapers = async (
     data: { items: SearchPaper[] };
   }>("/search/papers", body);
   return data.data.items;
+};
+
+// ─── /search/selection-reasons ───────────────────────────
+
+export interface SelectionReasonsRequest {
+  keywords: string[];
+  paper_ids: string[];
+}
+
+export const postSelectionReasons = async (
+  body: SelectionReasonsRequest,
+): Promise<SelectionReason[]> => {
+  const { data } = await apiClient.post<{
+    success: boolean;
+    message: string;
+    data: { items: SelectionReason[] } | null;
+    meta: unknown;
+  }>("/search/selection-reasons", body);
+  return data.data?.items ?? [];
 };
