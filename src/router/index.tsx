@@ -19,6 +19,7 @@ import BookmarkFolderDetailPage from "../pages/BookmarkFolderDetailPage";
 import RecentPaperFullscreenPage from "../pages/RecentPaperFullscreenPage";
 import MyPageEditPage from "../pages/MyPageEditPage";
 import OAuthCallbackPage from "../pages/OAuthCallbackPage";
+import ResearcherPage from "../pages/ResearcherPage";
 
 const router = createBrowserRouter([
   // 랜딩 (로그인 상태면 /home으로)
@@ -157,6 +158,14 @@ const router = createBrowserRouter([
     element: (
       <AuthGuard>
         <RecentPaperPage />
+      </AuthGuard>
+    ),
+  },
+  {
+    path: "/researcher",
+    element: (
+      <AuthGuard>
+        <ResearcherPage />
       </AuthGuard>
     ),
   },

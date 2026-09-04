@@ -193,7 +193,7 @@ const LoginForm = () => {
         flexDirection: "column",
         justifyContent: "flex-end",
         alignItems: "center",
-        gap: "54px",
+        gap: "64px",
         flexShrink: 0,
         // 모바일
         "@media (max-width: 599px)": {
@@ -208,12 +208,15 @@ const LoginForm = () => {
         },
       }}
     >
-      {/* 이미지 플레이스홀더 */}
+      {/* 로고 */}
       <Box
+        component="img"
+        src="/login_logo.svg"
+        alt="Biome 로고"
         sx={{
-          width: "200px",
-          height: "72px",
-          backgroundColor: "fill.strong",
+          width: "78.298px",
+          height: "66.371px",
+          flexShrink: 0,
         }}
       />
 
@@ -303,7 +306,9 @@ const LoginForm = () => {
             autoComplete="current-password"
             fullWidth
             sx={
-              loginError === "wrong_password" ? errorPasswordPillInputSx : passwordPillInputSx
+              loginError === "wrong_password"
+                ? errorPasswordPillInputSx
+                : passwordPillInputSx
             }
             slotProps={{
               input: {
