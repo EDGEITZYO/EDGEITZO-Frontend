@@ -55,6 +55,7 @@ interface SearchResultPanelProps {
   isFilterLoading: boolean;
   selectionReasonMap: Record<string, SelectionReasonState>;
   onPaperVisible: (paperId: string) => void;
+  sessionId: string | null;
 }
 
 const SORT_OPTIONS: { label: string; value: SortOrder }[] = [
@@ -327,6 +328,7 @@ const SearchResultPanel = ({
   isFilterLoading,
   selectionReasonMap,
   onPaperVisible,
+  sessionId,
 }: SearchResultPanelProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -632,6 +634,7 @@ const SearchResultPanel = ({
         <Box sx={{ flex: 1, overflow: "auto", alignSelf: "stretch" }}>
           <PaperDetailContent
             paperId={selectedPaperId}
+            searchId={sessionId ?? undefined}
             onRelatedPaperClick={(paperId) => setSelectedPaperId(paperId)}
             onClose={() => {
               setResultPanelView("list");
