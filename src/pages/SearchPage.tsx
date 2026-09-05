@@ -762,6 +762,7 @@ const SearchPage = () => {
                 isFilterLoading={isFilterLoading}
                 selectionReasonMap={selectionReasonMap}
                 onPaperVisible={handlePaperVisible}
+                sessionId={sessionId}
               />
             )}
           </>
@@ -800,6 +801,7 @@ const SearchPage = () => {
                 isFilterLoading={isFilterLoading}
                 selectionReasonMap={selectionReasonMap}
                 onPaperVisible={handlePaperVisible}
+                sessionId={sessionId}
               />
             )}
           </Box>

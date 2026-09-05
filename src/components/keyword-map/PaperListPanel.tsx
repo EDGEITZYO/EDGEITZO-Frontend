@@ -671,6 +671,7 @@ const PaperListPanel = () => {
           >
             <PaperDetailContent
               paperId={selectedPaperId}
+              searchId={data?.search_id ?? undefined}
               onRelatedPaperClick={(paperId) => setSelectedPaperId(paperId)}
               onClose={() => {
                 setPanelView("list");
