@@ -28,14 +28,29 @@ interface TabToggleProps {
 const TabToggle = ({ tab, onChange }: TabToggleProps) => (
   <Box
     sx={{
+      position: "relative",
       display: "flex",
       padding: "4px",
       alignItems: "center",
-      gap: "8px",
       borderRadius: "43.478px",
       backgroundColor: "#D8DAE5",
     }}
   >
+    {/* 슬라이드하는 흰 칩 */}
+    <Box
+      sx={{
+        position: "absolute",
+        top: "4px",
+        left: "4px",
+        width: "71px",
+        height: "calc(100% - 8px)",
+        borderRadius: "43.478px",
+        backgroundColor: "#FFF",
+        transform: tab === "reference" ? "translateX(0)" : "translateX(71px)",
+        transition: "transform 0.2s ease",
+      }}
+    />
+
     {(["reference", "relation"] as CitationTab[]).map((t) => {
       const isSelected = tab === t;
       return (
@@ -43,13 +58,14 @@ const TabToggle = ({ tab, onChange }: TabToggleProps) => (
           key={t}
           onClick={() => onChange(t)}
           sx={{
+            position: "relative",
+            zIndex: 1,
             display: "flex",
             width: "71px",
             padding: "4px 8px",
             justifyContent: "center",
             alignItems: "center",
             borderRadius: "43.478px",
-            backgroundColor: isSelected ? "#FFF" : "transparent",
             cursor: "pointer",
           }}
         >
@@ -60,6 +76,7 @@ const TabToggle = ({ tab, onChange }: TabToggleProps) => (
               fontWeight: 400,
               lineHeight: "24px",
               letterSpacing: "-0.336px",
+              transition: "color 0.2s ease",
             }}
           >
             {t === "reference" ? "참고문헌" : "인용관계"}
