@@ -33,27 +33,44 @@ const SearchBar = () => {
   const Toggle = (
     <Box
       sx={{
+        position: "relative",
         display: "flex",
         padding: "4px",
         alignItems: "center",
-        gap: "8px",
         borderRadius: "43.478px",
         backgroundColor: "#D8DAE5",
         flexShrink: 0,
       }}
     >
+      {/* 슬라이드하는 흰 칩 */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: "4px",
+          left: "4px",
+          width: "57px",
+          height: "calc(100% - 8px)",
+          borderRadius: "43.478px",
+          backgroundColor: "#FFF",
+          transform: mode === "AI" ? "translateX(0)" : "translateX(57px)",
+          transition: "transform 0.2s ease",
+        }}
+      />
+
+      {/* 텍스트 버튼들 */}
       {(["AI", "키워드"] as SearchMode[]).map((m) => (
         <Box
           key={m}
           onClick={() => setMode(m)}
           sx={{
+            position: "relative", // 흰 칩 위에 올라오게
+            zIndex: 1,
             display: "flex",
             width: "57px",
             padding: "4px 8px",
             justifyContent: "center",
             alignItems: "center",
             borderRadius: "43.478px",
-            backgroundColor: mode === m ? "#FFF" : "transparent",
             cursor: "pointer",
           }}
         >
@@ -64,6 +81,7 @@ const SearchBar = () => {
               lineHeight: "24px",
               letterSpacing: "-0.336px",
               color: mode === m ? "#292B33" : "#73757F",
+              transition: "color 0.2s ease",
             }}
           >
             {m}
