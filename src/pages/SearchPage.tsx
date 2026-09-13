@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { Box, Typography, IconButton, useMediaQuery } from "@mui/material";
 import { type SxProps, type Theme, useTheme } from "@mui/material/styles";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -9,7 +9,6 @@ import SearchChatArea from "../components/search/SearchChatArea";
 import SearchResultPanel from "../components/search/SearchResultPanel";
 import {
   searchChatStream,
-  searchChat,
   postFeedback,
   postSelectionReasons,
 } from "../api/search";
@@ -88,24 +87,68 @@ const SearchPage = () => {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
-  const filterAbortControllerRef = useRef<AbortController | null>(null);
   const initSentRef = useRef(false);
 
   // ─── 검색 결과 상태 ────────────────────────────────────
   const [activePanelData, setActivePanelData] = useState<PanelData | null>(
     null,
   );
+  const activePanelDataRef = useRef(activePanelData);
+  useEffect(() => {
+    activePanelDataRef.current = activePanelData;
+  }, [activePanelData]);
+  const [allPapers, setAllPapers] = useState<SearchPaper[]>([]);
   const [sortOrder, setSortOrder] = useState<SortOrder>("relevance");
   const [feedbacks, setFeedbacks] = useState<Record<string, FeedbackType>>({});
   const [selectionReasonMap, setSelectionReasonMap] = useState<
     Record<string, SelectionReasonState>
   >({});
+  const selectionReasonMapRef = useRef(selectionReasonMap);
+  useEffect(() => {
+    selectionReasonMapRef.current = selectionReasonMap;
+  }, [selectionReasonMap]);
   const [bookmarkMap, setBookmarkMap] = useState<Record<string, boolean>>({});
   const [filterYear, setFilterYear] = useState<number | null>(null);
   const [filterPaperType, setFilterPaperType] = useState<string | null>(null);
   const [filterKci, setFilterKci] = useState<boolean>(false);
   const [filterSci, setFilterSci] = useState<boolean>(false);
-  const [isFilterLoading, setIsFilterLoading] = useState(false);
+
+  const filteredPapers = useMemo(() => {
+    let result = [...allPapers];
+
+    if (filterPaperType) {
+      result = result.filter((p) => p.paper_type === filterPaperType);
+    }
+    if (filterYear) {
+      result = result.filter((p) => p.year !== null && p.year >= filterYear);
+    }
+    if (filterKci) {
+      result = result.filter((p) => p.credibility.kci_registered === true);
+    }
+    if (filterSci) {
+      result = result.filter((p) => p.credibility.sci_indexed === true);
+    }
+
+    switch (sortOrder) {
+      case "year_desc":
+        result.sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
+        break;
+      case "year_asc":
+        result.sort((a, b) => (a.year ?? 0) - (b.year ?? 0));
+        break;
+      case "citation_desc":
+        result.sort(
+          (a, b) =>
+            (b.credibility.citation_count ?? 0) -
+            (a.credibility.citation_count ?? 0),
+        );
+        break;
+      default:
+        break;
+    }
+
+    return result;
+  }, [allPapers, filterPaperType, filterYear, filterKci, filterSci, sortOrder]);
 
   // ─── SSE 핸들러 ────────────────────────────────────────
 
@@ -133,9 +176,16 @@ const SearchPage = () => {
               items.forEach((item) => {
                 next[item.paper_id] = item;
               });
-              // 응답 안 온 ID는 undefined (생성 실패)
               batch.forEach((id) => {
-                if (next[id] === null) next[id] = undefined;
+                if (next[id] === null) {
+                  next[id] = {
+                    paper_id: id,
+                    reason: null,
+                    highlight_start: null,
+                    highlight_end: null,
+                    cached: false,
+                  };
+                }
               });
               return next;
             });
@@ -144,7 +194,15 @@ const SearchPage = () => {
             setSelectionReasonMap((prev) => {
               const next = { ...prev };
               batch.forEach((id) => {
-                if (next[id] === null) next[id] = undefined;
+                if (next[id] === null) {
+                  next[id] = {
+                    paper_id: id,
+                    reason: null,
+                    highlight_start: null,
+                    highlight_end: null,
+                    cached: false,
+                  };
+                }
               });
               return next;
             });
@@ -165,6 +223,7 @@ const SearchPage = () => {
       setFilterPaperType(null);
       setFilterKci(false);
       setFilterSci(false);
+      setSortOrder("relevance");
       const controller = new AbortController();
       abortControllerRef.current = controller;
 
@@ -193,7 +252,7 @@ const SearchPage = () => {
             message,
             chip_id: chipId,
             chip_type: chipType,
-            sort_order: sortOrder,
+            sort_order: "relevance",
             pub_year_start: null,
             paper_type: null,
             kci_only: null,
@@ -325,6 +384,7 @@ const SearchPage = () => {
                   filters: response.filters,
                   total_count: response.total_count,
                 });
+                setAllPapers(response.result_items);
                 setView("result");
                 setIsPanelOpen(true);
               }
@@ -351,7 +411,7 @@ const SearchPage = () => {
         setIsStreaming(false);
       }
     },
-    [sessionId, sortOrder, queryClient],
+    [sessionId, queryClient],
   );
 
   const handleStop = useCallback(() => {
@@ -449,133 +509,42 @@ const SearchPage = () => {
   // ─── 필터 ────────────────────────────────────────────
 
   const handleFilterChange = useCallback(
-    async (filters: {
+    (filters: {
       year: number | null;
       paperType: string | null;
       kci: boolean;
       sci: boolean;
     }) => {
-      if (!sessionId) return;
       setFilterYear(filters.year);
       setFilterPaperType(filters.paperType);
       setFilterKci(filters.kci);
       setFilterSci(filters.sci);
-
-      filterAbortControllerRef.current?.abort();
-      const controller = new AbortController();
-      filterAbortControllerRef.current = controller;
-
-      setIsFilterLoading(true);
-      try {
-        const response = await searchChat(
-          {
-            session_id: sessionId,
-            message: "",
-            chip_id: null,
-            chip_type: null,
-            sort_order: sortOrder,
-            pub_year_start: filters.year,
-            paper_type: filters.paperType,
-            kci_only: filters.kci || null,
-            sci_only: filters.sci || null,
-          },
-          controller.signal,
-        );
-        setActivePanelData({
-          result_items: response.result_items,
-          filters: response.filters,
-          total_count: response.total_count,
-        });
-        const existingIds = new Set(Object.keys(selectionReasonMap));
-        const newPaperIds = response.result_items
-          .map((p) => p.paper_id)
-          .filter((id) => !existingIds.has(id));
-        if (newPaperIds.length > 0) {
-          fetchSelectionReasons(newPaperIds, response.filters.keywords);
-        }
-        setIsFilterLoading(false);
-      } catch (err) {
-        if (err instanceof Error && err.name === "CanceledError") return;
-        setIsFilterLoading(false);
-      }
     },
-    [sessionId, sortOrder, selectionReasonMap, fetchSelectionReasons],
+    [],
   );
 
-  const handleSortChange = useCallback(
-    async (sort: SortOrder) => {
-      setSortOrder(sort);
-      if (!sessionId) return;
-      filterAbortControllerRef.current?.abort();
-      const controller = new AbortController();
-      filterAbortControllerRef.current = controller;
-      setIsFilterLoading(true);
-      try {
-        const response = await searchChat(
-          {
-            session_id: sessionId,
-            message: "",
-            chip_id: null,
-            chip_type: null,
-            sort_order: sort,
-            pub_year_start: filterYear,
-            paper_type: filterPaperType,
-            kci_only: filterKci || null,
-            sci_only: filterSci || null,
-          },
-          controller.signal,
-        );
-        setActivePanelData({
-          result_items: response.result_items,
-          filters: response.filters,
-          total_count: response.total_count,
-        });
-        const existingIds = new Set(Object.keys(selectionReasonMap));
-        const newPaperIds = response.result_items
-          .map((p) => p.paper_id)
-          .filter((id) => !existingIds.has(id));
-        if (newPaperIds.length > 0) {
-          fetchSelectionReasons(newPaperIds, response.filters.keywords);
-        }
-        setIsFilterLoading(false);
-      } catch (err) {
-        if (err instanceof Error && err.name === "CanceledError") return;
-        setIsFilterLoading(false);
-      }
-    },
-    [
-      sessionId,
-      filterYear,
-      filterPaperType,
-      filterKci,
-      filterSci,
-      selectionReasonMap,
-      fetchSelectionReasons,
-    ],
-  );
+  const handleSortChange = useCallback((sort: SortOrder) => {
+    setSortOrder(sort);
+  }, []);
 
   const pendingVisibleIdsRef = useRef<Set<string>>(new Set());
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handlePaperVisible = useCallback(
     (paperId: string) => {
-      if (selectionReasonMap[paperId] !== undefined) return;
-
+      const current = selectionReasonMapRef.current[paperId];
+      if (current !== undefined && current !== null) return;
       pendingVisibleIdsRef.current.add(paperId);
-
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
       debounceTimerRef.current = setTimeout(() => {
         const ids = Array.from(pendingVisibleIdsRef.current);
         pendingVisibleIdsRef.current.clear();
         if (ids.length === 0) return;
-        const keywords = activePanelData?.filters.keywords ?? [];
+        const keywords = activePanelDataRef.current?.filters.keywords ?? [];
         fetchSelectionReasons(ids, keywords);
       }, 300);
     },
-    [selectionReasonMap, activePanelData, fetchSelectionReasons],
+    [fetchSelectionReasons],
   );
 
   // ─── 네비게이션 ────────────────────────────────────────
@@ -593,6 +562,7 @@ const SearchPage = () => {
 
   const handlePanelOpen = useCallback((data: PanelData) => {
     setActivePanelData(data);
+    setAllPapers(data.result_items);
     setIsPanelOpen(true);
     setFilterYear(null);
     setFilterPaperType(null);
@@ -743,7 +713,18 @@ const SearchPage = () => {
           <>
             {view === "result" && isPanelOpen && (
               <SearchResultPanel
-                panelData={activePanelData}
+                panelData={{
+                  result_items: filteredPapers,
+                  filters: activePanelData?.filters ?? {
+                    pub_year_start: null,
+                    paper_type: null,
+                    citation_min: null,
+                    kci_only: false,
+                    sci_only: false,
+                    keywords: [],
+                  },
+                  total_count: filteredPapers.length,
+                }}
                 feedbacks={feedbacks}
                 onClose={handlePanelClose}
                 onFeedback={handleFeedback}
@@ -759,7 +740,6 @@ const SearchPage = () => {
                 filterKci={filterKci}
                 filterSci={filterSci}
                 onFilterChange={handleFilterChange}
-                isFilterLoading={isFilterLoading}
                 selectionReasonMap={selectionReasonMap}
                 onPaperVisible={handlePaperVisible}
                 sessionId={sessionId}
@@ -782,7 +762,18 @@ const SearchPage = () => {
           >
             {view === "result" && isPanelOpen && (
               <SearchResultPanel
-                panelData={activePanelData}
+                panelData={{
+                  result_items: filteredPapers,
+                  filters: activePanelData?.filters ?? {
+                    pub_year_start: null,
+                    paper_type: null,
+                    citation_min: null,
+                    kci_only: false,
+                    sci_only: false,
+                    keywords: [],
+                  },
+                  total_count: filteredPapers.length,
+                }}
                 feedbacks={feedbacks}
                 onClose={handlePanelClose}
                 onFeedback={handleFeedback}
@@ -798,7 +789,6 @@ const SearchPage = () => {
                 filterKci={filterKci}
                 filterSci={filterSci}
                 onFilterChange={handleFilterChange}
-                isFilterLoading={isFilterLoading}
                 selectionReasonMap={selectionReasonMap}
                 onPaperVisible={handlePaperVisible}
                 sessionId={sessionId}

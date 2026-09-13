@@ -223,14 +223,18 @@ const PaperListCard = ({
   const highlightEnd = selectionReason?.highlight_end ?? null;
   const cardRef = useRef<HTMLDivElement>(null);
 
+  const hasRequestedRef = useRef(false);
+
   useEffect(() => {
     const el = cardRef.current;
     if (!el) return;
-    if (selectionReason !== undefined) return;
+    if (hasRequestedRef.current) return;
+    if (selectionReason !== undefined && selectionReason !== null) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
+          hasRequestedRef.current = true;
           onVisible(paper.paper_id);
           observer.disconnect();
         }
@@ -240,6 +244,7 @@ const PaperListCard = ({
     observer.observe(el);
     return () => observer.disconnect();
   }, [paper.paper_id, selectionReason, onVisible]);
+
   const [isAuthorExpanded, setIsAuthorExpanded] = useState(false);
 
   const journalInfo = [paper.year, paper.journal_name]

@@ -1,12 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  Box,
-  Typography,
-  IconButton,
-  useMediaQuery,
-  CircularProgress,
-} from "@mui/material";
+import { Box, Typography, IconButton, useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import CloseIcon from "@mui/icons-material/Close";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
@@ -52,7 +46,6 @@ interface SearchResultPanelProps {
     kci: boolean;
     sci: boolean;
   }) => void;
-  isFilterLoading: boolean;
   selectionReasonMap: Record<string, SelectionReasonState>;
   onPaperVisible: (paperId: string) => void;
   sessionId: string | null;
@@ -325,7 +318,6 @@ const SearchResultPanel = ({
   onBookmarkToggle,
   onFilterChange,
   isDesktop,
-  isFilterLoading,
   selectionReasonMap,
   onPaperVisible,
   sessionId,
@@ -473,14 +465,14 @@ const SearchResultPanel = ({
       sx={{
         display: "flex",
         flexDirection: "column",
-        alignItems: isFilterLoading ? "center" : "flex-start",
-        justifyContent: isFilterLoading ? "center" : "flex-start",
+        alignItems: "flex-start",
+        justifyContent: "flex-start",
         gap: isMobileList ? "16px" : "8px",
         flex: "1 0 0",
         alignSelf: "stretch",
         borderRadius: "8px",
         backgroundColor: "background.default",
-        overflowY: isMobileList ? "auto" : "auto",
+        overflowY: "auto",
         ...(isMobileList && {
           padding: "0 16px 16px 16px",
           borderRadius: "12px",
@@ -488,9 +480,7 @@ const SearchResultPanel = ({
         }),
       }}
     >
-      {isFilterLoading ? (
-        <CircularProgress />
-      ) : papers.length === 0 ? (
+      {papers.length === 0 ? (
         <Box
           sx={{
             display: "flex",
