@@ -219,11 +219,6 @@ const SearchPage = () => {
       chipType: ChipType | null = null,
     ) => {
       abortControllerRef.current?.abort();
-      setFilterYear(null);
-      setFilterPaperType(null);
-      setFilterKci(false);
-      setFilterSci(false);
-      setSortOrder("relevance");
       const controller = new AbortController();
       abortControllerRef.current = controller;
 
@@ -315,6 +310,11 @@ const SearchPage = () => {
             },
             onDone: (response) => {
               setSessionId(response.session_id);
+              setFilterYear(null);
+              setFilterPaperType(null);
+              setFilterKci(false);
+              setFilterSci(false);
+              setSortOrder("relevance");
               queryClient.invalidateQueries({ queryKey: homeKeys.all });
 
               const newBookmarks: Record<string, boolean> = {};
