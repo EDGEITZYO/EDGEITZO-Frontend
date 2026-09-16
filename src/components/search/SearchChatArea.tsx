@@ -77,16 +77,23 @@ const SearchChatArea = ({
         }}
       >
         <Box sx={messagesWrapperSx(isPanelOpen)}>
-          {messages.map((message) => (
-            <ChatMessage
-              key={message.id}
-              message={message}
-              onChipClick={onChipClick}
-              onPanelOpen={onPanelOpen}
-              onRetry={onRetry}
-              onEdit={onEdit}
-            />
-          ))}
+          {messages.map((message, index) => {
+            const isLastAiMessage =
+              message.role === "ai" &&
+              index === [...messages].map((m) => m.role).lastIndexOf("ai");
+
+            return (
+              <ChatMessage
+                key={message.id}
+                message={message}
+                onChipClick={onChipClick}
+                onPanelOpen={onPanelOpen}
+                onRetry={onRetry}
+                onEdit={onEdit}
+                isLastAiMessage={isLastAiMessage}
+              />
+            );
+          })}
         </Box>
       </Box>
       <Box
