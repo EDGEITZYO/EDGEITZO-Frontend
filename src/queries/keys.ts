@@ -47,3 +47,10 @@ export const citationKeys = {
   graph: (paperId: string, direction: string) =>
     ["citation", paperId, direction] as const,
 };
+
+export const researcherKeys = {
+  all: ["researcher"] as const,
+  search: (query: string, page: number, sort: string) =>
+    [...researcherKeys.all, "search", query, page, sort] as const,
+  recentSearches: () => [...researcherKeys.all, "recent-searches"] as const,
+};
