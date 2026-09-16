@@ -295,6 +295,7 @@ const RecentPaperHeader = ({
       {showViewToggle && (
         <Box
           sx={{
+            position: "relative",
             display: "flex",
             height: "44px",
             padding: "4px",
@@ -303,9 +304,27 @@ const RecentPaperHeader = ({
             backgroundColor: "fill.strong",
           }}
         >
+          {/* 슬라이드하는 칩 */}
+          <Box
+            sx={{
+              position: "absolute",
+              top: "4px",
+              left: "4px",
+              width: "44px",
+              height: "36px",
+              borderRadius: "24px",
+              backgroundColor: "label.normal",
+              transform:
+                viewMode === "list" ? "translateX(0)" : "translateX(44px)",
+              transition: "transform 0.2s ease",
+            }}
+          />
+
           <IconButton
             onClick={() => onViewModeChange("list")}
             sx={{
+              position: "relative",
+              zIndex: 1,
               display: "flex",
               width: "44px",
               height: "36px",
@@ -313,11 +332,10 @@ const RecentPaperHeader = ({
               justifyContent: "center",
               alignItems: "center",
               borderRadius: "24px",
-              backgroundColor:
-                viewMode === "list" ? "label.normal" : "transparent",
+              backgroundColor: "transparent",
               "&:hover": {
                 backgroundColor:
-                  viewMode === "list" ? "label.normal" : "fill.normal",
+                  viewMode === "list" ? "transparent" : "fill.normal",
               },
             }}
           >
@@ -328,12 +346,16 @@ const RecentPaperHeader = ({
                 flexShrink: 0,
                 color:
                   viewMode === "list" ? "static.white" : "label.alternative",
+                transition: "color 0.2s ease",
               }}
             />
           </IconButton>
+
           <IconButton
             onClick={() => onViewModeChange("chart")}
             sx={{
+              position: "relative",
+              zIndex: 1,
               display: "flex",
               width: "44px",
               height: "36px",
@@ -341,11 +363,10 @@ const RecentPaperHeader = ({
               justifyContent: "center",
               alignItems: "center",
               borderRadius: "24px",
-              backgroundColor:
-                viewMode === "chart" ? "label.normal" : "transparent",
+              backgroundColor: "transparent",
               "&:hover": {
                 backgroundColor:
-                  viewMode === "chart" ? "label.normal" : "fill.normal",
+                  viewMode === "chart" ? "transparent" : "fill.normal",
               },
             }}
           >
@@ -356,6 +377,7 @@ const RecentPaperHeader = ({
                 flexShrink: 0,
                 color:
                   viewMode === "chart" ? "static.white" : "label.alternative",
+                transition: "color 0.2s ease",
               }}
             />
           </IconButton>

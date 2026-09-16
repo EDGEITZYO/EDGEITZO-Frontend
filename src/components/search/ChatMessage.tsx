@@ -29,6 +29,7 @@ interface ChatMessageProps {
   }) => void;
   onRetry: (messageId: string) => void;
   onEdit: (messageId: string, newContent: string) => void;
+  isLastAiMessage: boolean;
 }
 
 // ─── 액션 버튼 공통 스타일 ────────────────────────────────
@@ -218,6 +219,7 @@ const AiMessage = ({
   onChipClick,
   onPanelOpen,
   isMobile,
+  isLastAiMessage,
 }: {
   message: ChatMessageType;
   onChipClick: (chipId: string, chipType: ChipType, label: string) => void;
@@ -227,6 +229,7 @@ const AiMessage = ({
     total_count: number;
   }) => void;
   isMobile: boolean;
+  isLastAiMessage: boolean;
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
@@ -460,7 +463,7 @@ const AiMessage = ({
               )}
 
               {/* 칩 섹션 */}
-              {(narrowChipsBlock || expandChipsBlock) && (
+              {(narrowChipsBlock || expandChipsBlock) && isLastAiMessage && (
                 <ChipSection
                   narrowChips={
                     narrowChipsBlock?.type === "narrow_chips"
@@ -910,6 +913,7 @@ const ChatMessage = ({
   onPanelOpen,
   onRetry,
   onEdit,
+  isLastAiMessage,
 }: ChatMessageProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -931,6 +935,7 @@ const ChatMessage = ({
       onChipClick={onChipClick}
       onPanelOpen={onPanelOpen}
       isMobile={isMobile}
+      isLastAiMessage={isLastAiMessage}
     />
   );
 };
