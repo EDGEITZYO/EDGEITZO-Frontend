@@ -26,6 +26,10 @@ interface KeywordMapNavConfig {
   onBreadcrumbClick: (nodeKey: string) => void;
 }
 
+interface ResearcherNavConfig {
+  query: string;
+}
+
 interface TopNavBarProps {
   onBack: () => void;
   onLogoClick?: () => void;
@@ -34,6 +38,7 @@ interface TopNavBarProps {
   folderConfig?: FolderNavConfig;
   searchConfig?: SearchNavConfig;
   keywordMapConfig?: KeywordMapNavConfig;
+  researcherConfig?: ResearcherNavConfig;
 }
 
 const navBarSx: SxProps<Theme> = {
@@ -205,6 +210,7 @@ const TopNavBar = ({
   folderConfig,
   searchConfig,
   keywordMapConfig,
+  researcherConfig,
 }: TopNavBarProps) => {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
@@ -251,6 +257,16 @@ const TopNavBar = ({
             <Typography sx={aiBadgeTextSx}>AI 검색</Typography>
           </Box>
           <Typography sx={searchQuerySx}>{searchConfig.query}</Typography>
+        </Box>
+      )}
+
+      {/* 연구자 탐색 네비 */}
+      {researcherConfig && (
+        <Box sx={{ ...searchNavWrapperSx, gap: "4px" }}>
+          <Typography sx={{ ...searchQuerySx, color: "secondary.dark" }}>
+            {researcherConfig.query}
+          </Typography>
+          <Typography sx={searchQuerySx}>검색 결과</Typography>
         </Box>
       )}
 

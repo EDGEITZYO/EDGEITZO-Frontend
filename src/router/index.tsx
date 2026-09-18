@@ -20,6 +20,7 @@ import RecentPaperFullscreenPage from "../pages/RecentPaperFullscreenPage";
 import MyPageEditPage from "../pages/MyPageEditPage";
 import OAuthCallbackPage from "../pages/OAuthCallbackPage";
 import ResearcherPage from "../pages/ResearcherPage";
+import ResearcherSearchPage from "../pages/ResearcherSearchPage";
 
 const router = createBrowserRouter([
   // 랜딩 (로그인 상태면 /home으로)
@@ -166,6 +167,14 @@ const router = createBrowserRouter([
     element: (
       <AuthGuard>
         <ResearcherPage />
+      </AuthGuard>
+    ),
+  },
+  {
+    path: "/researcher/search",
+    element: (
+      <AuthGuard>
+        <ResearcherSearchPage />
       </AuthGuard>
     ),
   },
