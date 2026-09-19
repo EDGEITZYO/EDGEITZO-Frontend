@@ -54,7 +54,6 @@ const LandingLastSection = ({
 
   useEffect(() => {
     if (sectionRef.current) {
-      sectionRef.current.classList.add("fade-in-target");
       registerRef(sectionRef.current);
     }
   }, [registerRef]);

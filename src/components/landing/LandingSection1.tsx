@@ -71,7 +71,6 @@ const LandingSection1 = ({
 
   useEffect(() => {
     if (contentRef.current) {
-      contentRef.current.classList.add("fade-in-target");
       registerRef(contentRef.current);
     }
   }, [registerRef]);

@@ -12,10 +12,16 @@ import LandingLastSection from "../components/landing/LandingLastSection";
 
 const useFadeIn = () => {
   const observerRef = useRef<IntersectionObserver | null>(null);
+  const pendingRefs = useRef<HTMLElement[]>([]);
 
   const registerRef = useCallback((el: HTMLElement | null) => {
     if (!el) return;
-    observerRef.current?.observe(el);
+    el.classList.add("fade-in-target");
+    if (observerRef.current) {
+      observerRef.current.observe(el);
+    } else {
+      pendingRefs.current.push(el);
+    }
   }, []);
 
   useEffect(() => {
@@ -30,6 +36,11 @@ const useFadeIn = () => {
       },
       { threshold: 0.15 },
     );
+
+    pendingRefs.current.forEach((el) => {
+      observerRef.current?.observe(el);
+    });
+    pendingRefs.current = [];
 
     return () => observerRef.current?.disconnect();
   }, []);
