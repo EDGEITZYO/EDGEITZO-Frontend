@@ -31,7 +31,6 @@ const LandingSection4 = ({ registerRef }: LandingSection4Props) => {
 
   useEffect(() => {
     if (sectionRef.current) {
-      sectionRef.current.classList.add("fade-in-target");
       registerRef(sectionRef.current);
     }
   }, [registerRef]);
