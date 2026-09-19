@@ -13,6 +13,7 @@ import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import Sidebar from "../components/layout/Sidebar";
 import LogoutDialog from "../components/mypage/LogoutDialog";
 import { useMypageQuery } from "../queries/useMypageQuery";
+import { useAuthStore } from "../stores/authStore";
 
 const INFO_ROWS = [
   { label: "성별", key: "gender" },
@@ -26,7 +27,7 @@ const MyPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [logoutOpen, setLogoutOpen] = useState(false);
-
+  const isGuest = useAuthStore((state) => state.isGuest);
   const { data, isPending, isError } = useMypageQuery();
 
   if (isPending) {
@@ -220,9 +221,11 @@ const MyPage = () => {
               pb: "16px",
             }}
           >
-            <Button onClick={() => navigate("/mypage/edit")} sx={mobileBtnSx}>
-              회원정보 수정
-            </Button>
+            {!isGuest && (
+              <Button onClick={() => navigate("/mypage/edit")} sx={mobileBtnSx}>
+                회원정보 수정
+              </Button>
+            )}
             <Button onClick={() => setLogoutOpen(true)} sx={mobileBtnSx}>
               로그아웃
             </Button>
@@ -403,9 +406,11 @@ const MyPage = () => {
 
           {/* 버튼 */}
           <Box sx={{ display: "flex", gap: "8px", alignSelf: "stretch" }}>
-            <Button onClick={() => navigate("/mypage/edit")} sx={desktopBtnSx}>
-              회원정보 수정
-            </Button>
+            {!isGuest && (
+              <Button onClick={() => navigate("/mypage/edit")} sx={desktopBtnSx}>
+                회원정보 수정
+              </Button>
+            )}
             <Button onClick={() => setLogoutOpen(true)} sx={desktopBtnSx}>
               로그아웃
             </Button>

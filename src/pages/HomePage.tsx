@@ -2,7 +2,7 @@ import { Box, CircularProgress, Typography } from "@mui/material";
 import Sidebar from "../components/layout/Sidebar";
 import PersonalMessage from "../components/home/PersonalMessage";
 import SearchBar from "../components/home/SearchBar";
-import RecentSearchSection from "../components/home/RecentSearchSection";
+//import RecentSearchSection from "../components/home/RecentSearchSection";
 import RecentPaperSection from "../components/home/RecentPaperSection";
 import { useHomeQuery } from "../queries/useHomeQuery";
 
@@ -94,7 +94,7 @@ const HomePage = () => {
             minWidth: 0,
           }}
         >
-          <RecentSearchSection searches={data.recent_searches} />
+          {/* <RecentSearchSection searches={data.recent_searches} /> */}
           <RecentPaperSection papers={data.recent_papers} />
         </Box>
       </Box>

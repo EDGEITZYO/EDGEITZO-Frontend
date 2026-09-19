@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Box, Drawer, IconButton, Tooltip, Typography } from "@mui/material";
-import { Bookmark, Clock, GraduationCap, Menu, X } from "lucide-react";
+//import { Bookmark, Clock, GraduationCap, Menu, X } from "lucide-react";
+import { Bookmark, Clock, Menu, X } from "lucide-react";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useMypageQuery } from "../../queries/useMypageQuery";
@@ -29,11 +30,7 @@ const Sidebar = () => {
       label: "최근 본 논문",
       path: "/saved/recent",
     },
-    {
-      icon: <GraduationCap size={20} />,
-      label: "연구자 탐색",
-      path: "/researcher",
-    },
+    // { icon: <GraduationCap size={20} />, label: "연구자 탐색", path: "/researcher" },
   ];
 
   const isActive = (path: string) => {

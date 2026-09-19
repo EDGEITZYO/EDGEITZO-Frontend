@@ -51,7 +51,7 @@ export default function AuthGuard({ children }: AuthGuardProps) {
         await fetchAndCheckProfile();
       } catch {
         clearAuth();
-        navigate("/login", { replace: true });
+        navigate("/", { replace: true });
       } finally {
         setIsChecking(false);
       }
