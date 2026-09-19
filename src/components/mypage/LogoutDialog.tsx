@@ -31,7 +31,7 @@ const LogoutDialog = ({ open, onClose }: LogoutDialogProps) => {
       clearAuth();
       queryClient.clear();
       onClose();
-      navigate("/login");
+      navigate("/");
     },
   });
 
