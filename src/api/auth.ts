@@ -37,4 +37,6 @@ export const authApi = {
   start: () => apiClient.get<AuthStartResponse>("/auth/start"),
 
   getMe: () => apiClient.get<string>("/auth/me"),
+
+  guestLogin: () => apiClient.post<ApiResponse<TokenResponse>>("/auth/guest"),
 };
