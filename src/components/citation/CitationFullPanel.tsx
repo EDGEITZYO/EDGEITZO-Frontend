@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { Box, Typography, IconButton } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useMediaQuery } from "@mui/material";
@@ -17,6 +17,8 @@ import CitationGraphCanvas from "./CitationGraphCanvas";
 import CitationPaperListPanel from "./CitationPaperListPanel";
 import { createPortal } from "react-dom";
 import useCitationGraphStore from "../../stores/citationGraphStore";
+import useToast from "../../hooks/useToast";
+import Toast from "../common/Toast";
 
 // ─── 탭 토글 ─────────────────────────────────────────────
 
@@ -87,49 +89,6 @@ const TabToggle = ({ tab, onChange }: TabToggleProps) => (
   </Box>
 );
 
-// ─── 토스트 ───────────────────────────────────────────────
-
-interface ToastProps {
-  message: string;
-}
-
-const Toast = ({ message }: ToastProps) => (
-  <Box
-    sx={{
-      position: "absolute",
-      bottom: "54px",
-      left: "50%",
-      transform: "translateX(-50%)",
-      display: "flex",
-      padding: "12px 36px",
-      justifyContent: "center",
-      alignItems: "center",
-      gap: "10px",
-      borderRadius: "100px",
-      background: "rgba(30, 32, 38, 0.80)",
-      zIndex: 10,
-      pointerEvents: "none",
-      whiteSpace: "nowrap",
-      maxWidth: "calc(100% - 32px)",
-    }}
-  >
-    <Typography
-      sx={{
-        overflow: "hidden",
-        color: "#F7F8FA",
-        textOverflow: "ellipsis",
-        fontSize: "16px",
-        fontWeight: 400,
-        lineHeight: "24px",
-        letterSpacing: "-0.336px",
-        whiteSpace: "nowrap",
-      }}
-    >
-      {message}
-    </Typography>
-  </Box>
-);
-
 // ─── Props ────────────────────────────────────────────────
 
 interface CitationFullPanelProps {
@@ -168,8 +127,7 @@ const CitationFullPanel = ({
   );
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [expandingNodeKey, setExpandingNodeKey] = useState<string | null>(null);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { toastMessage, showToast } = useToast();
 
   const currentNodes = useMemo(
     () =>
@@ -199,19 +157,6 @@ const CitationFullPanel = ({
   useEffect(() => {
     setTab(initialTab);
   }, [initialTab, setTab]);
-
-  // 토스트 표시
-  const showToast = useCallback((message: string) => {
-    setToastMessage(message);
-    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
-    toastTimerRef.current = setTimeout(() => setToastMessage(null), 2500);
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
-    };
-  }, []);
 
   // 탭 전환
   const handleTabChange = (newTab: CitationTab) => {
@@ -646,7 +591,9 @@ const CitationFullPanel = ({
               }}
             />
             {/* 토스트 */}
-            {toastMessage && <Toast message={toastMessage} />}
+            {toastMessage && (
+              <Toast message={toastMessage} position="absolute" />
+            )}
             {isMobile && (
               <Box
                 sx={{
