@@ -52,7 +52,15 @@ export const searchChatStream = async ({
   );
 
   if (!response.ok) {
-    callbacks.onError("서버 오류가 발생했어요. 잠시 후 다시 시도해주세요.");
+    if (response.status === 429) {
+      const errorData = (await response.json()) as { message?: string };
+      callbacks.onError(
+        errorData.message ??
+          "서버 오류가 발생했어요. 잠시 후 다시 시도해주세요.",
+      );
+    } else {
+      callbacks.onError("서버 오류가 발생했어요. 잠시 후 다시 시도해주세요.");
+    }
     return;
   }
 
