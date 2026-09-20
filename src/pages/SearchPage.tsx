@@ -26,6 +26,8 @@ import {
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import CloseIcon from "@mui/icons-material/Close";
 import { homeKeys } from "../queries/keys";
+import useToast from "../hooks/useToast";
+import Toast from "../components/common/Toast";
 
 // ─── Location State ───────────────────────────────────────
 
@@ -106,6 +108,7 @@ const SearchPage = () => {
   const [filterKci, setFilterKci] = useState<boolean>(false);
   const [filterSci, setFilterSci] = useState<boolean>(false);
   const [isFilterLoading, setIsFilterLoading] = useState(false);
+  const { toastMessage, showToast } = useToast();
 
   // ─── SSE 핸들러 ────────────────────────────────────────
 
@@ -336,13 +339,8 @@ const SearchPage = () => {
               }));
             },
             onError: (errorMessage) => {
-              setMessages((prev) =>
-                prev.map((m) =>
-                  m.id === aiMessageId
-                    ? { ...m, content: errorMessage, isLoading: false }
-                    : m,
-                ),
-              );
+              setMessages((prev) => prev.filter((m) => m.id !== aiMessageId));
+              showToast(errorMessage, 4000);
             },
           },
           signal: controller.signal,
@@ -351,7 +349,7 @@ const SearchPage = () => {
         setIsStreaming(false);
       }
     },
-    [sessionId, sortOrder, queryClient],
+    [sessionId, sortOrder, queryClient, showToast],
   );
 
   const handleStop = useCallback(() => {
@@ -812,6 +810,7 @@ const SearchPage = () => {
         onConfirm={handleExitConfirm}
         onCancel={handleExitCancel}
       />
+      {toastMessage && <Toast message={toastMessage} />}
     </Box>
   );
 };

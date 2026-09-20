@@ -9,6 +9,8 @@ import LandingSection2 from "../components/landing/LandingSection2";
 import LandingSection3 from "../components/landing/LandingSection3";
 import LandingSection4 from "../components/landing/LandingSection4";
 import LandingLastSection from "../components/landing/LandingLastSection";
+import useToast from "../hooks/useToast";
+import Toast from "../components/common/Toast";
 
 const useFadeIn = () => {
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -53,6 +55,7 @@ const LandingPage = () => {
   const { setAccessToken } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
   const { registerRef } = useFadeIn();
+  const { toastMessage, showToast } = useToast();
 
   const handleGuestLogin = async () => {
     if (isLoading) return;
@@ -61,8 +64,18 @@ const LandingPage = () => {
       const { data } = await authApi.guestLogin();
       setAccessToken(data.data.access_token);
       navigate("/home", { replace: true });
-    } catch {
-      // 추후 에러 처리
+    } catch (error) {
+      if (error instanceof Error) {
+        const axiosError = error as {
+          response?: { status?: number; data?: { message?: string } };
+        };
+        if (axiosError.response?.status === 429) {
+          showToast(
+            axiosError.response.data?.message ??
+              "요청이 너무 많아요. 잠시 후 다시 시도해주세요.",
+          );
+        }
+      }
     } finally {
       setIsLoading(false);
     }
@@ -99,6 +112,7 @@ const LandingPage = () => {
         isLoading={isLoading}
         registerRef={registerRef}
       />
+      {toastMessage && <Toast message={toastMessage} />}
     </Box>
   );
 };
