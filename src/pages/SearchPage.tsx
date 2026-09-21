@@ -254,7 +254,13 @@ const SearchPage = () => {
               );
             },
             onDone: (response) => {
-              setSessionId(response.session_id);
+              if (
+                response.fallback === null ||
+                response.fallback === "no_result" ||
+                response.fallback === "topic_change"
+              ) {
+                setSessionId(response.session_id);
+              }
               setFilterYear(null);
               setFilterPaperType(null);
               setFilterKci(false);
@@ -281,15 +287,24 @@ const SearchPage = () => {
                 ...initialReasonMap,
               }));
 
+              const displayText =
+                streamingText !== ""
+                  ? streamingText
+                  : response.fallback === "clarify"
+                    ? "어떤 논문을 찾고 계신가요? 조금 더 구체적으로 알려주시면 더 잘 찾아드릴 수 있어요."
+                    : response.fallback === "off_topic"
+                      ? "논문 탐색과 관련된 질문을 입력해 주세요."
+                      : "";
+
               setMessages((prev) =>
                 prev.map((m) =>
                   m.id === aiMessageId
                     ? {
                         ...m,
-                        content: streamingText,
+                        content: displayText,
                         blocks: [
                           { type: "status", status: "complete" },
-                          { type: "text", content: streamingText },
+                          { type: "text", content: displayText },
                           ...(response.result_items.length > 0
                             ? [
                                 {
