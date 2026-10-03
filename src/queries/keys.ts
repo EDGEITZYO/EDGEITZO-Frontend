@@ -53,4 +53,12 @@ export const researcherKeys = {
   search: (query: string, page: number, sort: string) =>
     [...researcherKeys.all, "search", query, page, sort] as const,
   recentSearches: () => [...researcherKeys.all, "recent-searches"] as const,
+  profile: (researcherId: string) =>
+    [...researcherKeys.all, "profile", researcherId] as const,
+  papers: (researcherId: string, params: object) =>
+    [...researcherKeys.all, "papers", researcherId, params] as const,
+  coauthors: (researcherId: string) =>
+    [...researcherKeys.all, "coauthors", researcherId] as const,
+  researchFlow: (researcherId: string) =>
+    [...researcherKeys.all, "research-flow", researcherId] as const,
 };
