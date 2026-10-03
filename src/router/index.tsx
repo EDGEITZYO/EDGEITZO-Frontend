@@ -21,6 +21,7 @@ import MyPageEditPage from "../pages/MyPageEditPage";
 import OAuthCallbackPage from "../pages/OAuthCallbackPage";
 import ResearcherPage from "../pages/ResearcherPage";
 import ResearcherSearchPage from "../pages/ResearcherSearchPage";
+import ResearcherDetailPage from "../pages/ResearcherDetailPage";
 
 const router = createBrowserRouter([
   // 랜딩 (로그인 상태면 /home으로)
@@ -175,6 +176,14 @@ const router = createBrowserRouter([
     element: (
       <AuthGuard>
         <ResearcherSearchPage />
+      </AuthGuard>
+    ),
+  },
+  {
+    path: "/researcher/:id",
+    element: (
+      <AuthGuard>
+        <ResearcherDetailPage />
       </AuthGuard>
     ),
   },
