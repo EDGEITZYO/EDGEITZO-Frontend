@@ -137,9 +137,9 @@ const formatYearRange = (
   endYear: number | null,
 ): string | null => {
   if (startYear === null && endYear === null) return null;
-  if (startYear === null) return `~${endYear}`;
-  if (endYear === null) return `${startYear}~`;
-  return `${startYear}-${endYear}`;
+  if (startYear === null) return `~${endYear}년`;
+  if (endYear === null) return `${startYear}년~`;
+  return `${startYear}년 - ${endYear}년`;
 };
 
 const ResearchFlowRightPanel = ({
@@ -157,10 +157,10 @@ const ResearchFlowRightPanel = ({
           <Typography
             sx={{
               color: "#FFF",
-              fontSize: "13px",
+              fontSize: { xs: "11px", sm: "13px" },
               fontWeight: 400,
-              lineHeight: "22px",
-              letterSpacing: "-0.26px",
+              lineHeight: { xs: "20px", sm: "22px" },
+              letterSpacing: { xs: "-0.22px", sm: "-0.26px" },
             }}
           >
             ✦ 바이옴 AI 유추
@@ -170,10 +170,10 @@ const ResearchFlowRightPanel = ({
           sx={{
             alignSelf: "stretch",
             color: "label.normal",
-            fontSize: "18px",
+            fontSize: { xs: "16px", sm: "18px" },
             fontWeight: 600,
-            lineHeight: "29px",
-            letterSpacing: "-0.378px",
+            lineHeight: { xs: "24px", sm: "29px" },
+            letterSpacing: { xs: "-0.336px", sm: "-0.378px" },
           }}
         >
           바이옴 AI가 유추한 {researcherName} 연구자의 연구 흐름
@@ -208,15 +208,24 @@ const ResearchFlowRightPanel = ({
       {/* 한 줄 요약 */}
       {summary !== null && (
         <Box sx={summarySectionSx}>
-          <Typography sx={sectionLabelSx}>한 줄 요약</Typography>
+          <Typography
+            sx={{
+              ...sectionLabelSx,
+              fontSize: { xs: "11px", sm: "13px" },
+              lineHeight: { xs: "20px", sm: "22px" },
+              letterSpacing: { xs: "-0.22px", sm: "-0.26px" },
+            }}
+          >
+            한 줄 요약
+          </Typography>
           <Typography
             sx={{
               alignSelf: "stretch",
               color: "label.normal",
-              fontSize: "16px",
+              fontSize: { xs: "13px", sm: "16px" },
               fontWeight: 400,
-              lineHeight: "27px",
-              letterSpacing: "-0.336px",
+              lineHeight: { xs: "22px", sm: "27px" },
+              letterSpacing: { xs: "-0.26px", sm: "-0.336px" },
             }}
           >
             {summary}
@@ -226,7 +235,16 @@ const ResearchFlowRightPanel = ({
 
       {/* 연구 흐름 예측 섹션 */}
       <Box sx={flowSectionSx}>
-        <Typography sx={sectionLabelSx}>연구 흐름 예측</Typography>
+        <Typography
+          sx={{
+            ...sectionLabelSx,
+            fontSize: { xs: "11px", sm: "13px" },
+            lineHeight: { xs: "20px", sm: "22px" },
+            letterSpacing: { xs: "-0.22px", sm: "-0.26px" },
+          }}
+        >
+          연구 흐름 예측
+        </Typography>
         <Box sx={clusterListSx}>
           {clusters.map((cluster, index) => {
             const isSelected = selectedClusterId === cluster.cluster_id;
@@ -256,16 +274,25 @@ const ResearchFlowRightPanel = ({
                 </Box>
                 <Box sx={infoValueFrameSx}>
                   {yearRange !== null && (
-                    <Typography sx={sectionLabelSx}>{yearRange}</Typography>
+                    <Typography
+                      sx={{
+                        ...sectionLabelSx,
+                        fontSize: { xs: "11px", sm: "13px" },
+                        lineHeight: { xs: "20px", sm: "22px" },
+                        letterSpacing: { xs: "-0.22px", sm: "-0.26px" },
+                      }}
+                    >
+                      {yearRange}
+                    </Typography>
                   )}
                   <Typography
                     sx={{
                       alignSelf: "stretch",
                       color: "label.normal",
-                      fontSize: "18px",
-                      fontWeight: 500,
-                      lineHeight: "30px",
-                      letterSpacing: "-0.378px",
+                      fontSize: { xs: "13px", sm: "18px" },
+                      fontWeight: { xs: 600, sm: 500 },
+                      lineHeight: { xs: "22px", sm: "30px" },
+                      letterSpacing: { xs: "-0.26px", sm: "-0.378px" },
                       display: "-webkit-box",
                       WebkitBoxOrient: "vertical",
                       WebkitLineClamp: 1,
