@@ -63,14 +63,15 @@ const authorExcludedSx: SxProps<Theme> = {
 const titleExcludedSx: SxProps<Theme> = {
   display: "flex",
   justifyContent: "space-between",
-  alignItems: "center",
+  alignItems: { xs: "flex-start", sm: "center" },
   alignSelf: "stretch",
 };
 
 const bookmarkExcludedSx: SxProps<Theme> = {
   display: "flex",
+  flexDirection: { xs: "column", sm: "row" },
   justifyContent: "center",
-  alignItems: "center",
+  alignItems: { xs: "flex-start", sm: "center" },
   gap: "12px",
 };
 
