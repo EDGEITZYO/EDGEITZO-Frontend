@@ -352,8 +352,12 @@ const ResearcherPapersTab = ({
 
   const updateFilter = (partial: Partial<PaperFilter>) => {
     const next = { ...filter, ...partial };
-    setFilter(next);
-    onFilterChange(next);
+    const effectiveNext = {
+      ...next,
+      sort: citationSortAvailable ? next.sort : "recent",
+    };
+    setFilter(effectiveNext);
+    onFilterChange(effectiveNext);
   };
 
   const SORT_OPTIONS: { label: string; value: ResearcherPaperSortType }[] = [
@@ -362,6 +366,10 @@ const ResearcherPapersTab = ({
       ? [{ label: "피인용순", value: "citations" as ResearcherPaperSortType }]
       : []),
   ];
+
+  const effectiveSort: ResearcherPaperSortType = citationSortAvailable
+    ? filter.sort
+    : "recent";
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
   const paginationItems = getPaginationItems(page, totalPages);
@@ -381,7 +389,7 @@ const ResearcherPapersTab = ({
           <DropdownFilter
             label="최신순"
             options={SORT_OPTIONS}
-            selectedValue={filter.sort}
+            selectedValue={effectiveSort}
             onSelect={(value) => {
               if (value === "__clear__") return;
               updateFilter({ sort: value as ResearcherPaperSortType });
@@ -445,7 +453,7 @@ const ResearcherPapersTab = ({
         <DropdownFilter
           label="최신순"
           options={SORT_OPTIONS}
-          selectedValue={filter.sort}
+          selectedValue={effectiveSort}
           onSelect={(value) => {
             if (value === "__clear__") return;
             updateFilter({ sort: value as ResearcherPaperSortType });
