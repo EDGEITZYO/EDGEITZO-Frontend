@@ -15,6 +15,7 @@ type ResearchFlowRightPanelProps = Pick<
 const containerSx: SxProps<Theme> = {
   display: "flex",
   height: { xs: "auto", lg: "100%" },
+  minHeight: 0,
   maxHeight: { xs: "none", sm: "640px", lg: "none" },
   padding: { xs: "16px 0", sm: "24px" },
   flexDirection: "column",
@@ -22,10 +23,11 @@ const containerSx: SxProps<Theme> = {
   gap: "12px",
   alignSelf: "stretch",
   borderRadius: "8px",
-  border: { xs: "none", sm: "1px solid" },
+  borderWidth: { xs: 0, sm: "1px" },
+  borderStyle: { xs: "none", sm: "solid" },
   borderColor: "line.normal",
   backgroundColor: "#FFF",
-  overflowY: { xs: "visible", sm: "auto" },
+  overflow: { xs: "visible", sm: "hidden" },
 };
 
 const badgeTitleWrapSx: SxProps<Theme> = {
@@ -69,8 +71,11 @@ const flowSectionSx: SxProps<Theme> = {
   alignItems: "flex-start",
   gap: "8px",
   alignSelf: "stretch",
-  flex: { xs: "unset", lg: "1 0 0" },
-  overflow: { xs: "visible", lg: "hidden" },
+  flexGrow: 1,
+  flexShrink: 1,
+  flexBasis: "auto",
+  minHeight: 0,
+  overflow: "hidden",
 };
 
 const clusterListSx: SxProps<Theme> = {
@@ -79,8 +84,11 @@ const clusterListSx: SxProps<Theme> = {
   alignItems: "flex-start",
   gap: "8px",
   alignSelf: "stretch",
-  flex: { xs: "unset", lg: "1 0 0" },
-  overflowY: { xs: "visible", lg: "auto" },
+  flexGrow: 1,
+  flexShrink: 1,
+  flexBasis: "auto",
+  minHeight: 0,
+  overflowY: { xs: "visible", sm: "auto" },
 };
 
 const infoValueFrameSx: SxProps<Theme> = {

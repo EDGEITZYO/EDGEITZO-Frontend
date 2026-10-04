@@ -24,16 +24,18 @@ const DEFAULT_VISIBLE_COUNT = 3;
 const containerSx: SxProps<Theme> = {
   display: "flex",
   height: { xs: "auto", lg: "100%" },
-  maxHeight: { sm: "800px", lg: "none" },
+  minHeight: 0,
+  maxHeight: { xs: "none", sm: "800px", lg: "none" },
   padding: { xs: "0", sm: "24px" },
   flexDirection: "column",
   alignItems: "flex-start",
   gap: "12px",
   borderRadius: "8px",
-  border: { xs: "none", sm: "1px solid" },
+  borderWidth: { xs: 0, sm: "1px" },
+  borderStyle: { xs: "none", sm: "solid" },
   borderColor: "line.normal",
   backgroundColor: "#FFF",
-  overflowY: { xs: "visible", sm: "auto" },
+  overflow: { xs: "visible", sm: "hidden" },
   width: "100%",
 };
 
@@ -58,6 +60,11 @@ const clusterListSx: SxProps<Theme> = {
   alignItems: "flex-start",
   gap: "10px",
   alignSelf: "stretch",
+  flexGrow: 1,
+  flexShrink: 1,
+  flexBasis: "auto",
+  minHeight: 0,
+  overflowY: { xs: "visible", sm: "auto" },
 };
 
 const getClusterItemSx = (isSelected: boolean): SxProps<Theme> => ({

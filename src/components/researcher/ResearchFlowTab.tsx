@@ -68,7 +68,7 @@ const toggleContainerSx: SxProps<Theme> = {
 const summaryLayoutSx = (isMobileOrTablet: boolean): SxProps<Theme> => ({
   display: "flex",
   flexDirection: isMobileOrTablet ? "column" : "row",
-  alignItems: isMobileOrTablet ? "flex-start" : "stretch",
+  alignItems: "stretch",
   gap: "16px",
   alignSelf: "stretch",
   maxHeight: { lg: "1000px" },
@@ -250,14 +250,30 @@ const ResearchFlowTab = ({
               </>
             ) : (
               <>
-                <Box sx={{ flex: "1 1 0", minWidth: 0, display: "flex" }}>
+                <Box
+                  sx={{
+                    flex: "1 1 0",
+                    minWidth: 0,
+                    display: "flex",
+                    flexDirection: "column",
+                    minHeight: 0,
+                  }}
+                >
                   <ResearchFlowLeftPanel
                     clusters={researchFlow.clusters}
                     flow_level={researchFlow.flow_level}
                     selectedClusterId={selectedClusterId}
                   />
                 </Box>
-                <Box sx={{ width: "455px", flexShrink: 0, display: "flex" }}>
+                <Box
+                  sx={{
+                    width: "455px",
+                    flexShrink: 0,
+                    display: "flex",
+                    flexDirection: "column",
+                    minHeight: 0,
+                  }}
+                >
                   <ResearchFlowRightPanel
                     researcherName={researcherName}
                     summary={researchFlow.summary}
