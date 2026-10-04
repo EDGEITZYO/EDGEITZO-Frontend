@@ -209,7 +209,7 @@ const ResearcherSearchPage = () => {
   };
 
   const handleCardClick = (researcherId: string) => {
-    navigate(`/researcher/${researcherId}`);
+    navigate(`/researcher/${researcherId}?q=${encodeURIComponent(query)}`);
   };
 
   const hasSaved = useRef(false);
