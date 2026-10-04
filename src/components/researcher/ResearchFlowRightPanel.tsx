@@ -15,17 +15,17 @@ type ResearchFlowRightPanelProps = Pick<
 const containerSx: SxProps<Theme> = {
   display: "flex",
   height: { xs: "auto", lg: "100%" },
-  maxHeight: { xs: "574px", sm: "640px", lg: "none" },
-  padding: "24px",
+  maxHeight: { xs: "none", sm: "640px", lg: "none" },
+  padding: { xs: "16px 0", sm: "24px" },
   flexDirection: "column",
   alignItems: "flex-start",
   gap: "12px",
   alignSelf: "stretch",
   borderRadius: "8px",
-  border: "1px solid",
+  border: { xs: "none", sm: "1px solid" },
   borderColor: "line.normal",
   backgroundColor: "#FFF",
-  overflowY: "auto",
+  overflowY: { xs: "visible", sm: "auto" },
 };
 
 const badgeTitleWrapSx: SxProps<Theme> = {

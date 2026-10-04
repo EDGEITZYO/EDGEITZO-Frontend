@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { Box, CircularProgress } from "@mui/material";
+import { Box, Typography, CircularProgress } from "@mui/material";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import { useQueryClient } from "@tanstack/react-query";
 import TopNavBar from "../components/layout/TopNavBar";
@@ -20,6 +20,7 @@ import BookmarkFolderSelectDialog from "../components/common/BookmarkFolderSelec
 import CoauthorSection from "../components/researcher/CoauthorSection";
 import ResearcherProfile from "../components/researcher/ResearcherProfile";
 import ResearcherStatsBox from "../components/researcher/ResearcherStatsBox";
+import CloseIcon from "@mui/icons-material/Close";
 
 // ─── 스타일 ───────────────────────────────────────────────
 
@@ -36,9 +37,9 @@ const contentSx: SxProps<Theme> = {
   flexDirection: "column",
   alignItems: "flex-start",
   width: "100%",
-  paddingTop: { xs: "72px", sm: "90px" },
-  paddingX: { xs: "16px", sm: "12px" },
-  paddingBottom: { xs: "80px", sm: "12px", lg: "44px" },
+  paddingTop: { xs: "0px", sm: "90px" },
+  paddingX: { xs: "0px", sm: "12px" },
+  paddingBottom: { xs: "0px", sm: "12px", lg: "44px" },
 };
 
 const innerSx: SxProps<Theme> = {
@@ -47,7 +48,7 @@ const innerSx: SxProps<Theme> = {
   alignItems: "flex-start",
   gap: "32px",
   width: "100%",
-  padding: "32px",
+  padding: { xs: "32px 16px 64px 16px", sm: "32px" },
   backgroundColor: "background.default",
   borderRadius: "8px",
 };
@@ -175,12 +176,47 @@ const ResearcherDetailPage = () => {
   return (
     <Box sx={pageSx}>
       {/* TopNavBar (sm+) */}
-      {/* NOTE: researcherConfig prop은 TopNavBar 코드 확인 후 조정 필요 */}
       <Box sx={{ display: { xs: "none", sm: "block" }, width: "100%" }}>
         <TopNavBar
           onBack={() => navigate(-1)}
           researcherConfig={{ query: q.length > 0 ? q : researcherName }}
         />
+      </Box>
+
+      {/* 모바일 헤더 */}
+      <Box
+        sx={{
+          display: { xs: "flex", sm: "none" },
+          padding: "16px",
+          alignItems: "center",
+          gap: "8px",
+          alignSelf: "stretch",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            width: "28px",
+            height: "28px",
+            justifyContent: "center",
+            alignItems: "center",
+            flexShrink: 0,
+            cursor: "pointer",
+          }}
+          onClick={() => navigate(-1)}
+        >
+          <CloseIcon
+            sx={{ width: "23px", height: "23px", color: "label.normal" }}
+          />
+        </Box>
+        <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
+          <Typography variant="h5" sx={{ color: "secondary.dark" }}>
+            {q.length > 0 ? q : researcherName}
+          </Typography>
+          <Typography variant="h5" sx={{ color: "label.normal" }}>
+            검색 결과
+          </Typography>
+        </Box>
       </Box>
 
       <Box sx={contentSx}>

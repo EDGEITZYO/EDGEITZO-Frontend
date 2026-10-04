@@ -24,16 +24,16 @@ const DEFAULT_VISIBLE_COUNT = 3;
 const containerSx: SxProps<Theme> = {
   display: "flex",
   height: { xs: "auto", lg: "100%" },
-  maxHeight: { xs: "714px", sm: "800px", lg: "none" },
-  padding: "24px",
+  maxHeight: { sm: "800px", lg: "none" },
+  padding: { xs: "0", sm: "24px" },
   flexDirection: "column",
   alignItems: "flex-start",
   gap: "12px",
   borderRadius: "8px",
-  border: "1px solid",
+  border: { xs: "none", sm: "1px solid" },
   borderColor: "line.normal",
   backgroundColor: "#FFF",
-  overflowY: "auto",
+  overflowY: { xs: "visible", sm: "auto" },
   width: "100%",
 };
 
@@ -92,7 +92,7 @@ const topicAndAiSx: SxProps<Theme> = {
 
 const aiSummaryRowSx: SxProps<Theme> = {
   display: "flex",
-  alignItems: "center",
+  alignItems: "flex-start",
   gap: "8px",
   alignSelf: "stretch",
 };
