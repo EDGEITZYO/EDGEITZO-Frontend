@@ -342,7 +342,7 @@ const pageArrowSx = (enabled: boolean): SxProps<Theme> => ({
 
 // ─── 컴포넌트 ─────────────────────────────────────────────
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 6;
 
 const ResearcherPapersTab = ({
   papers,
@@ -460,6 +460,7 @@ const ResearcherPapersTab = ({
           alignItems: "center",
           gap: "4px",
           overflowX: "auto",
+          maxWidth: "100%",
           "&::-webkit-scrollbar": { display: "none" },
         }}
       >

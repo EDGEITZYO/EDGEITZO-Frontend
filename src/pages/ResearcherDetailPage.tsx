@@ -40,6 +40,7 @@ const contentSx: SxProps<Theme> = {
   paddingTop: { xs: "0px", sm: "90px" },
   paddingX: { xs: "0px", sm: "12px" },
   paddingBottom: { xs: "0px", sm: "12px", lg: "44px" },
+  flexGrow: 1,
 };
 
 const innerSx: SxProps<Theme> = {
@@ -51,6 +52,7 @@ const innerSx: SxProps<Theme> = {
   padding: { xs: "32px 16px 64px 16px", sm: "32px" },
   backgroundColor: "background.default",
   borderRadius: "8px",
+  flexGrow: 1,
 };
 
 // ─── 상수 ─────────────────────────────────────────────────
