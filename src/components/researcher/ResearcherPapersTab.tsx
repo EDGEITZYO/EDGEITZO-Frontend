@@ -62,25 +62,38 @@ const getPaginationItems = (
   if (totalPages <= 5) {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   }
-  const items: (number | "...")[] = [];
-  if (currentPage <= 5) {
-    for (let i = 1; i <= Math.min(5, totalPages); i++) items.push(i);
-    if (totalPages > 5) {
-      items.push("...");
-      items.push(totalPages);
+
+  if (totalPages === 6) {
+    if (currentPage <= 3) {
+      return [1, 2, 3, 4, "...", 6];
+    } else {
+      return [1, "...", 3, 4, 5, 6];
     }
-  } else if (currentPage >= totalPages - 4) {
-    items.push(1);
-    items.push("...");
-    for (let i = totalPages - 4; i <= totalPages; i++) items.push(i);
-  } else {
-    items.push(1);
-    items.push("...");
-    for (let i = currentPage - 1; i <= currentPage + 1; i++) items.push(i);
-    items.push("...");
-    items.push(totalPages);
   }
-  return items;
+
+  // 7페이지 이상
+  if (currentPage <= 3) {
+    return [1, 2, 3, 4, "...", totalPages];
+  } else if (currentPage >= totalPages - 2) {
+    return [
+      1,
+      "...",
+      totalPages - 3,
+      totalPages - 2,
+      totalPages - 1,
+      totalPages,
+    ];
+  } else {
+    return [
+      1,
+      "...",
+      currentPage - 1,
+      currentPage,
+      currentPage + 1,
+      "...",
+      totalPages,
+    ];
+  }
 };
 
 // ─── DropdownFilter ───────────────────────────────────────
