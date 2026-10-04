@@ -268,10 +268,10 @@ const PaperRow = ({ paper, index, onNavigate }: PaperRowProps) => {
             sx={{
               alignSelf: "stretch",
               color: "label.normal",
-              fontSize: "16px",
+              fontSize: { xs: "13px", sm: "16px" },
               fontWeight: 600,
-              lineHeight: "24px",
-              letterSpacing: "-0.336px",
+              lineHeight: { xs: "22px", sm: "24px" },
+              letterSpacing: { xs: "-0.26px", sm: "-0.336px" },
             }}
           >
             {paper.title ?? "-"}
@@ -348,10 +348,10 @@ const ResearchFlowLeftPanel = ({
           <Typography
             sx={{
               color: "label.normal",
-              fontSize: "24px",
+              fontSize: { xs: "16px", sm: "24px" },
               fontWeight: 600,
-              lineHeight: "36px",
-              letterSpacing: "-0.528px",
+              lineHeight: { xs: "24px", sm: "36px" },
+              letterSpacing: { xs: "-0.336px", sm: "-0.528px" },
             }}
           >
             연구 흐름 상세보기
@@ -359,10 +359,10 @@ const ResearchFlowLeftPanel = ({
           <Typography
             sx={{
               color: "label.alternative",
-              fontSize: "16px",
+              fontSize: { xs: "13px", sm: "16px" },
               fontWeight: 400,
-              lineHeight: "24px",
-              letterSpacing: "-0.336px",
+              lineHeight: { xs: "22px", sm: "24px" },
+              letterSpacing: { xs: "-0.26px", sm: "-0.336px" },
             }}
           >
             요약 문장만 AI가 작성했어요.
@@ -409,10 +409,10 @@ const ResearchFlowLeftPanel = ({
                       textOverflow: "ellipsis",
                       alignSelf: "stretch",
                       color: "label.normal",
-                      fontSize: "20px",
+                      fontSize: { xs: "16px", sm: "20px" },
                       fontWeight: 600,
-                      lineHeight: "30px",
-                      letterSpacing: "-0.42px",
+                      lineHeight: { xs: "24px", sm: "30px" },
+                      letterSpacing: { xs: "-0.336px", sm: "-0.42px" },
                     }}
                   >
                     {cluster.topic}
@@ -430,10 +430,10 @@ const ResearchFlowLeftPanel = ({
                           <Typography
                             sx={{
                               color: "#FFF",
-                              fontSize: "13px",
-                              fontWeight: 600,
-                              lineHeight: "22px",
-                              letterSpacing: "-0.26px",
+                              fontSize: { xs: "11px", sm: "13px" },
+                              fontWeight: { xs: 400, sm: 600 },
+                              lineHeight: { xs: "20px", sm: "22px" },
+                              letterSpacing: { xs: "-0.22px", sm: "-0.26px" },
                               display: "-webkit-box",
                               WebkitBoxOrient: "vertical",
                               WebkitLineClamp: 1,
@@ -449,10 +449,10 @@ const ResearchFlowLeftPanel = ({
                         sx={{
                           flex: "1 0 0",
                           color: "label.alternative",
-                          fontSize: "16px",
+                          fontSize: { xs: "11px", sm: "16px" },
                           fontWeight: 400,
-                          lineHeight: "27px",
-                          letterSpacing: "-0.336px",
+                          lineHeight: { xs: "20px", sm: "27px" },
+                          letterSpacing: { xs: "-0.22px", sm: "-0.336px" },
                         }}
                       >
                         {cluster.description}
@@ -488,10 +488,10 @@ const ResearchFlowLeftPanel = ({
                         <Typography
                           sx={{
                             color: "#1B1C23",
-                            fontSize: "13px",
+                            fontSize: { xs: "11px", sm: "13px" },
                             fontWeight: 400,
-                            lineHeight: "22px",
-                            letterSpacing: "-0.26px",
+                            lineHeight: { xs: "20px", sm: "22px" },
+                            letterSpacing: { xs: "-0.22px", sm: "-0.26px" },
                           }}
                         >
                           {hiddenCount}편 더 보기
@@ -507,10 +507,10 @@ const ResearchFlowLeftPanel = ({
                         <Typography
                           sx={{
                             color: "#1B1C23",
-                            fontSize: "13px",
+                            fontSize: { xs: "11px", sm: "13px" },
                             fontWeight: 400,
-                            lineHeight: "22px",
-                            letterSpacing: "-0.26px",
+                            lineHeight: { xs: "20px", sm: "22px" },
+                            letterSpacing: { xs: "-0.22px", sm: "-0.26px" },
                           }}
                         >
                           간단히 보기
