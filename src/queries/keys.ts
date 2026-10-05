@@ -62,3 +62,13 @@ export const researcherKeys = {
   researchFlow: (researcherId: string) =>
     [...researcherKeys.all, "research-flow", researcherId] as const,
 };
+
+export const externalPaperKeys = {
+  all: ["external-paper"] as const,
+  detail: (externalId: string) =>
+    [...externalPaperKeys.all, externalId] as const,
+  related: (externalId: string) =>
+    [...externalPaperKeys.all, externalId, "related"] as const,
+  additionRequest: (externalId: string) =>
+    [...externalPaperKeys.all, externalId, "addition-request"] as const,
+};
