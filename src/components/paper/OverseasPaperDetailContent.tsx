@@ -25,6 +25,7 @@ import {
 } from "../../queries/useExternalPaperQuery";
 import RelatedCorpusPaperCard from "./RelatedCorpusPaperCard";
 import PaperTypeBadge from "../common/PaperTypeBadge";
+import Skeleton from "@mui/material/Skeleton";
 
 // ─── props ────────────────────────────────────────────────
 
@@ -123,6 +124,7 @@ const OverseasPaperDetailContent = ({
   const queryClient = useQueryClient();
   const [authorsExpanded, setAuthorsExpanded] = useState(false);
   const [chipAnchorEl, setChipAnchorEl] = useState<HTMLElement | null>(null);
+  const [bookmarkTooltipOpen, setBookmarkTooltipOpen] = useState(false);
 
   const handleChipClick = (e: React.MouseEvent<HTMLDivElement>) => {
     setChipAnchorEl(e.currentTarget);
@@ -133,7 +135,8 @@ const OverseasPaperDetailContent = ({
     isPending,
     isError,
   } = useExternalPaperDetailQuery(externalId);
-  const { data: relatedData } = useRelatedCorpusPapersQuery(externalId);
+  const { data: relatedData, isPending: isRelatedPending } =
+    useRelatedCorpusPapersQuery(externalId);
   const { data: additionStatus } = useAdditionRequestStatusQuery(externalId);
 
   const { mutate: requestAddition } = useMutation({
@@ -498,7 +501,7 @@ const OverseasPaperDetailContent = ({
               order: { xs: 1, sm: 2 },
               width: { xs: "100%", sm: "auto" },
               justifyContent: {
-                xs: originUrl !== null ? "space-between" : "flex-end",
+                xs: "space-between",
                 sm: "flex-end",
               },
             }}
@@ -570,6 +573,11 @@ const OverseasPaperDetailContent = ({
             <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
               {/* 북마크 비활성 */}
               <Tooltip
+                open={bookmarkTooltipOpen}
+                onClose={() => setBookmarkTooltipOpen(false)}
+                disableHoverListener
+                disableFocusListener
+                disableTouchListener
                 title={
                   <Typography
                     sx={{
@@ -595,9 +603,22 @@ const OverseasPaperDetailContent = ({
                       padding: "8px 12px",
                     },
                   },
+                  popper: {
+                    modifiers: [
+                      {
+                        name: "offset",
+                        options: {
+                          offset: [0, -16],
+                        },
+                      },
+                    ],
+                  },
                 }}
               >
                 <Box
+                  onClick={() => setBookmarkTooltipOpen((prev) => !prev)}
+                  onMouseEnter={() => setBookmarkTooltipOpen(true)}
+                  onMouseLeave={() => setBookmarkTooltipOpen(false)}
                   sx={{
                     display: "flex",
                     height: "36px",
@@ -827,7 +848,7 @@ const OverseasPaperDetailContent = ({
       )}
 
       {/* 연관된 논문 */}
-      {relatedItems.length > 0 && (
+      {
         <Box
           sx={{
             display: "flex",
@@ -858,17 +879,45 @@ const OverseasPaperDetailContent = ({
                   }
             }
           >
-            {relatedItems.map((paper) => (
-              <RelatedCorpusPaperCard
-                key={paper.paper_id}
-                paper={paper}
-                isDesktop={isDesktop}
-                onClick={() => onRelatedPaperClick?.(paper.paper_id)}
-              />
-            ))}
+            {isRelatedPending ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton
+                  key={i}
+                  variant="rounded"
+                  sx={{
+                    width: isDesktop ? "415px" : "100%",
+                    height: "180px",
+                    flexShrink: isDesktop ? 0 : undefined,
+                    borderRadius: "8px",
+                  }}
+                />
+              ))
+            ) : relatedItems.length > 0 ? (
+              relatedItems.map((paper) => (
+                <RelatedCorpusPaperCard
+                  key={paper.paper_id}
+                  paper={paper}
+                  isDesktop={isDesktop}
+                  onClick={() => onRelatedPaperClick?.(paper.paper_id)}
+                />
+              ))
+            ) : (
+              <Typography
+                sx={{
+                  color: "label.alternative",
+                  fontSize: "16px",
+                  fontWeight: 400,
+                  lineHeight: "24px",
+                  letterSpacing: "-0.336px",
+                  padding: "0 12px",
+                }}
+              >
+                연관된 논문이 없어요
+              </Typography>
+            )}
           </Box>
         </Box>
-      )}
+      }
     </Box>
   );
 };
