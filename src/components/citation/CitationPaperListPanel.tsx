@@ -16,6 +16,7 @@ import { type PaperType } from "../../types/paper";
 import type { CitationPaperCard } from "../../types/citation";
 import CitationPaperCardComponent from "./CitationPaperCard";
 import PaperDetailContent from "../common/PaperDetailContent";
+import OverseasPaperDetailContent from "../paper/OverseasPaperDetailContent";
 import { bookmarkApi } from "../../api/bookmark";
 import BookmarkFolderSelectDialog from "../common/BookmarkFolderSelectDialog";
 import { bookmarkKeys } from "../../queries/keys";
@@ -24,10 +25,16 @@ import { bookmarkKeys } from "../../queries/keys";
 
 type PanelView = "list" | "detail";
 
+type SelectedPaperState =
+  | { type: "domestic"; paperId: string }
+  | { type: "overseas"; externalId: string }
+  | null;
+
 interface CitationPaperListPanelProps {
   papers: CitationPaperCard[];
   selectedNodeKey: string | null;
   viewDetailPaperId: string | null;
+  viewDetailExternalId?: string | null;
   onDetailViewChange: (isDetail: boolean) => void;
   onViewDetailHandled: () => void;
   onClose: () => void;
@@ -250,6 +257,7 @@ const CitationPaperListPanel = ({
   papers,
   selectedNodeKey,
   viewDetailPaperId,
+  viewDetailExternalId,
   onDetailViewChange,
   onViewDetailHandled,
   onClose,
@@ -260,7 +268,8 @@ const CitationPaperListPanel = ({
   const queryClient = useQueryClient();
 
   const [panelView, setPanelView] = useState<PanelView>("list");
-  const [selectedPaperId, setSelectedPaperId] = useState<string | null>(null);
+  const [paperStack, setPaperStack] = useState<SelectedPaperState[]>([]);
+  const selectedPaper = paperStack[paperStack.length - 1] ?? null;
   const [bookmarkDialogPaperId, setBookmarkDialogPaperId] = useState<
     string | null
   >(null);
@@ -329,16 +338,11 @@ const CitationPaperListPanel = ({
     setBookmarkDialogPaperId(null);
   };
 
-  const handlePaperClick = (paperId: string) => {
-    setSelectedPaperId(paperId);
-    setPanelView("detail");
-    onDetailViewChange(true);
-  };
-
+  // 그래프 노드 → 상세보기 (국내)
   useEffect(() => {
     if (viewDetailPaperId) {
       setTimeout(() => {
-        setSelectedPaperId(viewDetailPaperId);
+        setPaperStack([{ type: "domestic", paperId: viewDetailPaperId }]);
         setPanelView("detail");
         onDetailViewChange(true);
         onViewDetailHandled();
@@ -346,11 +350,27 @@ const CitationPaperListPanel = ({
     }
   }, [viewDetailPaperId, onDetailViewChange, onViewDetailHandled]);
 
+  // 그래프 노드 → 상세보기 (해외)
+  useEffect(() => {
+    if (viewDetailExternalId) {
+      setTimeout(() => {
+        setPaperStack([{ type: "overseas", externalId: viewDetailExternalId }]);
+        setPanelView("detail");
+        onDetailViewChange(true);
+        onViewDetailHandled();
+      }, 0);
+    }
+  }, [viewDetailExternalId, onDetailViewChange, onViewDetailHandled]);
+
   const handleClose = () => {
     if (panelView === "detail") {
-      setPanelView("list");
-      setSelectedPaperId(null);
-      onDetailViewChange(false);
+      if (paperStack.length > 1) {
+        setPaperStack((prev) => prev.slice(0, -1));
+      } else {
+        setPaperStack([]);
+        setPanelView("list");
+        onDetailViewChange(false);
+      }
     } else {
       onClose();
     }
@@ -577,7 +597,19 @@ const CitationPaperListPanel = ({
                     isSelected={paper.key === selectedNodeKey}
                     onClick={() => {
                       if (paper.in_service && paper.paper_id) {
-                        handlePaperClick(paper.paper_id);
+                        setPaperStack((prev) => [
+                          ...prev,
+                          { type: "domestic", paperId: paper.paper_id! },
+                        ]);
+                        setPanelView("detail");
+                        onDetailViewChange(true);
+                      } else if (!paper.in_service && paper.key) {
+                        setPaperStack((prev) => [
+                          ...prev,
+                          { type: "overseas", externalId: paper.key },
+                        ]);
+                        setPanelView("detail");
+                        onDetailViewChange(true);
                       }
                     }}
                     onBookmark={
@@ -628,7 +660,19 @@ const CitationPaperListPanel = ({
                     isSelected={paper.key === selectedNodeKey}
                     onClick={() => {
                       if (paper.in_service && paper.paper_id) {
-                        handlePaperClick(paper.paper_id);
+                        setPaperStack((prev) => [
+                          ...prev,
+                          { type: "domestic", paperId: paper.paper_id! },
+                        ]);
+                        setPanelView("detail");
+                        onDetailViewChange(true);
+                      } else if (!paper.in_service && paper.key) {
+                        setPaperStack((prev) => [
+                          ...prev,
+                          { type: "overseas", externalId: paper.key },
+                        ]);
+                        setPanelView("detail");
+                        onDetailViewChange(true);
                       }
                     }}
                     onBookmark={
@@ -647,8 +691,8 @@ const CitationPaperListPanel = ({
           </Box>
         )}
 
-        {/* detail */}
-        {panelView === "detail" && selectedPaperId && (
+        {/* detail — 국내논문 */}
+        {panelView === "detail" && selectedPaper?.type === "domestic" && (
           <Box
             sx={{
               flex: 1,
@@ -658,19 +702,43 @@ const CitationPaperListPanel = ({
             }}
           >
             <PaperDetailContent
-              paperId={selectedPaperId}
-              onRelatedPaperClick={(paperId) => setSelectedPaperId(paperId)}
-              onClose={() => {
-                setPanelView("list");
-                setSelectedPaperId(null);
-                onDetailViewChange(false);
-              }}
+              paperId={selectedPaper.paperId}
+              onRelatedPaperClick={(paperId: string) =>
+                setPaperStack((prev) => [
+                  ...prev,
+                  { type: "domestic", paperId },
+                ])
+              }
+              onClose={handleClose}
               onBookmarkChange={() => {
                 queryClient.invalidateQueries({
                   queryKey: bookmarkKeys.savedList(),
                 });
               }}
               showCitationGraph={false}
+            />
+          </Box>
+        )}
+
+        {/* detail — 해외논문 */}
+        {panelView === "detail" && selectedPaper?.type === "overseas" && (
+          <Box
+            sx={{
+              flex: 1,
+              overflow: "auto",
+              alignSelf: "stretch",
+              padding: isMobile ? "16px" : "32px",
+            }}
+          >
+            <OverseasPaperDetailContent
+              externalId={selectedPaper.externalId}
+              onRelatedPaperClick={(paperId: string) =>
+                setPaperStack((prev) => [
+                  ...prev,
+                  { type: "domestic", paperId },
+                ])
+              }
+              onClose={handleClose}
             />
           </Box>
         )}
