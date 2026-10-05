@@ -32,12 +32,12 @@ const PaperDetailPage = () => {
     <Box
       sx={{
         display: "flex",
-        padding: "12px",
+        padding: { xs: "0px", sm: "12px" },
         flexDirection: "column",
         alignItems: "center",
-        gap: "10px",
+        gap: { xs: "0px", sm: "10px" },
         minHeight: "100vh",
-        backgroundColor: "background.paper",
+        backgroundColor: { xs: "background.defalut", sm: "background.paper" },
         boxSizing: "border-box",
       }}
     >
@@ -92,7 +92,7 @@ const PaperDetailPage = () => {
       <Box
         sx={{
           display: "flex",
-          padding: "32px",
+          padding: { xs: "16px", sm: "32px" },
           flexDirection: "column",
           alignItems: "flex-start",
           gap: "32px",
