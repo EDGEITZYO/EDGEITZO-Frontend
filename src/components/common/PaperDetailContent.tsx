@@ -5,7 +5,7 @@ import { useMediaQuery } from "@mui/material";
 import CircularProgress from "@mui/material/CircularProgress";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
-import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import { ArrowUpRight } from "lucide-react";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -327,12 +327,12 @@ const PaperDetailContent = ({
                   order: { xs: 1, sm: 2 },
                   width: { xs: "100%", sm: "auto" },
                   justifyContent: {
-                    xs: paperData.doi ? "space-between" : "flex-end",
+                    xs: "space-between",
                     sm: "flex-end",
                   },
                 }}
               >
-                {paperData.doi && (
+                {paperData.doi ? (
                   <Box
                     onClick={() => window.open(paperData.doi!, "_blank")}
                     sx={{
@@ -362,9 +362,36 @@ const PaperDetailContent = ({
                     >
                       논문 원문 보기
                     </Typography>
-                    <OpenInNewIcon
-                      sx={{ width: "20px", height: "20px", color: "#FAFAFC" }}
-                    />
+                    <ArrowUpRight size={20} color="#FAFAFC" />
+                  </Box>
+                ) : (
+                  <Box
+                    sx={{
+                      display: "inline-flex",
+                      padding: "6px 12px",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      gap: "2px",
+                      borderRadius: "24px",
+                      backgroundColor: "#F7F8FA",
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        display: "-webkit-box",
+                        WebkitBoxOrient: "vertical",
+                        WebkitLineClamp: 1,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        color: "#D8DAE5",
+                        fontSize: "16px",
+                        fontWeight: 600,
+                        lineHeight: "24px",
+                        letterSpacing: "-0.336px",
+                      }}
+                    >
+                      DOI 미제공
+                    </Typography>
                   </Box>
                 )}
                 <Box

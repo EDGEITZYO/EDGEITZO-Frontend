@@ -88,7 +88,7 @@ const CitationPaperCard = ({
                     whiteSpace: "nowrap",
                   }}
                 >
-                  외부 논문
+                  해외논문
                 </Typography>
               </Box>
             ) : (
@@ -414,7 +414,7 @@ const CitationPaperCard = ({
                       whiteSpace: "nowrap",
                     }}
                   >
-                    외부 논문
+                    해외논문
                   </Typography>
                 </Box>
               ) : (
