@@ -70,3 +70,56 @@ export interface SimilarPaper {
   doi: string | null;
   trust_badge: PaperTrustBadge | null;
 }
+
+// ─── 해외논문 ─────────────────────────────────────────────
+
+export interface OverseasPaperDetail {
+  key: string;
+  in_service: false;
+  title: string | null;
+  title_en: string | null;
+  authors: string[] | null;
+  journal_name: string | null;
+  pub_year: number | null;
+  doi: string | null;
+  abstract: string | null;
+  abstract_lang: string | null;
+  keywords: string[] | null;
+  paper_type: string | null;
+  published_at: string | null;
+  citation_count: number | null;
+  kci_registered: boolean | null;
+  issn: string | null;
+  publisher: string | null;
+  is_open_access: boolean | null;
+  external_url: string | null;
+  pdf_url: string | null;
+  enriched: boolean;
+  enrich_source: string | null;
+}
+
+export interface RelatedCorpusPaper {
+  paper_id: string;
+  title: string | null;
+  authors: string[] | null;
+  journal_name: string | null;
+  pub_year: number | null;
+  paper_type: string | null;
+  citation_count: number | null;
+  kci_registered: boolean | null;
+  sci_indexed: boolean | null;
+  keywords: string[] | null;
+  trust_badge: PaperTrustBadge | null;
+  distance: number;
+}
+
+export interface RelatedCorpusPapersResponse {
+  external_id: string;
+  items: RelatedCorpusPaper[];
+  used_abstract: boolean;
+}
+
+export interface PaperAdditionRequestStatus {
+  external_id: string;
+  requested: boolean;
+}

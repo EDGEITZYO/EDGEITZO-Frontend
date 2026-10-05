@@ -2,7 +2,7 @@ import { Box, Typography } from "@mui/material";
 import { type PaperType } from "../../types/paper";
 
 interface PaperTypeBadgeProps {
-  paperType: PaperType;
+  paperType: PaperType | string;
 }
 
 const PaperTypeBadge = ({ paperType }: PaperTypeBadgeProps) => (
