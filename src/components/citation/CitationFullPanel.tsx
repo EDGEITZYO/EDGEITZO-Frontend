@@ -125,6 +125,9 @@ const CitationFullPanel = ({
   const [viewDetailPaperId, setViewDetailPaperId] = useState<string | null>(
     null,
   );
+  const [viewDetailExternalId, setViewDetailExternalId] = useState<
+    string | null
+  >(null);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [expandingNodeKey, setExpandingNodeKey] = useState<string | null>(null);
   const { toastMessage, showToast } = useToast();
@@ -236,10 +239,22 @@ const CitationFullPanel = ({
   // 논문 보기
   useEffect(() => {
     const handleViewPaper = (e: Event) => {
-      const { nodeId, paperId } = (e as CustomEvent).detail;
+      const { nodeId, paperId, externalId } = (
+        e as CustomEvent<{
+          nodeId: string;
+          paperId: string | null;
+          externalId: string | null;
+        }>
+      ).detail;
       selectNode(nodeId);
       setIsPanelOpen(true);
-      if (paperId) setViewDetailPaperId(paperId);
+      if (paperId) {
+        setViewDetailPaperId(paperId);
+        setViewDetailExternalId(null);
+      } else if (externalId) {
+        setViewDetailExternalId(externalId);
+        setViewDetailPaperId(null);
+      }
     };
     window.addEventListener("citationViewPaper", handleViewPaper);
     return () =>
@@ -614,12 +629,17 @@ const CitationFullPanel = ({
             papers={panelPapers}
             selectedNodeKey={selectedNodeKey}
             viewDetailPaperId={viewDetailPaperId}
+            viewDetailExternalId={viewDetailExternalId}
             onDetailViewChange={setIsDetailView}
-            onViewDetailHandled={() => setViewDetailPaperId(null)}
+            onViewDetailHandled={() => {
+              setViewDetailPaperId(null);
+              setViewDetailExternalId(null);
+            }}
             onClose={() => {
               setIsPanelOpen(false);
               selectNode(null);
               setViewDetailPaperId(null);
+              setViewDetailExternalId(null);
             }}
           />
         )}

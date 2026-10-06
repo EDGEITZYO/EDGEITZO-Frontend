@@ -2,7 +2,7 @@ import { Box, CircularProgress, Typography } from "@mui/material";
 import Sidebar from "../components/layout/Sidebar";
 import PersonalMessage from "../components/home/PersonalMessage";
 import SearchBar from "../components/home/SearchBar";
-//import RecentSearchSection from "../components/home/RecentSearchSection";
+import RecentSearchSection from "../components/home/RecentSearchSection";
 import RecentPaperSection from "../components/home/RecentPaperSection";
 import { useHomeQuery } from "../queries/useHomeQuery";
 
@@ -59,6 +59,7 @@ const HomePage = () => {
           alignItems: "center",
           pt: "256px",
           pb: "64px",
+          gap: { xs: "56px", sm: "180px" },
           minWidth: 0,
         }}
       >
@@ -79,9 +80,6 @@ const HomePage = () => {
           <SearchBar />
         </Box>
 
-        {/* 간격: 검색바 영역 ↔ 최근 탐색 섹션 */}
-        <Box sx={{ height: { xs: "56px", sm: "180px" } }} />
-
         {/* 하단: 최근 탐색 + 최근 확인한 논문 */}
         <Box
           sx={{
@@ -94,7 +92,7 @@ const HomePage = () => {
             minWidth: 0,
           }}
         >
-          {/* <RecentSearchSection searches={data.recent_searches} /> */}
+          <RecentSearchSection searches={data.recent_searches} />
           <RecentPaperSection papers={data.recent_papers} />
         </Box>
       </Box>

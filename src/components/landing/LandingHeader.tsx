@@ -1,5 +1,6 @@
 import { Box, Typography, CircularProgress } from "@mui/material";
 import { type SxProps, type Theme } from "@mui/material/styles";
+import { useNavigate } from "react-router-dom";
 
 interface LandingHeaderProps {
   onGuestLogin: () => void;
@@ -15,7 +16,7 @@ const headerSx: SxProps<Theme> = {
   backgroundColor: "#040405",
 };
 
-const buttonSx: SxProps<Theme> = {
+const guestButtonSx: SxProps<Theme> = {
   display: "flex",
   height: "32px",
   padding: "4px 10px",
@@ -30,7 +31,21 @@ const buttonSx: SxProps<Theme> = {
   },
 };
 
+const loginButtonSx: SxProps<Theme> = {
+  display: "flex",
+  height: "32px",
+  padding: "4px 10px",
+  justifyContent: "center",
+  alignItems: "center",
+  borderRadius: "6px",
+  border: "1px solid rgba(255,255,255,0.3)",
+  cursor: "pointer",
+  "&:hover": { backgroundColor: "rgba(255,255,255,0.08)" },
+};
+
 const LandingHeader = ({ onGuestLogin, isLoading }: LandingHeaderProps) => {
+  const navigate = useNavigate();
+
   return (
     <Box sx={headerSx}>
       <Box
@@ -39,22 +54,37 @@ const LandingHeader = ({ onGuestLogin, isLoading }: LandingHeaderProps) => {
         alt="BIOME"
         sx={{ width: "88px", height: "22px" }}
       />
-      <Box sx={buttonSx} onClick={onGuestLogin}>
-        {isLoading ? (
-          <CircularProgress size={14} sx={{ color: "#4ACE03" }} />
-        ) : (
+      <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <Box sx={loginButtonSx} onClick={() => navigate("/login")}>
           <Typography
             sx={{
-              color: "#4ACE03",
+              color: "#ffffff",
               fontSize: "16px",
               fontWeight: 600,
               lineHeight: "24px",
               letterSpacing: "-0.336px",
             }}
           >
-            게스트 로그인
+            로그인
           </Typography>
-        )}
+        </Box>
+        <Box sx={guestButtonSx} onClick={onGuestLogin}>
+          {isLoading ? (
+            <CircularProgress size={14} sx={{ color: "#4ACE03" }} />
+          ) : (
+            <Typography
+              sx={{
+                color: "#4ACE03",
+                fontSize: "16px",
+                fontWeight: 600,
+                lineHeight: "24px",
+                letterSpacing: "-0.336px",
+              }}
+            >
+              게스트 로그인
+            </Typography>
+          )}
+        </Box>
       </Box>
     </Box>
   );

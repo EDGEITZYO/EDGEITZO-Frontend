@@ -339,7 +339,7 @@ const NodeTooltip = ({
                       letterSpacing: "-0.26px",
                     }}
                   >
-                    외부 논문
+                    해외논문
                   </Typography>
                 </Box>
               ) : (
@@ -538,7 +538,7 @@ const MiniNodeInfo = ({ paper, isLeft }: MiniNodeInfoProps) => {
                   lineHeight: "22px",
                 }}
               >
-                외부 논문
+                해외논문
               </Typography>
             </Box>
           ) : (
@@ -626,10 +626,14 @@ const CitationNode = ({ id, data }: NodeProps<CitationNodeData>) => {
   const handleViewPaper = useCallback(() => {
     window.dispatchEvent(
       new CustomEvent("citationViewPaper", {
-        detail: { nodeId: id, paperId: data.paper?.paper_id },
+        detail: {
+          nodeId: id,
+          paperId: data.in_service ? (data.paper?.paper_id ?? null) : null,
+          externalId: !data.in_service ? (data.paper?.key ?? null) : null,
+        },
       }),
     );
-  }, [id, data.paper?.paper_id]);
+  }, [id, data.in_service, data.paper?.paper_id, data.paper?.key]);
 
   if (data.isCenter) {
     const isReference = data.direction === "reference";
