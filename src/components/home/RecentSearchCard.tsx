@@ -1,5 +1,6 @@
 import { Box, Typography } from "@mui/material";
 import { ChevronRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { type RecentSearch } from "../../types/home";
 
 interface RecentSearchCardProps {
@@ -34,6 +35,7 @@ const SearchTypeBadge = ({ type }: { type: RecentSearch["type"] }) => (
 );
 
 const RecentSearchCard = ({ data }: RecentSearchCardProps) => {
+  const navigate = useNavigate();
   const {
     type,
     title,
@@ -43,7 +45,11 @@ const RecentSearchCard = ({ data }: RecentSearchCardProps) => {
   } = data;
 
   const handleClick = () => {
-    // TODO: AI 검색은 이전 대화 흐름 복원, 키워드는 이전 탐색 경로 복원
+    if (type === "ai") {
+      navigate("/search", { state: { query: title } });
+    } else {
+      navigate(`/keyword-map?keyword=${encodeURIComponent(title)}`);
+    }
   };
 
   return (
