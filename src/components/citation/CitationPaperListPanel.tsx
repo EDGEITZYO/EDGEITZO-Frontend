@@ -362,15 +362,26 @@ const CitationPaperListPanel = ({
     }
   }, [viewDetailExternalId, onDetailViewChange, onViewDetailHandled]);
 
+  const handleBack = () => {
+    if (paperStack.length > 1) {
+      setPaperStack((prev) => prev.slice(0, -1));
+    } else {
+      setPaperStack([]);
+      setPanelView("list");
+      onDetailViewChange(false);
+    }
+  };
+
+  const handleDetailClose = () => {
+    setPaperStack([]);
+    setPanelView("list");
+    onDetailViewChange(false);
+  };
+
+  // 기존 handleClose는 list 뷰일 때 onClose() 호출용으로만 유지
   const handleClose = () => {
     if (panelView === "detail") {
-      if (paperStack.length > 1) {
-        setPaperStack((prev) => prev.slice(0, -1));
-      } else {
-        setPaperStack([]);
-        setPanelView("list");
-        onDetailViewChange(false);
-      }
+      handleDetailClose();
     } else {
       onClose();
     }
@@ -485,7 +496,7 @@ const CitationPaperListPanel = ({
             }}
           >
             <IconButton
-              onClick={handleClose}
+              onClick={panelView === "detail" ? handleBack : onClose}
               sx={{ p: 0, width: "28px", height: "28px", flexShrink: 0 }}
             >
               {panelView === "detail" ? (
@@ -703,13 +714,15 @@ const CitationPaperListPanel = ({
           >
             <PaperDetailContent
               paperId={selectedPaper.paperId}
-              onRelatedPaperClick={(paperId: string) =>
+              onRelatedPaperClick={(paperId) =>
                 setPaperStack((prev) => [
                   ...prev,
                   { type: "domestic", paperId },
                 ])
               }
-              onClose={handleClose}
+              onClose={handleDetailClose}
+              onBack={handleBack}
+              isPanel
               onBookmarkChange={() => {
                 queryClient.invalidateQueries({
                   queryKey: bookmarkKeys.savedList(),
@@ -732,13 +745,15 @@ const CitationPaperListPanel = ({
           >
             <OverseasPaperDetailContent
               externalId={selectedPaper.externalId}
-              onRelatedPaperClick={(paperId: string) =>
+              onRelatedPaperClick={(paperId) =>
                 setPaperStack((prev) => [
                   ...prev,
                   { type: "domestic", paperId },
                 ])
               }
-              onClose={handleClose}
+              onClose={handleDetailClose}
+              onBack={handleBack}
+              isPanel
             />
           </Box>
         )}
