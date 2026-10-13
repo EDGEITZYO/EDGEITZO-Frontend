@@ -78,6 +78,7 @@ const SearchPage = () => {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const mobileBackRef = useRef<(() => void) | null>(null);
 
   // ─── 뷰 상태 ───────────────────────────────────────────
   const [view, setView] = useState<SearchView>("chat");
@@ -648,14 +649,22 @@ const SearchPage = () => {
           }}
         >
           <IconButton
-            onClick={
-              isPanelOpen && view === "result"
-                ? handlePanelClose
-                : handleBackClick
-            }
+            onClick={() => {
+              if (isPanelDetail && mobileBackRef.current) {
+                mobileBackRef.current();
+              } else if (isPanelOpen && view === "result") {
+                handlePanelClose();
+              } else {
+                handleBackClick();
+              }
+            }}
             sx={{ p: 0, width: "28px", height: "28px", flexShrink: 0 }}
           >
-            {isPanelOpen && view === "result" ? (
+            {isPanelDetail ? (
+              <ArrowBackIosNewIcon
+                sx={{ fontSize: 16, color: "label.normal" }}
+              />
+            ) : isPanelOpen && view === "result" ? (
               <CloseIcon sx={{ fontSize: 24, color: "label.normal" }} />
             ) : (
               <ArrowBackIosNewIcon
@@ -776,6 +785,7 @@ const SearchPage = () => {
                 selectionReasonMap={selectionReasonMap}
                 onPaperVisible={handlePaperVisible}
                 sessionId={sessionId}
+                mobileBackRef={mobileBackRef}
               />
             )}
           </>
@@ -815,6 +825,7 @@ const SearchPage = () => {
                 selectionReasonMap={selectionReasonMap}
                 onPaperVisible={handlePaperVisible}
                 sessionId={sessionId}
+                mobileBackRef={mobileBackRef}
               />
             )}
           </Box>

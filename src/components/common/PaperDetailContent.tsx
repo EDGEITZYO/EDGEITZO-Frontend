@@ -5,7 +5,7 @@ import { useMediaQuery } from "@mui/material";
 import CircularProgress from "@mui/material/CircularProgress";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, ArrowLeft } from "lucide-react";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -28,6 +28,8 @@ interface PaperDetailContentProps {
   searchId?: string;
   onRelatedPaperClick?: (paperId: string) => void;
   onClose?: () => void;
+  onBack?: () => void;
+  isPanel?: boolean;
   onBookmarkChange?: (paperId: string, isBookmarked: boolean) => void;
   showCitationGraph?: boolean;
 }
@@ -125,12 +127,15 @@ const PaperDetailContent = ({
   searchId,
   onRelatedPaperClick,
   onClose,
+  onBack,
+  isPanel,
   onBookmarkChange,
   showCitationGraph = true,
 }: PaperDetailContentProps) => {
   const queryClient = useQueryClient();
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [authorsExpanded, setAuthorsExpanded] = useState(false);
   const [bookmarkDialogOpen, setBookmarkDialogOpen] = useState(false);
   const recentReadCalled = useRef(false);
@@ -290,174 +295,201 @@ const PaperDetailContent = ({
               alignSelf: "stretch",
             }}
           >
-            {/* doi, 배지들, 북마크 행 */}
+            {/* 뒤로가기 + 배지들/원문/북마크/클로즈 전체 프레임 */}
             <Box
               sx={{
                 display: "flex",
-                flexDirection: { xs: "column", sm: "row" },
-                justifyContent: "space-between",
-                alignItems: { xs: "flex-start", sm: "center" },
-                rowGap: "12px",
+                alignItems: "flex-start",
+                gap: "8px",
                 alignSelf: "stretch",
               }}
             >
-              {/* 배지들 — 데스크탑/태블릿 좌측, 모바일 아래 */}
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  order: { xs: 2, sm: 1 },
-                }}
-              >
-                {paperData.paper_type && (
-                  <PaperTypeBadge paperType={paperData.paper_type} />
-                )}
-                <CitationBadge count={paperData.citation_count} />
-                {paperData.trust_badge.kci && <TrustBadge label="KCI" />}
-                {paperData.trust_badge.sci && <TrustBadge label="SCI" />}
-              </Box>
+              {/* 뒤로가기 버튼 */}
+              {!isMobile && isPanel && onBack && (
+                <Box
+                  onClick={onBack}
+                  sx={{
+                    display: "flex",
+                    width: "36px",
+                    height: "36px",
+                    padding: "6px",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    borderRadius: "8px",
+                    border: "1px solid #D8DAE5",
+                    backgroundColor: "#FFF",
+                    cursor: "pointer",
+                    flexShrink: 0,
+                  }}
+                >
+                  <ArrowLeft size={24} color="#1B1C23" />
+                </Box>
+              )}
 
-              {/* doi + 북마크 — 데스크탑/태블릿 우측, 모바일 위 */}
+              {/* 배지들 + 원문/북마크/클로즈 */}
               <Box
                 sx={{
+                  flex: 1,
                   display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  order: { xs: 1, sm: 2 },
-                  width: { xs: "100%", sm: "auto" },
-                  justifyContent: {
-                    xs: "space-between",
-                    sm: "flex-end",
-                  },
+                  flexDirection: { xs: "column", sm: "row" },
+                  justifyContent: "space-between",
+                  alignItems: { xs: "flex-start", sm: "center" },
+                  rowGap: "12px",
                 }}
               >
-                {paperData.doi ? (
-                  <Box
-                    onClick={() => window.open(paperData.doi!, "_blank")}
-                    sx={{
-                      display: "flex",
-                      padding: "6px 12px",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      gap: "2px",
-                      borderRadius: "24px",
-                      backgroundColor: "label.normal",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <Typography
-                      sx={{
-                        display: "-webkit-box",
-                        WebkitBoxOrient: "vertical",
-                        WebkitLineClamp: 1,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        color: "#FAFAFC",
-                        fontSize: "16px",
-                        fontWeight: 600,
-                        lineHeight: "24px",
-                        letterSpacing: "-0.336px",
-                      }}
-                    >
-                      논문 원문 보기
-                    </Typography>
-                    <ArrowUpRight size={20} color="#FAFAFC" />
-                  </Box>
-                ) : (
-                  <Box
-                    sx={{
-                      display: "inline-flex",
-                      padding: "6px 12px",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      gap: "2px",
-                      borderRadius: "24px",
-                      backgroundColor: "#F7F8FA",
-                    }}
-                  >
-                    <Typography
-                      sx={{
-                        display: "-webkit-box",
-                        WebkitBoxOrient: "vertical",
-                        WebkitLineClamp: 1,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        color: "#D8DAE5",
-                        fontSize: "16px",
-                        fontWeight: 600,
-                        lineHeight: "24px",
-                        letterSpacing: "-0.336px",
-                      }}
-                    >
-                      DOI 미제공
-                    </Typography>
-                  </Box>
-                )}
+                {/* 배지들 — 데스크탑/태블릿 좌측, 모바일 아래 */}
                 <Box
                   sx={{
                     display: "flex",
                     alignItems: "center",
                     gap: "8px",
+                    order: { xs: 2, sm: 1 },
                   }}
                 >
-                  <Box
-                    onClick={handleBookmarkClick}
-                    sx={{
-                      display: "flex",
-                      height: "36px",
-                      padding: "6px 8px",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      gap: "2px",
-                      borderRadius: "24px",
-                      backgroundColor: "background.paper",
-                      cursor: "pointer",
-                    }}
-                  >
-                    {isBookmarked ? (
-                      <BookmarkIcon
-                        sx={{
-                          width: "20px",
-                          height: "20px",
-                          color: "primary.dark",
-                        }}
-                      />
-                    ) : (
-                      <BookmarkBorderIcon
-                        sx={{
-                          width: "20px",
-                          height: "20px",
-                          color: "label.assistive",
-                        }}
-                      />
-                    )}
-                  </Box>
+                  {paperData.paper_type && (
+                    <PaperTypeBadge paperType={paperData.paper_type} />
+                  )}
+                  <CitationBadge count={paperData.citation_count} />
+                  {paperData.trust_badge.kci && <TrustBadge label="KCI" />}
+                  {paperData.trust_badge.sci && <TrustBadge label="SCI" />}
+                </Box>
 
-                  {/* 닫기 버튼 — onClose 있을 때만 */}
-                  {onClose && (
+                {/* doi + 북마크 + 클로즈 — 데스크탑/태블릿 우측, 모바일 위 */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    order: { xs: 1, sm: 2 },
+                    width: { xs: "100%", sm: "auto" },
+                    justifyContent: { xs: "space-between", sm: "flex-end" },
+                  }}
+                >
+                  {paperData.doi ? (
                     <Box
-                      onClick={onClose}
+                      onClick={() => window.open(paperData.doi!, "_blank")}
+                      sx={{
+                        display: "flex",
+                        padding: "6px 12px",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        gap: "2px",
+                        borderRadius: "24px",
+                        backgroundColor: "label.normal",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          display: "-webkit-box",
+                          WebkitBoxOrient: "vertical",
+                          WebkitLineClamp: 1,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          color: "#FAFAFC",
+                          fontSize: "16px",
+                          fontWeight: 600,
+                          lineHeight: "24px",
+                          letterSpacing: "-0.336px",
+                        }}
+                      >
+                        논문 원문 보기
+                      </Typography>
+                      <ArrowUpRight size={20} color="#FAFAFC" />
+                    </Box>
+                  ) : (
+                    <Box
+                      sx={{
+                        display: "inline-flex",
+                        padding: "6px 12px",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        gap: "2px",
+                        borderRadius: "24px",
+                        backgroundColor: "#F7F8FA",
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          display: "-webkit-box",
+                          WebkitBoxOrient: "vertical",
+                          WebkitLineClamp: 1,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          color: "#D8DAE5",
+                          fontSize: "16px",
+                          fontWeight: 600,
+                          lineHeight: "24px",
+                          letterSpacing: "-0.336px",
+                        }}
+                      >
+                        DOI 미제공
+                      </Typography>
+                    </Box>
+                  )}
+
+                  <Box
+                    sx={{ display: "flex", alignItems: "center", gap: "8px" }}
+                  >
+                    {/* 북마크 */}
+                    <Box
+                      onClick={handleBookmarkClick}
                       sx={{
                         display: "flex",
                         height: "36px",
                         padding: "6px 8px",
                         justifyContent: "center",
                         alignItems: "center",
+                        gap: "2px",
                         borderRadius: "24px",
                         backgroundColor: "background.paper",
                         cursor: "pointer",
                       }}
                     >
-                      <CloseIcon
-                        sx={{
-                          width: "20px",
-                          height: "20px",
-                          color: "label.assistive",
-                        }}
-                      />
+                      {isBookmarked ? (
+                        <BookmarkIcon
+                          sx={{
+                            width: "20px",
+                            height: "20px",
+                            color: "primary.dark",
+                          }}
+                        />
+                      ) : (
+                        <BookmarkBorderIcon
+                          sx={{
+                            width: "20px",
+                            height: "20px",
+                            color: "label.assistive",
+                          }}
+                        />
+                      )}
                     </Box>
-                  )}
+
+                    {/* 닫기 버튼 — onClose 있고 모바일 아닐 때만 */}
+                    {onClose && !isMobile && (
+                      <Box
+                        onClick={onClose}
+                        sx={{
+                          display: "flex",
+                          height: "36px",
+                          padding: "6px 8px",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          borderRadius: "24px",
+                          backgroundColor: "background.paper",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <CloseIcon
+                          sx={{
+                            width: "20px",
+                            height: "20px",
+                            color: "label.assistive",
+                          }}
+                        />
+                      </Box>
+                    )}
+                  </Box>
                 </Box>
               </Box>
             </Box>

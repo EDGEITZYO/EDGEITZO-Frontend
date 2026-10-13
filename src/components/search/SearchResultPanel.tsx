@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Box,
@@ -56,6 +56,7 @@ interface SearchResultPanelProps {
   selectionReasonMap: Record<string, SelectionReasonState>;
   onPaperVisible: (paperId: string) => void;
   sessionId: string | null;
+  mobileBackRef?: React.MutableRefObject<(() => void) | null>;
 }
 
 const SORT_OPTIONS: { label: string; value: SortOrder }[] = [
@@ -329,6 +330,7 @@ const SearchResultPanel = ({
   selectionReasonMap,
   onPaperVisible,
   sessionId,
+  mobileBackRef,
 }: SearchResultPanelProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -336,7 +338,8 @@ const SearchResultPanel = ({
 
   const [resultPanelView, setResultPanelView] =
     useState<ResultPanelView>("list");
-  const [selectedPaperId, setSelectedPaperId] = useState<string | null>(null);
+  const [paperStack, setPaperStack] = useState<string[]>([]);
+  const selectedPaperId = paperStack[paperStack.length - 1] ?? null;
   const [bookmarkDialogPaperId, setBookmarkDialogPaperId] = useState<
     string | null
   >(null);
@@ -368,20 +371,32 @@ const SearchResultPanel = ({
     }
   };
 
-  const handlePaperClick = (paperId: string) => {
-    setSelectedPaperId(paperId);
-    setResultPanelView("detail");
-    onDetailOpen();
+  const handleBack = useCallback(() => {
+    if (paperStack.length > 1) {
+      setPaperStack((prev) => prev.slice(0, -1));
+    } else {
+      setPaperStack([]);
+      setResultPanelView("list");
+      onDetailClose();
+    }
+  }, [paperStack.length, onDetailClose]);
+
+  const handleDetailClose = () => {
+    setPaperStack([]);
+    setResultPanelView("list");
+    onDetailClose();
   };
 
-  const handleClose = () => {
-    if (resultPanelView === "detail") {
-      setResultPanelView("list");
-      setSelectedPaperId(null);
-      onDetailClose();
-    } else {
-      onClose();
+  useEffect(() => {
+    if (mobileBackRef) {
+      mobileBackRef.current = resultPanelView === "detail" ? handleBack : null;
     }
+  }, [resultPanelView, handleBack, mobileBackRef]);
+
+  const handlePaperClick = (paperId: string) => {
+    setPaperStack([paperId]);
+    setResultPanelView("detail");
+    onDetailOpen();
   };
 
   const filterBar = (isMobileFilter: boolean) => (
@@ -604,7 +619,7 @@ const SearchResultPanel = ({
                 </Box>
               </Typography>
               <IconButton
-                onClick={handleClose}
+                onClick={onClose}
                 sx={{
                   display: "flex",
                   width: "36px",
@@ -635,12 +650,12 @@ const SearchResultPanel = ({
           <PaperDetailContent
             paperId={selectedPaperId}
             searchId={sessionId ?? undefined}
-            onRelatedPaperClick={(paperId) => setSelectedPaperId(paperId)}
-            onClose={() => {
-              setResultPanelView("list");
-              setSelectedPaperId(null);
-              onDetailClose();
-            }}
+            onRelatedPaperClick={(paperId) =>
+              setPaperStack((prev) => [...prev, paperId])
+            }
+            onClose={handleDetailClose}
+            onBack={handleBack}
+            isPanel
             onBookmarkChange={onBookmarkToggle}
           />
         </Box>

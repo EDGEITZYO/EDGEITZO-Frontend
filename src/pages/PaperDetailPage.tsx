@@ -107,6 +107,7 @@ const PaperDetailPage = () => {
         <PaperDetailContent
           paperId={id}
           onRelatedPaperClick={handleRelatedPaperClick}
+          onClose={handleBack}
         />
       </Box>
     </Box>

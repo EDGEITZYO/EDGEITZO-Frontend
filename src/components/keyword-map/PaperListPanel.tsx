@@ -264,7 +264,8 @@ const PaperListPanel = () => {
   const { closePaperPanel, setPaperFilter } = useKeywordMapActions();
 
   const [panelView, setPanelView] = useState<PanelView>("list");
-  const [selectedPaperId, setSelectedPaperId] = useState<string | null>(null);
+  const [paperStack, setPaperStack] = useState<string[]>([]);
+  const selectedPaperId = paperStack[paperStack.length - 1] ?? null;
   const [bookmarkDialogPaperId, setBookmarkDialogPaperId] = useState<
     string | null
   >(null);
@@ -315,18 +316,25 @@ const PaperListPanel = () => {
   // ─── 논문 클릭 ──────────────────────────────────────────
 
   const handlePaperClick = (paperId: string) => {
-    setSelectedPaperId(paperId);
+    setPaperStack([paperId]);
     setPanelView("detail");
   };
 
   // ─── 닫기 ───────────────────────────────────────────────
 
-  const handleClose = () => {
-    if (panelView === "detail") {
-      setPanelView("list");
-      setSelectedPaperId(null);
+  const handleDetailClose = () => {
+    setPaperStack([]);
+    setPanelView("list");
+  };
+
+  // ─── 뒤로가기 ───────────────────────────────────────────────
+
+  const handleBack = () => {
+    if (paperStack.length > 1) {
+      setPaperStack((prev) => prev.slice(0, -1));
     } else {
-      closePaperPanel();
+      setPaperStack([]);
+      setPanelView("list");
     }
   };
 
@@ -533,7 +541,7 @@ const PaperListPanel = () => {
             }}
           >
             <IconButton
-              onClick={handleClose}
+              onClick={panelView === "detail" ? handleBack : closePaperPanel}
               sx={{ p: 0, width: "28px", height: "28px", flexShrink: 0 }}
             >
               {panelView === "detail" ? (
@@ -606,7 +614,7 @@ const PaperListPanel = () => {
                 </Box>
               </Typography>
               <IconButton
-                onClick={handleClose}
+                onClick={closePaperPanel}
                 sx={{ width: "36px", height: "36px", padding: "8px" }}
               >
                 <CloseIcon sx={{ width: 20, height: 20 }} />
@@ -672,11 +680,12 @@ const PaperListPanel = () => {
             <PaperDetailContent
               paperId={selectedPaperId}
               searchId={data?.search_id ?? undefined}
-              onRelatedPaperClick={(paperId) => setSelectedPaperId(paperId)}
-              onClose={() => {
-                setPanelView("list");
-                setSelectedPaperId(null);
-              }}
+              onRelatedPaperClick={(paperId) =>
+                setPaperStack((prev) => [...prev, paperId])
+              }
+              onClose={handleDetailClose}
+              onBack={handleBack}
+              isPanel
               onBookmarkChange={() => {
                 queryClient.invalidateQueries({
                   queryKey: keywordMapKeys.papers(
