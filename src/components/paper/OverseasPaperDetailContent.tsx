@@ -10,7 +10,7 @@ import {
 import { useTheme } from "@mui/material/styles";
 import { useMediaQuery } from "@mui/material";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import { ArrowUpRight, ArrowLeft } from "lucide-react";
+import { ArrowUpRight, ArrowLeft, FileXCorner } from "lucide-react";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import CloseIcon from "@mui/icons-material/Close";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
@@ -648,7 +648,7 @@ const OverseasPaperDetailContent = ({
                         {
                           name: "offset",
                           options: {
-                            offset: [0, -16],
+                            offset: [0, isMobile ? -16 : -8],
                           },
                         },
                       ],
@@ -889,17 +889,101 @@ const OverseasPaperDetailContent = ({
       )}
 
       {/* 연관된 논문 */}
-      {
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-start",
-            gap: "12px",
-            alignSelf: "stretch",
-          }}
-        >
-          <SectionHeader title="연관된 논문" />
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-start",
+          gap: "12px",
+          alignSelf: "stretch",
+        }}
+      >
+        <SectionHeader title="연관된 논문" />
+        {isRelatedPending ? (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: "12px",
+              ...(isDesktop
+                ? { overflowX: "auto", alignSelf: "stretch", pb: "4px" }
+                : { flexDirection: "column", alignSelf: "stretch" }),
+            }}
+          >
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Box
+                key={i}
+                sx={{
+                  display: "flex",
+                  width: isDesktop ? "415px" : "100%",
+                  height: "243px",
+                  padding: "16px",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  alignItems: "flex-start",
+                  borderRadius: "8px",
+                  border: "1px solid #E9EAF2",
+                  backgroundColor: "#FFF",
+                  flexShrink: isDesktop ? 0 : undefined,
+                  boxSizing: "border-box",
+                }}
+              >
+                {/* 위 두 개 묶음 */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "flex-start",
+                    gap: "12px",
+                    alignSelf: "stretch",
+                  }}
+                >
+                  {/* 맨 위 회색 네모 프레임 */}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      height: "36px",
+                      alignItems: "center",
+                      gap: "12px",
+                      alignSelf: "stretch",
+                    }}
+                  >
+                    <Skeleton
+                      variant="rounded"
+                      sx={{
+                        height: "31px",
+                        flex: "1 0 0",
+                        borderRadius: "0px",
+                        backgroundColor: "#F7F8FA",
+                      }}
+                    />
+                  </Box>
+                  {/* 중간 회색 네모 */}
+                  <Skeleton
+                    variant="rounded"
+                    sx={{
+                      height: "58px",
+                      alignSelf: "stretch",
+                      width: "100%",
+                      backgroundColor: "#F7F8FA",
+                    }}
+                  />
+                </Box>
+                {/* 맨 밑 회색 네모 */}
+                <Skeleton
+                  variant="rounded"
+                  sx={{
+                    height: "31px",
+                    flex: "1 0 0",
+                    width: "100%",
+                    backgroundColor: "#F7F8FA",
+                  }}
+                />
+              </Box>
+            ))}
+          </Box>
+        ) : relatedItems.length > 0 ? (
           <Box
             sx={
               isDesktop
@@ -920,45 +1004,51 @@ const OverseasPaperDetailContent = ({
                   }
             }
           >
-            {isRelatedPending ? (
-              Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton
-                  key={i}
-                  variant="rounded"
-                  sx={{
-                    width: isDesktop ? "415px" : "100%",
-                    height: "180px",
-                    flexShrink: isDesktop ? 0 : undefined,
-                    borderRadius: "8px",
-                  }}
-                />
-              ))
-            ) : relatedItems.length > 0 ? (
-              relatedItems.map((paper) => (
-                <RelatedCorpusPaperCard
-                  key={paper.paper_id}
-                  paper={paper}
-                  isDesktop={isDesktop}
-                  onClick={() => onRelatedPaperClick?.(paper.paper_id)}
-                />
-              ))
-            ) : (
+            {relatedItems.map((paper) => (
+              <RelatedCorpusPaperCard
+                key={paper.paper_id}
+                paper={paper}
+                isDesktop={isDesktop}
+                onClick={() => onRelatedPaperClick?.(paper.paper_id)}
+              />
+            ))}
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              display: "flex",
+              height: "240px",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: "12px",
+              alignSelf: "stretch",
+            }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: "4px",
+              }}
+            >
+              <FileXCorner size={20} color="#73757F" />
               <Typography
                 sx={{
-                  color: "label.alternative",
+                  color: "#73757F",
                   fontSize: "16px",
                   fontWeight: 400,
-                  lineHeight: "24px",
+                  lineHeight: "27px",
                   letterSpacing: "-0.336px",
-                  padding: "0 12px",
                 }}
               >
                 연관된 논문이 없어요
               </Typography>
-            )}
+            </Box>
           </Box>
-        </Box>
-      }
+        )}
+      </Box>
     </Box>
   );
 };
