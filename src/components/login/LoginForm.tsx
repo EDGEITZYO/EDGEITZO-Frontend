@@ -186,34 +186,22 @@ const LoginForm = () => {
       onSubmit={handleSubmit(onSubmit)}
       noValidate
       sx={{
-        width: "480px",
-        minWidth: "480px",
-        height: "608px",
-        padding: "24px 20px 32px 20px",
+        width: { xs: "100%", sm: "480px" },
+        minWidth: { xs: "unset", sm: "480px" },
+        height: { xs: "auto", sm: "608px" },
+        minHeight: { xs: "100vh", sm: "unset" },
+        pt: "24px",
+        pb: "32px",
+        px: { xs: "16px", sm: "20px" },
         borderRadius: { xs: 0, sm: "12px" },
-        border: {
-          xs: "none",
-          sm: "1px solid #FAFAFC",
-          lg: "1px solid #FAFAFC",
-        },
+        border: { xs: "none", sm: "1px solid #FAFAFC" },
         backgroundColor: "fill.normal",
         display: "flex",
         flexDirection: "column",
-        justifyContent: "flex-end",
+        justifyContent: { xs: "center", sm: "flex-end" },
         alignItems: "center",
-        gap: "64px",
+        gap: { xs: "20px", sm: "64px" },
         flexShrink: 0,
-        // 모바일
-        "@media (max-width: 599px)": {
-          width: "100%",
-          minWidth: "unset",
-          height: "640px",
-          gap: "20px",
-          justifyContent: "center",
-          borderRadius: 0,
-          border: "none",
-          px: "16px",
-        },
       }}
     >
       {/* 로고 */}
@@ -356,14 +344,18 @@ const LoginForm = () => {
                         height: "40px",
                         padding: "8px 9px",
                         borderRadius: "24px",
-                        backgroundColor: isFormFilled ? "#1E2026" : "#D8DAE5",
+                        backgroundColor: isFormFilled
+                          ? "label.normal"
+                          : "label.disable",
                         "&:hover": {
                           backgroundColor: isFormFilled
                             ? "label.neutral"
-                            : "#D8DAE5",
+                            : "label.disable",
                         },
                         "&.Mui-disabled": {
-                          backgroundColor: isFormFilled ? "#1E2026" : "#D8DAE5",
+                          backgroundColor: isFormFilled
+                            ? "label.normal"
+                            : "label.disable",
                         },
                       }}
                     >
@@ -456,22 +448,6 @@ const LoginForm = () => {
                     cursor: "default",
                     opacity: 0.7,
                   },
-                  // 데스크탑+태블릿
-                  "& .social-label": {
-                    fontSize: "18px",
-                    fontWeight: 500,
-                    lineHeight: "30px",
-                    letterSpacing: "-0.378px",
-                  },
-                  // 모바일
-                  "@media (max-width: 599px)": {
-                    "& .social-label": {
-                      fontSize: "16px",
-                      fontWeight: 400,
-                      lineHeight: "24px",
-                      letterSpacing: "-0.336px",
-                    },
-                  },
                 }}
               >
                 {loadingButton === "google" ? (
@@ -485,8 +461,13 @@ const LoginForm = () => {
                   />
                 )}
                 <Typography
-                  className="social-label"
-                  sx={{ color: "label.strong" }}
+                  sx={{
+                    color: "label.strong",
+                    fontSize: { xs: "16px", sm: "18px" },
+                    fontWeight: { xs: 400, sm: 500 },
+                    lineHeight: { xs: "24px", sm: "30px" },
+                    letterSpacing: { xs: "-0.336px", sm: "-0.378px" },
+                  }}
                 >
                   Sign in with Google
                 </Typography>
@@ -517,20 +498,6 @@ const LoginForm = () => {
                     cursor: "default",
                     opacity: 0.7,
                   },
-                  "& .social-label": {
-                    fontSize: "18px",
-                    fontWeight: 500,
-                    lineHeight: "30px",
-                    letterSpacing: "-0.378px",
-                  },
-                  "@media (max-width: 599px)": {
-                    "& .social-label": {
-                      fontSize: "16px",
-                      fontWeight: 400,
-                      lineHeight: "24px",
-                      letterSpacing: "-0.336px",
-                    },
-                  },
                 }}
               >
                 {loadingButton === "kakao" ? (
@@ -544,8 +511,13 @@ const LoginForm = () => {
                   />
                 )}
                 <Typography
-                  className="social-label"
-                  sx={{ color: "label.normal" }}
+                  sx={{
+                    color: "label.normal",
+                    fontSize: { xs: "16px", sm: "18px" },
+                    fontWeight: { xs: 400, sm: 500 },
+                    lineHeight: { xs: "24px", sm: "30px" },
+                    letterSpacing: { xs: "-0.336px", sm: "-0.378px" },
+                  }}
                 >
                   카카오 로그인
                 </Typography>

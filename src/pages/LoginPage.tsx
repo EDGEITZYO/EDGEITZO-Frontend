@@ -11,33 +11,16 @@ const LoginPage = () => {
         backgroundSize: { lg: "cover" },
         backgroundPosition: { lg: "center" },
         display: "flex",
-        alignItems: "center",
+        alignItems: { xs: "stretch", sm: "center" },
         justifyContent: "center",
-        py: "189px",
-        // 태블릿
-        "@media (min-width: 600px) and (max-width: 1199px)": {
-          py: "208px",
-        },
-        // 모바일
-        "@media (max-width: 599px)": {
-          py: 0,
-          alignItems: "stretch",
-        },
+        py: { xs: 0, sm: "208px", lg: "189px" },
       }}
     >
       <Box
         sx={{
           display: "flex",
-          width: "940px",
-          // 태블릿
-          "@media (min-width: 600px) and (max-width: 1199px)": {
-            width: "480px",
-          },
-          // 모바일
-          "@media (max-width: 599px)": {
-            width: "100%",
-            maxWidth: "599px",
-          },
+          width: { xs: "100%", sm: "480px", lg: "940px" },
+          maxWidth: { xs: "599px", sm: "none" },
         }}
       >
         {/* 왼쪽 텍스트 영역 - 데스크탑만 */}
