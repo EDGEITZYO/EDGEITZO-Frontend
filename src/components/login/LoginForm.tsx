@@ -9,6 +9,7 @@ import {
   IconButton,
   InputAdornment,
   Divider,
+  CircularProgress,
 } from "@mui/material";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
@@ -136,6 +137,10 @@ const LoginForm = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState<LoginErrorType>(null);
+  const [loadingButton, setLoadingButton] = useState<
+    "submit" | "google" | "kakao" | null
+  >(null);
+  const isLoading = loadingButton !== null;
   const { setAccessToken } = useAuthStore();
 
   const { register, handleSubmit, getValues, control } =
@@ -151,6 +156,7 @@ const LoginForm = () => {
 
   const onSubmit: SubmitHandler<LoginFormValues> = async (data) => {
     setLoginError(null);
+    setLoadingButton("submit");
     try {
       const { data: tokenData } = await authApi.login(data);
       setAccessToken(tokenData.data.access_token);
@@ -164,6 +170,8 @@ const LoginForm = () => {
           setLoginError("wrong_password");
         }
       }
+    } finally {
+      setLoadingButton(null);
     }
   };
 
@@ -342,6 +350,7 @@ const LoginForm = () => {
                     {/* 제출 버튼 */}
                     <IconButton
                       type="submit"
+                      disabled={isLoading}
                       sx={{
                         width: "42px",
                         height: "40px",
@@ -353,14 +362,21 @@ const LoginForm = () => {
                             ? "label.neutral"
                             : "#D8DAE5",
                         },
+                        "&.Mui-disabled": {
+                          backgroundColor: isFormFilled ? "#1E2026" : "#D8DAE5",
+                        },
                       }}
                     >
-                      <ArrowForwardIcon
-                        sx={{
-                          fontSize: 24,
-                          color: "static.white",
-                        }}
-                      />
+                      {loadingButton === "submit" ? (
+                        <CircularProgress
+                          size={20}
+                          sx={{ color: "static.white" }}
+                        />
+                      ) : (
+                        <ArrowForwardIcon
+                          sx={{ fontSize: 24, color: "static.white" }}
+                        />
+                      )}
                     </IconButton>
                   </InputAdornment>
                 ),
@@ -419,7 +435,9 @@ const LoginForm = () => {
               <Box
                 component="button"
                 type="button"
+                disabled={isLoading}
                 onClick={() => {
+                  setLoadingButton("google");
                   window.location.href =
                     "https://accounts.google.com/o/oauth2/v2/auth?client_id=317993078634-ns5vkm8seavjpvnie4tittbmr713ahh0.apps.googleusercontent.com&redirect_uri=https://api.biomepaper.shop/api/v1/auth/google/callback&response_type=code&scope=openid%20email%20profile";
                 }}
@@ -434,6 +452,10 @@ const LoginForm = () => {
                   backgroundColor: "static.white",
                   border: "none",
                   cursor: "pointer",
+                  "&:disabled": {
+                    cursor: "default",
+                    opacity: 0.7,
+                  },
                   // 데스크탑+태블릿
                   "& .social-label": {
                     fontSize: "18px",
@@ -452,15 +474,16 @@ const LoginForm = () => {
                   },
                 }}
               >
-                <Box
-                  component="img"
-                  src="/icons/google.svg"
-                  alt="Google"
-                  sx={{
-                    width: { xs: 24, lg: 24 },
-                    height: { xs: 24, lg: 24 },
-                  }}
-                />
+                {loadingButton === "google" ? (
+                  <CircularProgress size={24} sx={{ color: "label.strong" }} />
+                ) : (
+                  <Box
+                    component="img"
+                    src="/icons/google.svg"
+                    alt="Google"
+                    sx={{ width: 24, height: 24 }}
+                  />
+                )}
                 <Typography
                   className="social-label"
                   sx={{ color: "label.strong" }}
@@ -473,7 +496,9 @@ const LoginForm = () => {
               <Box
                 component="button"
                 type="button"
+                disabled={isLoading}
                 onClick={() => {
+                  setLoadingButton("kakao");
                   window.location.href =
                     "https://kauth.kakao.com/oauth/authorize?client_id=efcaf6bea68a9c17d9069e7f168f5a25&redirect_uri=https://api.biomepaper.shop/api/v1/auth/kakao/callback&response_type=code";
                 }}
@@ -488,6 +513,10 @@ const LoginForm = () => {
                   backgroundColor: "#FFE812",
                   border: "none",
                   cursor: "pointer",
+                  "&:disabled": {
+                    cursor: "default",
+                    opacity: 0.7,
+                  },
                   "& .social-label": {
                     fontSize: "18px",
                     fontWeight: 500,
@@ -504,12 +533,16 @@ const LoginForm = () => {
                   },
                 }}
               >
-                <Box
-                  component="img"
-                  src="/icons/kakao.svg"
-                  alt="카카오"
-                  sx={{ width: 24, height: 24 }}
-                />
+                {loadingButton === "kakao" ? (
+                  <CircularProgress size={24} sx={{ color: "label.normal" }} />
+                ) : (
+                  <Box
+                    component="img"
+                    src="/icons/kakao.svg"
+                    alt="카카오"
+                    sx={{ width: 24, height: 24 }}
+                  />
+                )}
                 <Typography
                   className="social-label"
                   sx={{ color: "label.normal" }}
