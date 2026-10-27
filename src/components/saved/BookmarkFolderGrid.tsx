@@ -21,7 +21,7 @@ const gridSx: SxProps<Theme> = {
   flexWrap: "wrap",
   justifyContent: "flex-start",
   borderRadius: "12px",
-  border: "1px solid #FAFAFC",
+  border: { xs: "none", sm: "1px solid #FAFAFC" },
   backgroundColor: "static.white",
   backdropFilter: "blur(2.9px)",
 };
