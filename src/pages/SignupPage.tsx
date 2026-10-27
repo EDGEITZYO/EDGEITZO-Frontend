@@ -7,9 +7,9 @@ const SignupPage = () => {
       sx={{
         minHeight: "100vh",
         backgroundColor: "background.default",
-        backgroundImage: { lg: "url('/login_bg.svg')" },
-        backgroundSize: { lg: "cover" },
-        backgroundPosition: { lg: "center" },
+        backgroundImage: { sm: "url('/login_bg.svg')" },
+        backgroundSize: { sm: "cover" },
+        backgroundPosition: { sm: "center" },
         display: "flex",
         alignItems: { xs: "stretch", sm: "center" },
         justifyContent: "center",

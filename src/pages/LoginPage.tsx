@@ -6,10 +6,10 @@ const LoginPage = () => {
     <Box
       sx={{
         minHeight: "100vh",
-        backgroundColor: "#ffffff",
-        backgroundImage: { lg: "url('/login_bg.svg')" },
-        backgroundSize: { lg: "cover" },
-        backgroundPosition: { lg: "center" },
+        backgroundColor: "background.default",
+        backgroundImage: { sm: "url('/login_bg.svg')" },
+        backgroundSize: { sm: "cover" },
+        backgroundPosition: { sm: "center" },
         display: "flex",
         alignItems: { xs: "stretch", sm: "center" },
         justifyContent: "center",
