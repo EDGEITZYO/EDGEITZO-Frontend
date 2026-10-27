@@ -166,7 +166,7 @@ const RecentPaperContent = () => {
 
   if (isMobile) {
     return (
-      <Box sx={{ pb: "64px", display: "flex", flexDirection: "column" }}>
+      <Box sx={{ pb: "32px", display: "flex", flexDirection: "column" }}>
         {/* 모바일 필터 바 */}
         <Box
           sx={{
@@ -383,7 +383,7 @@ const RecentPaperContent = () => {
     );
   }
 
-  const paddingTop = isDesktop ? "170px" : "0px";
+  const paddingTop = isDesktop ? "133px" : "0px";
 
   return (
     <Box
