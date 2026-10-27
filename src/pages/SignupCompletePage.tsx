@@ -67,7 +67,7 @@ const SignupCompletePage = () => {
           display: "flex",
           alignItems: { xs: "stretch", sm: "center" },
           justifyContent: "center",
-          py: { xs: "40px", sm: "240px" },
+          py: { xs: "40px", sm: "64px" },
         }}
       >
         {/* 콘텐츠 영역 */}

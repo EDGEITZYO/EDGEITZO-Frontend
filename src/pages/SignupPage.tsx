@@ -13,7 +13,7 @@ const SignupPage = () => {
         display: "flex",
         alignItems: { xs: "stretch", sm: "center" },
         justifyContent: "center",
-        py: { xs: 0, sm: "208px", lg: "189px" },
+        py: { xs: 0, sm: "64px" }
       }}
     >
       <Box
