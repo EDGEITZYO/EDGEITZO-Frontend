@@ -63,51 +63,39 @@ const SignupCompletePage = () => {
       <Box
         sx={{
           minHeight: "100vh",
-          backgroundColor: "#ffffff",
+          backgroundColor: "background.default",
           display: "flex",
-          alignItems: "center",
+          alignItems: { xs: "stretch", sm: "center" },
           justifyContent: "center",
-          py: "240px",
-          "@media (max-width: 599px)": {
-            py: "40px",
-            alignItems: "stretch",
-          },
+          py: { xs: "40px", sm: "240px" },
         }}
       >
         {/* 콘텐츠 영역 */}
         <Box
           sx={{
             display: "flex",
-            width: "940px",
+            width: { xs: "100%", sm: "480px", lg: "940px" },
+            maxWidth: { xs: "599px", sm: "none" },
+            px: { xs: "16px", sm: 0 },
             justifyContent: "center",
             alignItems: "center",
-            "@media (min-width: 600px) and (max-width: 1199px)": {
-              width: "480px",
-            },
-            "@media (max-width: 599px)": {
-              width: "100%",
-              maxWidth: "599px",
-              px: "16px",
-            },
           }}
         >
           {/* 카드 */}
           <Box
             sx={{
               display: "flex",
-              width: "480px",
-              padding: "24px 20px 32px 20px",
+              width: { xs: "100%", sm: "480px" },
+              pt: "24px",
+              pb: "32px",
+              px: "20px",
               flexDirection: "column",
               justifyContent: "center",
               alignItems: "flex-start",
               gap: "32px",
               flexShrink: 0,
-              borderRadius: "12px",
-              "@media (max-width: 599px)": {
-                width: "100%",
-                border: "none",
-                borderRadius: 0,
-              },
+              borderRadius: { xs: 0, sm: "12px" },
+              border: { xs: "none", sm: "none" },
             }}
           >
             {/* 내부 영역 */}
@@ -132,13 +120,16 @@ const SignupCompletePage = () => {
                   alignSelf: "stretch",
                 }}
               >
-                {/* 이미지 플레이스홀더 */}
+                {/* 이미지 */}
                 <Box
+                  component="img"
+                  src="/signup_complete.png"
+                  alt="회원가입 완료"
                   sx={{
                     height: "161px",
                     alignSelf: "stretch",
-                    backgroundColor: "fill.strong",
                     borderRadius: "12px",
+                    objectFit: "cover",
                   }}
                 />
 
@@ -148,13 +139,13 @@ const SignupCompletePage = () => {
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "center",
-                    alignItems: "flex-start",
+                    alignItems: {
+                      xs: "center",
+                      sm: "center",
+                      lg: "flex-start",
+                    },
                     gap: "16px",
                     alignSelf: "stretch",
-                    // 태블릿/모바일
-                    "@media (max-width: 1199px)": {
-                      alignItems: "center",
-                    },
                   }}
                 >
                   {/* 이름 + 환영 */}
@@ -163,12 +154,12 @@ const SignupCompletePage = () => {
                       display: "flex",
                       flexDirection: "column",
                       justifyContent: "center",
-                      alignItems: "flex-start",
-                      gap: "4px",
-                      // 태블릿/모바일
-                      "@media (max-width: 1199px)": {
-                        alignItems: "center",
+                      alignItems: {
+                        xs: "center",
+                        sm: "center",
+                        lg: "flex-start",
                       },
+                      gap: "4px",
                     }}
                   >
                     <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -204,10 +195,7 @@ const SignupCompletePage = () => {
                         lineHeight: "24px",
                         letterSpacing: "-0.336px",
                         color: "label.alternative",
-                        // 태블릿/모바일
-                        "@media (max-width: 1199px)": {
-                          textAlign: "center",
-                        },
+                        textAlign: { xs: "center", sm: "center", lg: "left" },
                       }}
                     >
                       시작하기 전, 바이옴에게 몇가지 정보를
@@ -228,36 +216,25 @@ const SignupCompletePage = () => {
               }}
               sx={{
                 display: "flex",
-                width: "440px",
+                width: { xs: "100%", sm: "440px" },
                 height: "56px",
                 padding: "8px 0",
                 justifyContent: "center",
                 alignItems: "center",
                 borderRadius: "8px",
-                backgroundColor: "#1E2026",
+                backgroundColor: "label.normal",
                 border: "none",
                 cursor: isRegistering ? "default" : "pointer",
                 opacity: isRegistering ? 0.5 : 1,
-                // 모바일
-                "@media (max-width: 599px)": {
-                  width: "100%",
-                },
               }}
             >
               <Typography
                 sx={{
-                  fontSize: "18px",
-                  fontWeight: 600,
-                  lineHeight: "29px",
-                  letterSpacing: "-0.378px",
+                  fontSize: { xs: "16px", sm: "18px" },
+                  fontWeight: { xs: 400, sm: 600 },
+                  lineHeight: { xs: "24px", sm: "29px" },
+                  letterSpacing: { xs: "-0.336px", sm: "-0.378px" },
                   color: "#FAFAFC",
-                  // 모바일
-                  "@media (max-width: 599px)": {
-                    fontSize: "16px",
-                    fontWeight: 400,
-                    lineHeight: "24px",
-                    letterSpacing: "-0.336px",
-                  },
                 }}
               >
                 시작하기
