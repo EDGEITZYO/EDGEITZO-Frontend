@@ -64,31 +64,18 @@ const OnboardingPage = () => {
       <Box
         sx={{
           minHeight: "100vh",
-          backgroundColor: "#ffffff",
+          backgroundColor: "background.default",
           display: "flex",
-          alignItems: "center",
+          alignItems: { xs: "stretch", sm: "center" },
           justifyContent: "center",
-          py: "240px",
-          "@media (min-width: 600px) and (max-width: 1199px)": {
-            py: "302px",
-          },
-          "@media (max-width: 599px)": {
-            py: 0,
-            alignItems: "stretch",
-          },
+          py: { xs: 0, sm: "302px", lg: "240px" },
         }}
       >
         <Box
           sx={{
             display: "flex",
-            width: "940px",
+            width: { xs: "100%", sm: "480px", lg: "940px" },
             justifyContent: "center",
-            "@media (min-width: 600px) and (max-width: 1199px)": {
-              width: "480px",
-            },
-            "@media (max-width: 599px)": {
-              width: "100%",
-            },
           }}
         >
           {currentStep === 1 && (
@@ -152,37 +139,7 @@ const OnboardingPage = () => {
               totalSteps={TOTAL_STEPS}
             />
           )}
-          {isComplete && (
-            <Box
-              sx={{
-                display: "flex",
-                width: "100%",
-                justifyContent: "center",
-                alignItems: "center",
-                "@media (max-width: 599px)": {
-                  padding: "0 16px",
-                  minHeight: "100vh",
-                  alignItems: "center",
-                },
-              }}
-            >
-              <Box
-                sx={{
-                  "@media (max-width: 599px)": {
-                    display: "flex",
-                    padding: "24px 0 32px 0",
-                    flexDirection: "column",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    gap: "54px",
-                    alignSelf: "stretch",
-                  },
-                }}
-              >
-                <OnboardingComplete onStart={handleStart} />
-              </Box>
-            </Box>
-          )}
+          {isComplete && <OnboardingComplete onStart={handleStart} />}
         </Box>
       </Box>
     </AuthLayout>

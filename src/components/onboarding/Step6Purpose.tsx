@@ -66,10 +66,10 @@ const Step6Purpose = ({
     >
       <Typography
         sx={{
-          fontSize: isMobile ? "24px" : "28px",
+          fontSize: { xs: "24px", sm: "28px" },
           fontWeight: 600,
-          lineHeight: isMobile ? "36px" : "42px",
-          letterSpacing: isMobile ? "-0.528px" : "-0.784px",
+          lineHeight: { xs: "36px", sm: "42px" },
+          letterSpacing: { xs: "-0.528px", sm: "-0.784px" },
           color: "#FAFAFC",
         }}
       >
@@ -90,10 +90,10 @@ const Step6Purpose = ({
     >
       <Typography
         sx={{
-          fontSize: isMobile ? "20px" : "24px",
+          fontSize: { xs: "20px", sm: "24px" },
           fontWeight: 600,
-          lineHeight: isMobile ? "30px" : "36px",
-          letterSpacing: isMobile ? "-0.42px" : "-0.528px",
+          lineHeight: { xs: "30px", sm: "36px" },
+          letterSpacing: { xs: "-0.42px", sm: "-0.528px" },
           color: "label.normal",
         }}
       >
@@ -155,7 +155,12 @@ const Step6Purpose = ({
           alignItems: "center",
           gap: "10px",
           borderRadius: "24px",
-          backgroundColor: selected ? "primary.main" : "fill.normal",
+          ...(selected
+            ? {
+                background:
+                  "linear-gradient(0deg, rgba(0, 0, 0, 0.20) 0%, rgba(0, 0, 0, 0.20) 100%), #03C26C",
+              }
+            : { backgroundColor: "fill.normal" }),
           cursor: "pointer",
           userSelect: "none",
         }}
@@ -268,9 +273,11 @@ const Step6Purpose = ({
                   height: "40px",
                   padding: "8px 9px",
                   borderRadius: "24px",
-                  backgroundColor: isValid ? "#1E2026" : "#D8DAE5",
+                  backgroundColor: isValid ? "label.normal" : "label.disable",
                   "&:hover": {
-                    backgroundColor: isValid ? "label.neutral" : "#D8DAE5",
+                    backgroundColor: isValid
+                      ? "label.neutral"
+                      : "label.disable",
                   },
                 }}
               >
@@ -376,9 +383,9 @@ const Step6Purpose = ({
               height: "40px",
               padding: "8px 9px",
               borderRadius: "24px",
-              backgroundColor: isValid ? "#1E2026" : "#D8DAE5",
+              backgroundColor: isValid ? "label.normal" : "label.disable",
               "&:hover": {
-                backgroundColor: isValid ? "label.neutral" : "#D8DAE5",
+                backgroundColor: isValid ? "label.neutral" : "label.disable",
               },
             }}
           >
