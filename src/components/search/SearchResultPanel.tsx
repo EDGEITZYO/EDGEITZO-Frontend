@@ -1,11 +1,15 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Box,
   Typography,
   IconButton,
+  Menu,
+  MenuItem,
   useMediaQuery,
   CircularProgress,
+  Slider,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import CloseIcon from "@mui/icons-material/Close";
@@ -42,12 +46,14 @@ interface SearchResultPanelProps {
   onDetailClose: () => void;
   bookmarkMap: Record<string, boolean>;
   onBookmarkToggle: (paperId: string, isBookmarked: boolean) => void;
-  filterYear: number | null;
+  filterYearStart: number | null;
+  filterYearEnd: number | null;
   filterPaperType: string | null;
   filterKci: boolean;
   filterSci: boolean;
   onFilterChange: (filters: {
-    year: number | null;
+    yearStart: number | null;
+    yearEnd: number | null;
     paperType: string | null;
     kci: boolean;
     sci: boolean;
@@ -66,13 +72,8 @@ const SORT_OPTIONS: { label: string; value: SortOrder }[] = [
   { label: "인용높은순", value: "citation_desc" },
 ];
 
-const YEAR_OPTIONS: { label: string; value: number }[] = Array.from(
-  { length: 11 },
-  (_, i) => {
-    const year = 2026 - i;
-    return { label: `${year}년`, value: year };
-  },
-);
+const YEAR_MIN = 2016;
+const YEAR_MAX = 2025;
 
 const PAPER_TYPE_OPTIONS: { label: string; value: PaperType }[] = [
   { label: "학술 저널", value: "학술 저널" },
@@ -99,32 +100,14 @@ const DropdownFilter = ({
   isMobile,
   clearable = false,
 }: DropdownFilterProps) => {
-  const [open, setOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const isSelected = clearable && selectedValue !== null;
   const selectedLabel =
     options.find((o) => o.value === selectedValue)?.label ?? label;
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(e.target as Node)
-      ) {
-        setOpen(false);
-      }
-    };
-    if (open) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [open]);
-
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isSelected) return;
-    setOpen((prev) => !prev);
+    setAnchorEl(e.currentTarget);
   };
 
   const handleClear = (e: React.MouseEvent<SVGSVGElement>) => {
@@ -132,8 +115,9 @@ const DropdownFilter = ({
     onSelect("__clear__");
   };
 
+  // 변경 후
   return (
-    <Box ref={containerRef} sx={{ position: "relative" }}>
+    <>
       <Box
         onClick={handleClick}
         sx={{
@@ -150,10 +134,8 @@ const DropdownFilter = ({
       >
         <Typography
           sx={{
-            display: "-webkit-box",
-            WebkitBoxOrient: "vertical",
-            WebkitLineClamp: 1,
-            overflow: "hidden",
+            whiteSpace: "nowrap",
+            flexShrink: 0,
             color: isSelected
               ? "#FFF"
               : isMobile
@@ -186,68 +168,53 @@ const DropdownFilter = ({
               sx={{
                 width: 20,
                 height: 20,
-                transform: open ? "rotate(180deg)" : "none",
+                transform: anchorEl !== null ? "rotate(180deg)" : "none",
               }}
             />
           )}
         </Box>
       </Box>
-      {open && (
-        <Box
-          sx={{
-            position: "absolute",
-            top: "calc(100% + 4px)",
-            left: 0,
-            zIndex: 100,
-            display: "flex",
-            padding: "8px",
-            flexDirection: "column",
-            alignItems: "center",
-            width: "100%",
-            borderRadius: "28px",
-            border: "1px solid",
-            borderColor: "label.alternative",
-            backgroundColor: "background.default",
-          }}
-        >
-          {options.map((option) => (
-            <Box
-              key={option.value}
-              onClick={() => {
-                onSelect(option.value);
-                setOpen(false);
-              }}
-              sx={{
-                display: "flex",
-                height: "42px",
-                padding: "8px",
-                alignItems: "center",
-                alignSelf: "stretch",
-                borderRadius: "216px",
-                backgroundColor:
-                  option.value === selectedValue
-                    ? "background.paper"
-                    : "background.default",
-                cursor: "pointer",
-                "&:hover": { backgroundColor: "background.paper" },
-              }}
-            >
-              <Typography
-                sx={{
-                  color: "label.normal",
-                  fontSize: isMobile ? "13px" : "16px",
-                  fontWeight: 400,
-                  lineHeight: isMobile ? "22px" : "24px",
-                  letterSpacing: isMobile ? "-0.26px" : "-0.336px",
-                }}
-              >
-                {option.label}
-              </Typography>
-            </Box>
-          ))}
-        </Box>
-      )}
-    </Box>
+      <Menu
+        anchorEl={anchorEl}
+        open={anchorEl !== null}
+        onClose={() => setAnchorEl(null)}
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: "28px",
+              border: "1px solid",
+              borderColor: "label.alternative",
+              boxShadow: "none",
+              padding: "8px",
+            },
+          },
+        }}
+      >
+        {options.map((option) => (
+          <MenuItem
+            key={option.value}
+            selected={option.value === selectedValue}
+            onClick={() => {
+              onSelect(option.value);
+              setAnchorEl(null);
+            }}
+            sx={{
+              borderRadius: "216px",
+              fontSize: isMobile ? "13px" : "16px",
+              fontWeight: 400,
+              lineHeight: isMobile ? "22px" : "24px",
+              letterSpacing: isMobile ? "-0.26px" : "-0.336px",
+              color: "label.normal",
+              justifyContent: "center",
+              "&.Mui-selected": { backgroundColor: "background.paper" },
+              "&:hover": { backgroundColor: "background.paper" },
+            }}
+          >
+            {option.label}
+          </MenuItem>
+        ))}
+      </Menu>
+    </>
   );
 };
 
@@ -287,10 +254,8 @@ const ToggleFilter = ({
   >
     <Typography
       sx={{
-        display: "-webkit-box",
-        WebkitBoxOrient: "vertical",
-        WebkitLineClamp: 1,
-        overflow: "hidden",
+        whiteSpace: "nowrap",
+        flexShrink: 0,
         color: active
           ? "#FAFAFC"
           : isMobile
@@ -314,7 +279,8 @@ const SearchResultPanel = ({
   feedbacks,
   sortOrder,
   bookmarkMap,
-  filterYear,
+  filterYearStart,
+  filterYearEnd,
   filterPaperType,
   filterKci,
   filterSci,
@@ -338,6 +304,67 @@ const SearchResultPanel = ({
 
   const [resultPanelView, setResultPanelView] =
     useState<ResultPanelView>("list");
+  const [yearOpen, setYearOpen] = useState(false);
+  const [tempRange, setTempRange] = useState<[number, number]>([
+    YEAR_MIN,
+    YEAR_MAX,
+  ]);
+  const yearRef = useRef<HTMLDivElement>(null);
+  const yearMobilePanelRef = useRef<HTMLDivElement>(null);
+  const [mobilePanelPos, setMobilePanelPos] = useState<{
+    top: number;
+    left: number;
+  } | null>(null);
+
+  const isYearApplied = filterYearStart !== null && filterYearEnd !== null;
+  const isApplyDisabled =
+    tempRange[0] === YEAR_MIN && tempRange[1] === YEAR_MAX;
+
+  const handleYearToggle = () => {
+    if (!yearOpen) {
+      setTempRange([filterYearStart ?? YEAR_MIN, filterYearEnd ?? YEAR_MAX]);
+      if (isMobile) {
+        const rect = yearRef.current?.getBoundingClientRect();
+        if (rect && rect.width > 0) {
+          const panelWidth = 204;
+          const left =
+            rect.left + panelWidth > window.innerWidth
+              ? window.innerWidth - panelWidth - 8
+              : rect.left;
+          setMobilePanelPos({ top: rect.bottom + 4, left });
+        }
+      }
+    }
+    setYearOpen((prev) => !prev);
+  };
+
+  const handleYearClear = (e: React.MouseEvent<SVGSVGElement>) => {
+    e.stopPropagation();
+    setYearOpen(false);
+    onFilterChange({
+      yearStart: null,
+      yearEnd: null,
+      paperType: filterPaperType,
+      kci: filterKci,
+      sci: filterSci,
+    });
+  };
+
+  const handleSliderChange = (_: Event, newValue: number | number[]) => {
+    const [s, end] = newValue as [number, number];
+    setTempRange([s, end]);
+  };
+
+  const handleYearApply = () => {
+    onFilterChange({
+      yearStart: tempRange[0],
+      yearEnd: tempRange[1],
+      paperType: filterPaperType,
+      kci: filterKci,
+      sci: filterSci,
+    });
+    setYearOpen(false);
+  };
   const [paperStack, setPaperStack] = useState<string[]>([]);
   const selectedPaperId = paperStack[paperStack.length - 1] ?? null;
   const [bookmarkDialogPaperId, setBookmarkDialogPaperId] = useState<
@@ -393,6 +420,39 @@ const SearchResultPanel = ({
     }
   }, [resultPanelView, handleBack, mobileBackRef]);
 
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+      const insideRef = yearRef.current?.contains(target) ?? false;
+      const insidePortal =
+        yearMobilePanelRef.current?.contains(target) ?? false;
+      if (!insideRef && !insidePortal) {
+        setYearOpen(false);
+      }
+    };
+    if (yearOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [yearOpen]);
+
+  useEffect(() => {
+    if (!yearOpen || !isMobile) return;
+    const updatePosition = () => {
+      const rect = yearRef.current?.getBoundingClientRect();
+      if (rect) {
+        const panelWidth = 204;
+        const left =
+          rect.left + panelWidth > window.innerWidth
+            ? window.innerWidth - panelWidth - 8
+            : rect.left;
+        setMobilePanelPos({ top: rect.bottom + 4, left });
+      }
+    };
+    window.addEventListener("scroll", updatePosition, true);
+    return () => window.removeEventListener("scroll", updatePosition, true);
+  }, [yearOpen, isMobile]);
+
   const handlePaperClick = (paperId: string) => {
     setPaperStack([paperId]);
     setResultPanelView("detail");
@@ -409,6 +469,7 @@ const SearchResultPanel = ({
           ? {
               padding: "0 16px",
               overflowX: "auto",
+              alignSelf: "stretch",
               "&::-webkit-scrollbar": { display: "none" },
             }
           : { flexWrap: "wrap" }),
@@ -424,21 +485,282 @@ const SearchResultPanel = ({
         }}
         isMobile={isMobileFilter}
       />
-      <DropdownFilter
-        label="발행연도"
-        clearable
-        options={YEAR_OPTIONS}
-        selectedValue={filterYear}
-        onSelect={(value) => {
-          onFilterChange({
-            year: value === "__clear__" ? null : (value as number),
-            paperType: filterPaperType,
-            kci: filterKci,
-            sci: filterSci,
-          });
-        }}
-        isMobile={isMobileFilter}
-      />
+      {/* 발행연도 */}
+      <Box ref={yearRef} sx={{ position: "relative" }}>
+        <Box
+          onClick={handleYearToggle}
+          sx={{
+            display: "flex",
+            height: isMobileFilter ? "36px" : "42px",
+            padding: isMobileFilter ? "0 8px 0 16px" : "8px 8px 8px 16px",
+            alignItems: "center",
+            gap: isMobileFilter ? "4px" : "16px",
+            borderRadius: "216px",
+            backgroundColor: isYearApplied ? "#1E2026" : "fill.normal",
+            cursor: "pointer",
+            flexShrink: 0,
+          }}
+        >
+          <Typography
+            sx={{
+              whiteSpace: "nowrap",
+              flexShrink: 0,
+              color: isYearApplied
+                ? "#FFF"
+                : isMobileFilter
+                  ? "label.neutral"
+                  : "label.alternative",
+              fontSize: isMobileFilter ? "13px" : "16px",
+              fontWeight: 400,
+              lineHeight: isMobileFilter ? "22px" : "24px",
+              letterSpacing: isMobileFilter ? "-0.26px" : "-0.336px",
+            }}
+          >
+            {isYearApplied
+              ? `${filterYearStart} ~ ${filterYearEnd}년`
+              : "발행연도"}
+          </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              padding: isMobileFilter
+                ? "7px 8px 9px 8px"
+                : "9px 10px 11px 10px",
+              justifyContent: "center",
+              alignItems: "center",
+              borderRadius: "24px",
+            }}
+          >
+            {isYearApplied ? (
+              <CloseIcon
+                onClick={handleYearClear}
+                sx={{ width: 20, height: 20, color: "#FFF", cursor: "pointer" }}
+              />
+            ) : (
+              <KeyboardArrowDownIcon
+                sx={{
+                  width: 20,
+                  height: 20,
+                  transform: yearOpen ? "rotate(180deg)" : "none",
+                }}
+              />
+            )}
+          </Box>
+        </Box>
+
+        {yearOpen &&
+          (!isMobileFilter ? (
+            // 데스크탑: position absolute
+            <Box
+              sx={{
+                position: "absolute",
+                top: "calc(100% + 4px)",
+                left: 0,
+                zIndex: 100,
+                display: "flex",
+                width: "240px",
+                padding: "16px 8px",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "0px",
+                borderRadius: "16px",
+                border: "1px solid",
+                borderColor: "label.alternative",
+                backgroundColor: "background.default",
+              }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  padding: "0 8px 8px 8px",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: "16px",
+                  alignSelf: "stretch",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-start",
+                    gap: "3px",
+                    flex: "1 0 0",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      color: "label.normal",
+                      fontSize: "16px",
+                      fontWeight: 400,
+                      lineHeight: "24px",
+                      letterSpacing: "-0.336px",
+                      alignSelf: "stretch",
+                    }}
+                  >
+                    {tempRange[0]} ~ {tempRange[1]}년
+                  </Typography>
+                  <Slider
+                    value={tempRange}
+                    onChange={handleSliderChange}
+                    min={YEAR_MIN}
+                    max={YEAR_MAX}
+                    step={1}
+                    disableSwap
+                    size="small"
+                    sx={{
+                      alignSelf: "stretch",
+                      color: "#92E268",
+                      "& .MuiSlider-rail": {
+                        backgroundColor: "#E9EAF2",
+                        opacity: 1,
+                      },
+                      "& .MuiSlider-thumb": {
+                        border: "1px solid #73757F",
+                        backgroundColor: "#F7F8FA",
+                      },
+                    }}
+                  />
+                </Box>
+              </Box>
+              <Box
+                onClick={!isApplyDisabled ? handleYearApply : undefined}
+                sx={{
+                  display: "flex",
+                  width: "208px",
+                  padding: "8px 0",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  borderRadius: "8px",
+                  backgroundColor: isApplyDisabled
+                    ? "label.disable"
+                    : "label.normal",
+                  cursor: isApplyDisabled ? "default" : "pointer",
+                  userSelect: "none",
+                }}
+              >
+                <Typography
+                  sx={{
+                    color: "#FAFAFC",
+                    fontSize: "16px",
+                    fontWeight: 400,
+                    lineHeight: "24px",
+                    letterSpacing: "-0.336px",
+                  }}
+                >
+                  적용
+                </Typography>
+              </Box>
+            </Box>
+          ) : mobilePanelPos ? (
+            createPortal(
+              <Box
+                ref={yearMobilePanelRef}
+                sx={{
+                  position: "fixed",
+                  top: mobilePanelPos.top,
+                  left: mobilePanelPos.left,
+                  zIndex: 1300,
+                  display: "flex",
+                  width: "204px",
+                  padding: "12px 8px",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "0px",
+                  borderRadius: "16px",
+                  border: "1px solid",
+                  borderColor: "label.alternative",
+                  backgroundColor: "background.default",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    padding: "0 8px 8px 8px",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: "16px",
+                    alignSelf: "stretch",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "flex-start",
+                      gap: "3px",
+                      flex: "1 0 0",
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        color: "label.normal",
+                        fontSize: "13px",
+                        fontWeight: 400,
+                        lineHeight: "22px",
+                        letterSpacing: "-0.26px",
+                        alignSelf: "stretch",
+                      }}
+                    >
+                      {tempRange[0]} ~ {tempRange[1]}년
+                    </Typography>
+                    <Slider
+                      value={tempRange}
+                      onChange={handleSliderChange}
+                      min={YEAR_MIN}
+                      max={YEAR_MAX}
+                      step={1}
+                      disableSwap
+                      size="small"
+                      sx={{
+                        "&&": { padding: "13px 0" },
+                        alignSelf: "stretch",
+                        color: "#92E268",
+                        "& .MuiSlider-rail": {
+                          backgroundColor: "#E9EAF2",
+                          opacity: 1,
+                        },
+                        "& .MuiSlider-thumb": {
+                          border: "1px solid #73757F",
+                          backgroundColor: "#F7F8FA",
+                        },
+                      }}
+                    />
+                  </Box>
+                </Box>
+                <Box
+                  onClick={!isApplyDisabled ? handleYearApply : undefined}
+                  sx={{
+                    display: "flex",
+                    width: "184px",
+                    padding: "8px 0",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    borderRadius: "8px",
+                    backgroundColor: isApplyDisabled
+                      ? "label.disable"
+                      : "label.normal",
+                    cursor: isApplyDisabled ? "default" : "pointer",
+                    userSelect: "none",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      color: "#FAFAFC",
+                      fontSize: "13px",
+                      fontWeight: 400,
+                      lineHeight: "22px",
+                      letterSpacing: "-0.26px",
+                    }}
+                  >
+                    적용
+                  </Typography>
+                </Box>
+              </Box>,
+              document.body,
+            )
+          ) : null)}
+      </Box>
       <DropdownFilter
         label="논문 유형"
         clearable
@@ -446,7 +768,8 @@ const SearchResultPanel = ({
         selectedValue={filterPaperType}
         onSelect={(value) => {
           onFilterChange({
-            year: filterYear,
+            yearStart: filterYearStart,
+            yearEnd: filterYearEnd,
             paperType: value === "__clear__" ? null : (value as string),
             kci: filterKci,
             sci: filterSci,
@@ -459,7 +782,8 @@ const SearchResultPanel = ({
         active={filterKci}
         onToggle={() =>
           onFilterChange({
-            year: filterYear,
+            yearStart: filterYearStart,
+            yearEnd: filterYearEnd,
             paperType: filterPaperType,
             kci: !filterKci,
             sci: filterSci,
@@ -472,7 +796,8 @@ const SearchResultPanel = ({
         active={filterSci}
         onToggle={() =>
           onFilterChange({
-            year: filterYear,
+            yearStart: filterYearStart,
+            yearEnd: filterYearEnd,
             paperType: filterPaperType,
             kci: filterKci,
             sci: !filterSci,

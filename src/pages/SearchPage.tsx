@@ -47,7 +47,7 @@ const pageSx = (isMobile: boolean): SxProps<Theme> => ({
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
-  gap: "12px",
+  gap: isMobile ? "0px" : "12px",
   height: "100vh",
   overflow: "hidden",
   backgroundColor: isMobile ? "background.default" : "background.paper",
@@ -104,7 +104,8 @@ const SearchPage = () => {
     Record<string, SelectionReasonState>
   >({});
   const [bookmarkMap, setBookmarkMap] = useState<Record<string, boolean>>({});
-  const [filterYear, setFilterYear] = useState<number | null>(null);
+  const [filterYearStart, setFilterYearStart] = useState<number | null>(null);
+  const [filterYearEnd, setFilterYearEnd] = useState<number | null>(null);
   const [filterPaperType, setFilterPaperType] = useState<string | null>(null);
   const [filterKci, setFilterKci] = useState<boolean>(false);
   const [filterSci, setFilterSci] = useState<boolean>(false);
@@ -195,6 +196,7 @@ const SearchPage = () => {
             chip_type: chipType,
             sort_order: sortOrder,
             pub_year_start: null,
+            pub_year_end: null,
             paper_type: null,
             kci_only: null,
             sci_only: null,
@@ -262,7 +264,8 @@ const SearchPage = () => {
               ) {
                 setSessionId(response.session_id);
               }
-              setFilterYear(null);
+              setFilterYearStart(null);
+              setFilterYearEnd(null);
               setFilterPaperType(null);
               setFilterKci(false);
               setFilterSci(false);
@@ -464,13 +467,15 @@ const SearchPage = () => {
 
   const handleFilterChange = useCallback(
     async (filters: {
-      year: number | null;
+      yearStart: number | null;
+      yearEnd: number | null;
       paperType: string | null;
       kci: boolean;
       sci: boolean;
     }) => {
       if (!sessionId) return;
-      setFilterYear(filters.year);
+      setFilterYearStart(filters.yearStart);
+      setFilterYearEnd(filters.yearEnd);
       setFilterPaperType(filters.paperType);
       setFilterKci(filters.kci);
       setFilterSci(filters.sci);
@@ -488,7 +493,8 @@ const SearchPage = () => {
             chip_id: null,
             chip_type: null,
             sort_order: sortOrder,
-            pub_year_start: filters.year,
+            pub_year_start: filters.yearStart,
+            pub_year_end: filters.yearEnd,
             paper_type: filters.paperType,
             kci_only: filters.kci || null,
             sci_only: filters.sci || null,
@@ -532,7 +538,8 @@ const SearchPage = () => {
             chip_id: null,
             chip_type: null,
             sort_order: sort,
-            pub_year_start: filterYear,
+            pub_year_start: filterYearStart,
+            pub_year_end: filterYearEnd,
             paper_type: filterPaperType,
             kci_only: filterKci || null,
             sci_only: filterSci || null,
@@ -559,7 +566,8 @@ const SearchPage = () => {
     },
     [
       sessionId,
-      filterYear,
+      filterYearStart,
+      filterYearEnd,
       filterPaperType,
       filterKci,
       filterSci,
@@ -608,7 +616,8 @@ const SearchPage = () => {
   const handlePanelOpen = useCallback((data: PanelData) => {
     setActivePanelData(data);
     setIsPanelOpen(true);
-    setFilterYear(null);
+    setFilterYearStart(null);
+    setFilterYearEnd(null);
     setFilterPaperType(null);
     setFilterKci(false);
     setFilterSci(false);
@@ -618,7 +627,8 @@ const SearchPage = () => {
   const handlePanelClose = useCallback(() => {
     setIsPanelOpen(false);
     setIsPanelDetail(false);
-    setFilterYear(null);
+    setFilterYearStart(null);
+    setFilterYearEnd(null);
     setFilterPaperType(null);
     setFilterKci(false);
     setFilterSci(false);
@@ -776,7 +786,8 @@ const SearchPage = () => {
                 onDetailClose={() => setIsPanelDetail(false)}
                 bookmarkMap={bookmarkMap}
                 onBookmarkToggle={handleBookmarkToggle}
-                filterYear={filterYear}
+                filterYearStart={filterYearStart}
+                filterYearEnd={filterYearEnd}
                 filterPaperType={filterPaperType}
                 filterKci={filterKci}
                 filterSci={filterSci}
@@ -795,8 +806,8 @@ const SearchPage = () => {
             sx={{
               position: "absolute",
               top: { xs: 0, sm: "12px" },
-              left: { xs: 0, sm: "64px" },
-              right: { xs: 0, sm: "64px" },
+              left: { xs: 0, sm: "12px" },
+              right: { xs: 0, sm: "12px" },
               bottom: { xs: 0, sm: "12px" },
               display: "flex",
               pointerEvents: isPanelOpen ? "auto" : "none",
@@ -816,7 +827,8 @@ const SearchPage = () => {
                 onDetailClose={() => setIsPanelDetail(false)}
                 bookmarkMap={bookmarkMap}
                 onBookmarkToggle={handleBookmarkToggle}
-                filterYear={filterYear}
+                filterYearStart={filterYearStart}
+                filterYearEnd={filterYearEnd}
                 filterPaperType={filterPaperType}
                 filterKci={filterKci}
                 filterSci={filterSci}
