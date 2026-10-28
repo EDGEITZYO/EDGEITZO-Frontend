@@ -525,7 +525,7 @@ const PaperListPanel = () => {
                 padding: "16px 8px",
                 flexDirection: "column",
                 alignItems: "center",
-                gap: "12px",
+                gap: "0px",
                 borderRadius: "16px",
                 border: "1px solid",
                 borderColor: "label.alternative",
@@ -547,7 +547,7 @@ const PaperListPanel = () => {
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "flex-start",
-                    gap: "16px",
+                    gap: "3px",
                     flex: "1 0 0",
                   }}
                 >
@@ -630,7 +630,7 @@ const PaperListPanel = () => {
                   padding: "12px 8px",
                   flexDirection: "column",
                   alignItems: "center",
-                  gap: "12px",
+                  gap: "0px",
                   borderRadius: "16px",
                   border: "1px solid",
                   borderColor: "label.alternative",
@@ -652,7 +652,7 @@ const PaperListPanel = () => {
                       display: "flex",
                       flexDirection: "column",
                       alignItems: "flex-start",
-                      gap: "16px",
+                      gap: "3px",
                       flex: "1 0 0",
                     }}
                   >
@@ -677,6 +677,7 @@ const PaperListPanel = () => {
                       disableSwap
                       size="small"
                       sx={{
+                        "&&": { padding: "13px 0" },
                         alignSelf: "stretch",
                         color: "#92E268",
                         "& .MuiSlider-rail": {

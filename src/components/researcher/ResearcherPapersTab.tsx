@@ -582,7 +582,7 @@ const ResearcherPapersTab = ({
                   padding: "16px 8px",
                   flexDirection: "column",
                   alignItems: "center",
-                  gap: "12px",
+                  gap: "0px",
                   borderRadius: "16px",
                   border: "1px solid",
                   borderColor: "label.alternative",
@@ -604,7 +604,7 @@ const ResearcherPapersTab = ({
                       display: "flex",
                       flexDirection: "column",
                       alignItems: "flex-start",
-                      gap: "16px",
+                      gap: "3px",
                       flex: "1 0 0",
                     }}
                   >
@@ -804,7 +804,7 @@ const ResearcherPapersTab = ({
                 padding: "12px 8px",
                 flexDirection: "column",
                 alignItems: "center",
-                gap: "12px",
+                gap: "0px",
                 borderRadius: "16px",
                 border: "1px solid",
                 borderColor: "label.alternative",
@@ -826,7 +826,7 @@ const ResearcherPapersTab = ({
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "flex-start",
-                    gap: "16px",
+                    gap: "3px",
                     flex: "1 0 0",
                   }}
                 >
@@ -855,6 +855,7 @@ const ResearcherPapersTab = ({
                     disableSwap
                     size="small"
                     sx={{
+                      "&&": { padding: "13px 0" },
                       alignSelf: "stretch",
                       color: "#92E268",
                       "& .MuiSlider-rail": {
