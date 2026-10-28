@@ -101,7 +101,8 @@ const ResearcherDetailPage = () => {
     setPaperParams({
       sort: filter.sort,
       page: 1,
-      ...(filter.year !== null && { year: filter.year }),
+      ...(filter.year_start !== null && { year_start: filter.year_start }),
+      ...(filter.year_end !== null && { year_end: filter.year_end }),
       ...(filter.paper_type !== null && { paper_type: filter.paper_type }),
       ...(filter.kci ? { kci: true } : {}),
       ...(filter.sci ? { sci: true } : {}),

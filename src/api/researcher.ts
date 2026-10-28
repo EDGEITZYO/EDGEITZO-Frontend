@@ -24,7 +24,8 @@ export interface GetResearcherPapersParams {
   page?: number;
   size?: number;
   coauthor_id?: string;
-  year?: number;
+  year_start?: number;
+  year_end?: number;
   paper_type?: string;
   kci?: boolean;
   sci?: boolean;
