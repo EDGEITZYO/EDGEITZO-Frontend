@@ -1,3 +1,4 @@
+import { keyframes } from "@mui/system";
 import { useState } from "react";
 import { Box, Typography, IconButton, useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
@@ -215,6 +216,35 @@ const UserMessage = ({
 
 // ─── AI 메시지 ────────────────────────────────────────────
 
+const shimmer = keyframes`
+  0%   { background-position: 200% center; }
+  100% { background-position: -200% center; }
+`;
+
+const ShimmerText = ({ isMobile }: { isMobile: boolean }) => {
+  const bgColor = isMobile ? "#FFFFFF" : "#F7F8FA";
+
+  return (
+    <Box
+      component="span"
+      sx={{
+        fontSize: isMobile ? "13px" : "18px",
+        fontWeight: 500,
+        lineHeight: isMobile ? "22px" : "30px",
+        letterSpacing: isMobile ? "-0.26px" : "-0.378px",
+        background: `linear-gradient(90deg, #73757F 20%, ${bgColor} 50%, #73757F 80%)`,
+        backgroundSize: "200% auto",
+        WebkitBackgroundClip: "text",
+        WebkitTextFillColor: "transparent",
+        backgroundClip: "text",
+        animation: `${shimmer} 2s linear infinite`,
+      }}
+    >
+      논문 탐색 중...
+    </Box>
+  );
+};
+
 const AiMessage = ({
   message,
   onChipClick,
@@ -279,7 +309,7 @@ const AiMessage = ({
             justifyContent: "center",
             alignItems: "center",
             borderRadius: "56.25px",
-            backgroundColor: "background.default",
+            backgroundColor: "#163E01",
             flexShrink: 0,
           }}
         >
@@ -318,21 +348,33 @@ const AiMessage = ({
               gap: "10px",
             }}
           >
-            <Typography
-              sx={{
-                color: "label.alternative",
-                fontSize: isMobile ? "13px" : "18px",
-                fontWeight: 500,
-                lineHeight: isMobile ? "22px" : "30px",
-                letterSpacing: isMobile ? "-0.26px" : "-0.378px",
-              }}
-            >
-              {message.isLoading
-                ? "탐색 시작할게요."
-                : isComplete
-                  ? "탐색 완료"
-                  : "논문 탐색 중..."}
-            </Typography>
+            {message.isLoading ? (
+              <Typography
+                sx={{
+                  color: "label.alternative",
+                  fontSize: isMobile ? "13px" : "18px",
+                  fontWeight: 500,
+                  lineHeight: isMobile ? "22px" : "30px",
+                  letterSpacing: isMobile ? "-0.26px" : "-0.378px",
+                }}
+              >
+                탐색 시작할게요.
+              </Typography>
+            ) : isComplete ? (
+              <Typography
+                sx={{
+                  color: "label.alternative",
+                  fontSize: isMobile ? "13px" : "18px",
+                  fontWeight: 500,
+                  lineHeight: isMobile ? "22px" : "30px",
+                  letterSpacing: isMobile ? "-0.26px" : "-0.378px",
+                }}
+              >
+                탐색 완료
+              </Typography>
+            ) : (
+              <ShimmerText isMobile={isMobile} />
+            )}
             {isComplete && (
               <IconButton
                 onClick={() => setIsExpanded((prev) => !prev)}
