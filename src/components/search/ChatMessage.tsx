@@ -261,14 +261,16 @@ const AiMessage = ({
     <Box
       sx={{
         display: "flex",
-        paddingLeft: isSearching ? 0 : "12px",
+        paddingLeft: "12px",
         alignItems: "flex-start",
         gap: "12px",
         alignSelf: "stretch",
       }}
     >
-      {/* AI 아이콘 - isSearching일 때 숨김 (Lottie에 포함) */}
-      {!isSearching && (
+      {/* AI 아이콘 */}
+      {isSearching ? (
+        <SearchingAnimation />
+      ) : (
         <Box
           sx={{
             display: "flex",
@@ -305,52 +307,50 @@ const AiMessage = ({
           minWidth: 0,
         }}
       >
-        {(message.isLoading || statusBlock) &&
-          (isSearching ? (
-            <SearchingAnimation />
-          ) : (
-            <Box
+        {/* 탐색 상태 */}
+        {(message.isLoading || statusBlock) && (
+          <Box
+            sx={{
+              display: "flex",
+              paddingTop: "4px",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: "10px",
+            }}
+          >
+            <Typography
               sx={{
-                display: "flex",
-                paddingTop: "4px",
-                justifyContent: "center",
-                alignItems: "center",
-                gap: "10px",
+                color: "label.alternative",
+                fontSize: isMobile ? "13px" : "18px",
+                fontWeight: 500,
+                lineHeight: isMobile ? "22px" : "30px",
+                letterSpacing: isMobile ? "-0.26px" : "-0.378px",
               }}
             >
-              <Typography
-                sx={{
-                  color: "label.alternative",
-                  fontSize: isMobile ? "13px" : "18px",
-                  fontWeight: 500,
-                  lineHeight: isMobile ? "22px" : "30px",
-                  letterSpacing: isMobile ? "-0.26px" : "-0.378px",
-                }}
+              {message.isLoading
+                ? "탐색 시작할게요."
+                : isComplete
+                  ? "탐색 완료"
+                  : "논문 탐색 중..."}
+            </Typography>
+            {isComplete && (
+              <IconButton
+                onClick={() => setIsExpanded((prev) => !prev)}
+                sx={{ p: 0, width: 24, height: 24 }}
               >
-                {message.isLoading
-                  ? "탐색 시작할게요."
-                  : isComplete
-                    ? "탐색 완료"
-                    : "논문 탐색 중..."}
-              </Typography>
-              {isComplete && (
-                <IconButton
-                  onClick={() => setIsExpanded((prev) => !prev)}
-                  sx={{ p: 0, width: 24, height: 24 }}
-                >
-                  {isExpanded ? (
-                    <KeyboardArrowUpIcon
-                      sx={{ width: 24, height: 24, color: "label.alternative" }}
-                    />
-                  ) : (
-                    <KeyboardArrowDownIcon
-                      sx={{ width: 24, height: 24, color: "label.alternative" }}
-                    />
-                  )}
-                </IconButton>
-              )}
-            </Box>
-          ))}
+                {isExpanded ? (
+                  <KeyboardArrowUpIcon
+                    sx={{ width: 24, height: 24, color: "label.alternative" }}
+                  />
+                ) : (
+                  <KeyboardArrowDownIcon
+                    sx={{ width: 24, height: 24, color: "label.alternative" }}
+                  />
+                )}
+              </IconButton>
+            )}
+          </Box>
+        )}
 
         {/* 논문 탐색 중 발견한 논문 박스 */}
         {isSearching &&
