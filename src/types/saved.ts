@@ -110,7 +110,8 @@ export interface ChartFilter {
 // ─── 북마크 필터 ──────────────────────────────────────────
 
 export interface BookmarkFilter {
-  year: number | null;
+  year_start: number | null;
+  year_end: number | null;
   type: string | null;
   kci: boolean | null;
   sci: boolean | null;

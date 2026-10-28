@@ -169,7 +169,8 @@ export type KMPaperType = "학술 저널" | "박사학위 논문" | "석사학�
 
 export interface KMPaperFilter {
   sort: KMPaperSortType;
-  year?: number;
+  year_start?: number;
+  year_end?: number;
   paper_type?: KMPaperType;
   kci?: boolean;
   sci?: boolean;
