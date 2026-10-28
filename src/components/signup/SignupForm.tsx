@@ -181,27 +181,21 @@ const SignupForm = () => {
   return (
     <Box
       sx={{
-        width: "480px",
-        minWidth: "480px",
-        height: "608px",
-        padding: "24px 20px 32px 20px",
+        width: { xs: "100%", sm: "480px" },
+        minWidth: { xs: "unset", sm: "480px" },
+        height: { xs: "auto", sm: "608px" },
+        minHeight: { xs: "100vh", sm: "unset" },
+        pt: "24px",
+        pb: "32px",
+        px: { xs: "16px", sm: "20px" },
         borderRadius: { xs: 0, sm: "12px" },
         border: { xs: "none", sm: "1px solid #FAFAFC" },
         backgroundColor: "fill.normal",
         display: "flex",
         flexDirection: "column",
         alignItems: "flex-start",
-        gap: "54px",
+        gap: { xs: "24px", sm: "54px" },
         flexShrink: 0,
-        "@media (max-width: 599px)": {
-          width: "100%",
-          minWidth: "unset",
-          height: "auto",
-          minHeight: "100vh",
-          borderRadius: 0,
-          border: "none",
-          px: "16px",
-        },
       }}
     >
       {/* 뒤로가기 + 제목 */}
@@ -223,10 +217,10 @@ const SignupForm = () => {
         </IconButton>
         <Typography
           sx={{
-            fontSize: "24px",
+            fontSize: { xs: "18px", sm: "24px" },
             fontWeight: 600,
-            lineHeight: "36px",
-            letterSpacing: "-0.528px",
+            lineHeight: { xs: "29px", sm: "36px" },
+            letterSpacing: { xs: "-0.378px", sm: "-0.528px" },
             color: "label.normal",
           }}
         >
@@ -262,11 +256,13 @@ const SignupForm = () => {
                         height: "40px",
                         padding: "8px 9px",
                         borderRadius: "24px",
-                        backgroundColor: isFormValid ? "#1E2026" : "#D8DAE5",
+                        backgroundColor: isFormValid
+                          ? "label.normal"
+                          : "label.disable",
                         "&:hover": {
                           backgroundColor: isFormValid
                             ? "label.neutral"
-                            : "#D8DAE5",
+                            : "label.disable",
                         },
                       }}
                     >
@@ -470,15 +466,15 @@ const SignupForm = () => {
                           emailStatus === "verified"
                             ? "primary.dark"
                             : isEmailFormatValid
-                              ? "#1E2026"
-                              : "#D8DAE5",
+                              ? "label.normal"
+                              : "label.disable",
                         "&:hover": {
                           backgroundColor:
                             emailStatus === "verified"
                               ? "primary.dark"
                               : isEmailFormatValid
                                 ? "label.neutral"
-                                : "#D8DAE5",
+                                : "label.disable",
                         },
                       }}
                     >
