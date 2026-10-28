@@ -18,6 +18,7 @@ import {
   type SearchPaper,
   type SearchFilters,
 } from "../../types/search";
+import SearchingAnimation from "./SearchingAnimation";
 
 interface ChatMessageProps {
   message: ChatMessageType;
@@ -267,28 +268,32 @@ const AiMessage = ({
       }}
     >
       {/* AI 아이콘 */}
-      <Box
-        sx={{
-          display: "flex",
-          width: "36px",
-          height: "36px",
-          justifyContent: "center",
-          alignItems: "center",
-          borderRadius: "56.25px",
-          backgroundColor: "background.default",
-          flexShrink: 0,
-        }}
-      >
+      {isSearching ? (
+        <SearchingAnimation />
+      ) : (
         <Box
-          component="img"
-          src="/ai_icon.svg"
-          alt="AI"
-          sx={{ width: "25px", height: "20px" }}
-          onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
-            e.currentTarget.style.display = "none";
+          sx={{
+            display: "flex",
+            width: "36px",
+            height: "36px",
+            justifyContent: "center",
+            alignItems: "center",
+            borderRadius: "56.25px",
+            backgroundColor: "background.default",
+            flexShrink: 0,
           }}
-        />
-      </Box>
+        >
+          <Box
+            component="img"
+            src="/ai_icon.svg"
+            alt="AI"
+            sx={{ width: "25px", height: "20px" }}
+            onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+              e.currentTarget.style.display = "none";
+            }}
+          />
+        </Box>
+      )}
 
       {/* AI 답변 영역 */}
       <Box
