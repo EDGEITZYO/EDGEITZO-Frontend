@@ -12,7 +12,6 @@ interface BookmarkFolderCardProps {
 }
 
 const cardSx: SxProps<Theme> = {
-  width: { xs: "100%", sm: "214px" },
   height: { xs: "120px", sm: "144px" },
   padding: "16px",
   flexShrink: 0,
