@@ -35,6 +35,9 @@ import {
 import { mypageApi } from "../api/mypage";
 import { useMypageQuery } from "../queries/useMypageQuery";
 import { mypageKeys } from "../queries/keys";
+import axios from "axios";
+import useToast from "../hooks/useToast";
+import Toast from "../components/common/Toast";
 
 const FIELD_LABEL_SX: SxProps<Theme> = {
   fontSize: "18px",
@@ -106,6 +109,7 @@ const MyPageEditForm = ({ data }: { data: MypageData }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const queryClient = useQueryClient();
 
+  const { toastMessage, showToast } = useToast();
   const [birthYearString, setBirthYearString] = useState(
     data.profile.birth_year ? String(data.profile.birth_year) : "",
   );
@@ -116,6 +120,15 @@ const MyPageEditForm = ({ data }: { data: MypageData }) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: mypageKeys.detail() });
       navigate("/mypage");
+    },
+    onError: (error: unknown) => {
+      if (
+        axios.isAxiosError(error) &&
+        typeof error.response?.data?.message === "string" &&
+        (error.response.data.message as string).includes("게스트")
+      ) {
+        showToast("게스트는 회원정보 수정이 불가해요.");
+      }
     },
   });
 
@@ -820,6 +833,7 @@ const MyPageEditForm = ({ data }: { data: MypageData }) => {
             {buttonArea(false)}
           </Box>
         </Box>
+        {toastMessage && <Toast message={toastMessage} />}
       </Box>
     );
   }
@@ -868,6 +882,7 @@ const MyPageEditForm = ({ data }: { data: MypageData }) => {
           </Box>
         </Box>
       </Box>
+      {toastMessage && <Toast message={toastMessage} />}
     </Box>
   );
 };
