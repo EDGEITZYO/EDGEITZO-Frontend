@@ -121,6 +121,10 @@ const CitationMiniGraph = ({ paperId, paperTitle }: CitationMiniGraphProps) => {
     reset,
   } = useCitationGraphActions();
 
+  useEffect(() => {
+    reset();
+  }, [paperId, reset]);
+
   const { data: referenceData, isPending: isReferencePending } =
     useCitationGraphQuery(paperId, "reference");
 
