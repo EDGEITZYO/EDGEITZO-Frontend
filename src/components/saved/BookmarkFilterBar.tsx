@@ -1,15 +1,30 @@
 import { useState, useRef, useEffect } from "react";
-import { Box, Typography } from "@mui/material";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import CloseIcon from "@mui/icons-material/Close";
+import { Box, Typography, Slider } from "@mui/material";
 import { type SxProps, type Theme } from "@mui/material/styles";
+import CloseIcon from "@mui/icons-material/Close";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import { type BookmarkFilter } from "../../types/saved";
 import { type BookmarkPaperTypeFilter } from "../../api/bookmark";
+
+// ─── 상수 ─────────────────────────────────────────────────
+
+const YEAR_MIN = 2016;
+const YEAR_MAX = 2025;
+
+const PAPER_TYPES: BookmarkPaperTypeFilter[] = [
+  "학술 저널",
+  "박사학위 논문",
+  "석사학위 논문",
+];
+
+// ─── 타입 ─────────────────────────────────────────────────
 
 interface BookmarkFilterBarProps {
   filter: BookmarkFilter;
   onFilterChange: (filter: BookmarkFilter) => void;
 }
+
+// ─── 스타일 ───────────────────────────────────────────────
 
 const dropdownContainerSx: SxProps<Theme> = {
   position: "absolute",
@@ -77,36 +92,58 @@ const toggleTextSx = (isActive: boolean): SxProps<Theme> => ({
   letterSpacing: "-0.336px",
 });
 
-const CURRENT_YEAR = new Date().getFullYear();
-const YEARS = Array.from(
-  { length: CURRENT_YEAR - 2016 + 1 },
-  (_, i) => CURRENT_YEAR - i,
-);
-
-const PAPER_TYPES: BookmarkPaperTypeFilter[] = [
-  "학술 저널",
-  "박사학위 논문",
-  "석사학위 논문",
-];
+// ─── BookmarkFilterBar ────────────────────────────────────
 
 const BookmarkFilterBar = ({
   filter,
   onFilterChange,
 }: BookmarkFilterBarProps) => {
-  const [openDropdown, setOpenDropdown] = useState<"year" | "type" | null>(
-    null,
-  );
+  const [yearOpen, setYearOpen] = useState(false);
+  const [tempRange, setTempRange] = useState<[number, number]>([
+    YEAR_MIN,
+    YEAR_MAX,
+  ]);
+  const [typeOpen, setTypeOpen] = useState(false);
   const yearRef = useRef<HTMLDivElement>(null);
   const typeRef = useRef<HTMLDivElement>(null);
 
-  const handleYearSelect = (year: number) => {
-    onFilterChange({ ...filter, year: filter.year === year ? null : year });
-    setOpenDropdown(null);
+  const isYearApplied = filter.year_start !== null && filter.year_end !== null;
+  const isApplyDisabled =
+    tempRange[0] === YEAR_MIN && tempRange[1] === YEAR_MAX;
+
+  const handleYearToggle = () => {
+    if (!yearOpen) {
+      setTempRange([
+        filter.year_start ?? YEAR_MIN,
+        filter.year_end ?? YEAR_MAX,
+      ]);
+    }
+    setYearOpen((prev) => !prev);
+  };
+
+  const handleYearClear = (e: React.MouseEvent<SVGSVGElement>) => {
+    e.stopPropagation();
+    setYearOpen(false);
+    onFilterChange({ ...filter, year_start: null, year_end: null });
+  };
+
+  const handleSliderChange = (_: Event, newValue: number | number[]) => {
+    const [s, e] = newValue as [number, number];
+    setTempRange([s, e]);
+  };
+
+  const handleYearApply = () => {
+    onFilterChange({
+      ...filter,
+      year_start: tempRange[0],
+      year_end: tempRange[1],
+    });
+    setYearOpen(false);
   };
 
   const handleTypeSelect = (type: BookmarkPaperTypeFilter) => {
     onFilterChange({ ...filter, type: filter.type === type ? null : type });
-    setOpenDropdown(null);
+    setTypeOpen(false);
   };
 
   const handleKciToggle = () => {
@@ -120,31 +157,27 @@ const BookmarkFilterBar = ({
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
-        openDropdown === "year" &&
+        yearOpen &&
         yearRef.current &&
         !yearRef.current.contains(e.target as Node)
       ) {
-        setOpenDropdown(null);
+        setYearOpen(false);
       }
       if (
-        openDropdown === "type" &&
+        typeOpen &&
         typeRef.current &&
         !typeRef.current.contains(e.target as Node)
       ) {
-        setOpenDropdown(null);
+        setTypeOpen(false);
       }
     };
-    if (openDropdown !== null) {
+    if (yearOpen || typeOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     }
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [openDropdown]);
-
-  const toggleDropdown = (type: "year" | "type") => {
-    setOpenDropdown((prev) => (prev === type ? null : type));
-  };
+  }, [yearOpen, typeOpen]);
 
   return (
     <Box
@@ -157,23 +190,20 @@ const BookmarkFilterBar = ({
     >
       {/* 발행 연도 */}
       <Box ref={yearRef} sx={{ position: "relative" }}>
+        {/* 트리거 */}
         <Box
+          onClick={handleYearToggle}
           sx={{
             display: "flex",
-            width: "164px",
+            width: "240px",
             height: "42px",
             padding: "8px 8px 8px 16px",
             justifyContent: "space-between",
             alignItems: "center",
             borderRadius: "216px",
-            backgroundColor:
-              filter.year !== null ? "#1E2026" : "background.default",
-            cursor: filter.year !== null ? "default" : "pointer",
+            backgroundColor: isYearApplied ? "#1E2026" : "background.default",
+            cursor: "pointer",
             flexShrink: 0,
-          }}
-          onClick={() => {
-            if (filter.year !== null) return;
-            toggleDropdown("year");
           }}
         >
           <Typography
@@ -183,14 +213,16 @@ const BookmarkFilterBar = ({
               WebkitLineClamp: 1,
               overflow: "hidden",
               textOverflow: "ellipsis",
-              color: filter.year !== null ? "#FFF" : "label.alternative",
+              color: isYearApplied ? "#FFF" : "label.alternative",
               fontSize: "16px",
               fontWeight: 400,
               lineHeight: "24px",
               letterSpacing: "-0.336px",
             }}
           >
-            {filter.year !== null ? `${filter.year}년` : "발행 연도"}
+            {isYearApplied
+              ? `${filter.year_start} ~ ${filter.year_end}년`
+              : "발행 연도"}
           </Typography>
           <Box
             sx={{
@@ -204,32 +236,136 @@ const BookmarkFilterBar = ({
               flexShrink: 0,
             }}
           >
-            {filter.year !== null ? (
+            {isYearApplied ? (
               <CloseIcon
-                onClick={(e: React.MouseEvent<SVGSVGElement>) => {
-                  e.stopPropagation();
-                  onFilterChange({ ...filter, year: null });
-                }}
+                onClick={handleYearClear}
                 sx={{ fontSize: 20, color: "#FFF", cursor: "pointer" }}
               />
             ) : (
               <KeyboardArrowDownIcon
-                sx={{ fontSize: 20, color: "label.alternative" }}
+                sx={{
+                  fontSize: 20,
+                  color: "label.alternative",
+                  transform: yearOpen ? "rotate(180deg)" : "none",
+                }}
               />
             )}
           </Box>
         </Box>
-        {openDropdown === "year" && (
-          <Box sx={dropdownContainerSx}>
-            {YEARS.map((year) => (
+
+        {/* 연도 범위 패널 */}
+        {yearOpen && (
+          <Box
+            sx={{
+              position: "absolute",
+              top: "calc(100% + 4px)",
+              left: 0,
+              zIndex: 100,
+              display: "flex",
+              width: "240px",
+              padding: "16px 8px",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "0px",
+              borderRadius: "16px",
+              border: "1px solid",
+              borderColor: "label.alternative",
+              backgroundColor: "background.default",
+            }}
+          >
+            {/* 연도 표시 + 슬라이더 묶음 */}
+            <Box
+              sx={{
+                display: "flex",
+                padding: "0 8px 8px 8px",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: "16px",
+                alignSelf: "stretch",
+              }}
+            >
               <Box
-                key={year}
-                sx={dropdownItemSx(filter.year === year)}
-                onClick={() => handleYearSelect(year)}
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "flex-start",
+                  gap: "3px",
+                  flex: "1 0 0",
+                }}
               >
-                <Typography sx={dropdownItemTextSx}>{year}</Typography>
+                <Typography
+                  sx={{
+                    display: "-webkit-box",
+                    WebkitBoxOrient: "vertical",
+                    WebkitLineClamp: 1,
+                    overflow: "hidden",
+                    color: "label.normal",
+                    fontSize: "16px",
+                    fontWeight: 400,
+                    lineHeight: "24px",
+                    letterSpacing: "-0.336px",
+                    alignSelf: "stretch",
+                  }}
+                >
+                  {tempRange[0]} ~ {tempRange[1]}년
+                </Typography>
+                <Slider
+                  value={tempRange}
+                  onChange={handleSliderChange}
+                  min={YEAR_MIN}
+                  max={YEAR_MAX}
+                  step={1}
+                  disableSwap
+                  size="small"
+                  sx={{
+                    alignSelf: "stretch",
+                    color: "#92E268",
+                    "& .MuiSlider-rail": {
+                      backgroundColor: "#E9EAF2",
+                      opacity: 1,
+                    },
+                    "& .MuiSlider-thumb": {
+                      border: "1px solid #73757F",
+                      backgroundColor: "#F7F8FA",
+                    },
+                  }}
+                />
               </Box>
-            ))}
+            </Box>
+
+            {/* 적용 버튼 */}
+            <Box
+              onClick={!isApplyDisabled ? handleYearApply : undefined}
+              sx={{
+                display: "flex",
+                width: "208px",
+                padding: "8px 0",
+                justifyContent: "center",
+                alignItems: "center",
+                borderRadius: "8px",
+                backgroundColor: isApplyDisabled
+                  ? "label.disable"
+                  : "label.normal",
+                cursor: isApplyDisabled ? "default" : "pointer",
+                userSelect: "none",
+              }}
+            >
+              <Typography
+                sx={{
+                  display: "-webkit-box",
+                  WebkitBoxOrient: "vertical",
+                  WebkitLineClamp: 1,
+                  overflow: "hidden",
+                  color: "#FAFAFC",
+                  fontSize: "16px",
+                  fontWeight: 400,
+                  lineHeight: "24px",
+                  letterSpacing: "-0.336px",
+                }}
+              >
+                적용
+              </Typography>
+            </Box>
           </Box>
         )}
       </Box>
@@ -252,7 +388,7 @@ const BookmarkFilterBar = ({
           }}
           onClick={() => {
             if (filter.type !== null) return;
-            toggleDropdown("type");
+            setTypeOpen((prev) => !prev);
           }}
         >
           <Typography
@@ -298,7 +434,7 @@ const BookmarkFilterBar = ({
             )}
           </Box>
         </Box>
-        {openDropdown === "type" && (
+        {typeOpen && (
           <Box sx={dropdownContainerSx}>
             {PAPER_TYPES.map((type) => (
               <Box

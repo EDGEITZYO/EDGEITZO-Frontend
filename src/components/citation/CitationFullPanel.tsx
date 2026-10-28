@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Box, Typography, IconButton } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useMediaQuery } from "@mui/material";
@@ -107,6 +108,7 @@ const CitationFullPanel = ({
   onClose,
 }: CitationFullPanelProps) => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [isDetailView, setIsDetailView] = useState(false);
@@ -336,7 +338,13 @@ const CitationFullPanel = ({
             component="img"
             src="/logo_icon.svg"
             alt="Biome 로고"
-            sx={{ width: "36px", height: "36px", flexShrink: 0 }}
+            onClick={() => navigate("/home")}
+            sx={{
+              width: "36px",
+              height: "36px",
+              flexShrink: 0,
+              cursor: "pointer",
+            }}
           />
           {/* 뒤로가기 */}
           <IconButton

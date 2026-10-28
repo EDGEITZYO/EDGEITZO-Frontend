@@ -1,5 +1,5 @@
-import { useState, type ReactNode } from "react";
-import { Box, Typography, Menu, MenuItem } from "@mui/material";
+import { useState, useRef, useEffect, type ReactNode } from "react";
+import { Box, Typography, Menu, MenuItem, Slider } from "@mui/material";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import CloseIcon from "@mui/icons-material/Close";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
@@ -17,7 +17,8 @@ type PaperTypeFilter = "학술 저널" | "박사학위 논문" | "석사학위 �
 
 export interface PaperFilter {
   sort: ResearcherPaperSortType;
-  year: number | null;
+  year_start: number | null;
+  year_end: number | null;
   paper_type: PaperTypeFilter | null;
   kci: boolean;
   sci: boolean;
@@ -37,15 +38,8 @@ export interface ResearcherPapersTabProps {
 
 // ─── 필터 옵션 ────────────────────────────────────────────
 
-const currentYear = new Date().getFullYear();
-
-const YEAR_OPTIONS: { label: string; value: number }[] = Array.from(
-  { length: 11 },
-  (_, i) => {
-    const year = currentYear - i;
-    return { label: `${year}년`, value: year };
-  },
-);
+const YEAR_MIN = 2016;
+const YEAR_MAX = 2025;
 
 const PAPER_TYPE_OPTIONS: { label: string; value: PaperTypeFilter }[] = [
   { label: "학술 저널", value: "학술 저널" },
@@ -357,11 +351,114 @@ const ResearcherPapersTab = ({
 }: ResearcherPapersTabProps) => {
   const [filter, setFilter] = useState<PaperFilter>({
     sort: "recent",
-    year: null,
+    year_start: null,
+    year_end: null,
     paper_type: null,
     kci: false,
     sci: false,
   });
+
+  const [yearOpen, setYearOpen] = useState(false);
+  const [tempRange, setTempRange] = useState<[number, number]>([
+    YEAR_MIN,
+    YEAR_MAX,
+  ]);
+  const yearRefDesktop = useRef<HTMLDivElement>(null);
+  const yearRefMobile = useRef<HTMLDivElement>(null);
+  const yearMobileTriggerRef = useRef<HTMLDivElement>(null);
+  const [mobilePanelPos, setMobilePanelPos] = useState<{
+    top: number;
+    left: number;
+  } | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+      const insideDesktop = yearRefDesktop.current?.contains(target) ?? false;
+      const insideMobile = yearRefMobile.current?.contains(target) ?? false;
+      if (!insideDesktop && !insideMobile) {
+        setYearOpen(false);
+      }
+    };
+    if (yearOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [yearOpen]);
+
+  useEffect(() => {
+    if (!yearOpen) return;
+
+    const updatePosition = () => {
+      const rect = yearMobileTriggerRef.current?.getBoundingClientRect();
+      if (rect) {
+        const panelWidth = 204;
+        const left =
+          rect.left + panelWidth > window.innerWidth
+            ? window.innerWidth - panelWidth - 8
+            : rect.left;
+        setMobilePanelPos({ top: rect.bottom + 4, left });
+      }
+    };
+
+    window.addEventListener("scroll", updatePosition, true);
+    return () => window.removeEventListener("scroll", updatePosition, true);
+  }, [yearOpen]);
+
+  useEffect(() => {
+    if (yearOpen) {
+      const scrollbarWidth =
+        window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.overflow = "hidden";
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    } else {
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+    };
+  }, [yearOpen]);
+
+  const isYearApplied = filter.year_start !== null && filter.year_end !== null;
+  const isApplyDisabled =
+    tempRange[0] === YEAR_MIN && tempRange[1] === YEAR_MAX;
+
+  const handleYearToggle = () => {
+    if (!yearOpen) {
+      setTempRange([
+        filter.year_start ?? YEAR_MIN,
+        filter.year_end ?? YEAR_MAX,
+      ]);
+      const mobileRect = yearMobileTriggerRef.current?.getBoundingClientRect();
+      if (mobileRect && mobileRect.width > 0) {
+        const panelWidth = 204;
+        const left =
+          mobileRect.left + panelWidth > window.innerWidth
+            ? window.innerWidth - panelWidth - 8
+            : mobileRect.left;
+        setMobilePanelPos({ top: mobileRect.bottom + 4, left });
+      }
+    }
+    setYearOpen((prev) => !prev);
+  };
+
+  const handleYearClear = (e: React.MouseEvent<SVGSVGElement>) => {
+    e.stopPropagation();
+    setYearOpen(false);
+    updateFilter({ year_start: null, year_end: null });
+  };
+
+  const handleSliderChange = (_: Event, newValue: number | number[]) => {
+    const [s, end] = newValue as [number, number];
+    setTempRange([s, end]);
+  };
+
+  const handleYearApply = () => {
+    updateFilter({ year_start: tempRange[0], year_end: tempRange[1] });
+    setYearOpen(false);
+  };
 
   const updateFilter = (partial: Partial<PaperFilter>) => {
     const next = { ...filter, ...partial };
@@ -409,20 +506,178 @@ const ResearcherPapersTab = ({
             }}
             isMobile={false}
           />
-          <DropdownFilter
-            label="발행연도"
-            clearable
-            options={YEAR_OPTIONS}
-            selectedValue={filter.year}
-            onSelect={(value) => {
-              if (value === "__clear__") {
-                updateFilter({ year: null });
-                return;
-              }
-              updateFilter({ year: value as number });
-            }}
-            isMobile={false}
-          />
+          {/* 발행연도 */}
+          <Box ref={yearRefDesktop} sx={{ position: "relative" }}>
+            <Box
+              onClick={handleYearToggle}
+              sx={{
+                display: "flex",
+                height: "42px",
+                padding: "8px 8px 8px 16px",
+                alignItems: "center",
+                gap: "16px",
+                borderRadius: "216px",
+                backgroundColor: isYearApplied ? "#1E2026" : "fill.normal",
+                cursor: "pointer",
+                flexShrink: 0,
+              }}
+            >
+              <Typography
+                sx={{
+                  display: "-webkit-box",
+                  WebkitBoxOrient: "vertical",
+                  WebkitLineClamp: 1,
+                  overflow: "hidden",
+                  color: isYearApplied ? "#FFF" : "label.alternative",
+                  fontSize: "16px",
+                  fontWeight: 400,
+                  lineHeight: "24px",
+                  letterSpacing: "-0.336px",
+                }}
+              >
+                {isYearApplied
+                  ? `${filter.year_start} ~ ${filter.year_end}년`
+                  : "발행연도"}
+              </Typography>
+              <Box
+                sx={{
+                  display: "flex",
+                  padding: "9px 10px 11px 10px",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  borderRadius: "24px",
+                }}
+              >
+                {isYearApplied ? (
+                  <CloseIcon
+                    onClick={handleYearClear}
+                    sx={{
+                      width: 20,
+                      height: 20,
+                      color: "#FFF",
+                      cursor: "pointer",
+                    }}
+                  />
+                ) : (
+                  <KeyboardArrowDownIcon
+                    sx={{
+                      width: 20,
+                      height: 20,
+                      transform: yearOpen ? "rotate(180deg)" : "none",
+                    }}
+                  />
+                )}
+              </Box>
+            </Box>
+
+            {yearOpen && (
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: "calc(100% + 4px)",
+                  left: 0,
+                  zIndex: 100,
+                  display: "flex",
+                  width: "240px",
+                  padding: "16px 8px",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "0px",
+                  borderRadius: "16px",
+                  border: "1px solid",
+                  borderColor: "label.alternative",
+                  backgroundColor: "background.default",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    padding: "0 8px 8px 8px",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: "16px",
+                    alignSelf: "stretch",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "flex-start",
+                      gap: "3px",
+                      flex: "1 0 0",
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        display: "-webkit-box",
+                        WebkitBoxOrient: "vertical",
+                        WebkitLineClamp: 1,
+                        overflow: "hidden",
+                        color: "label.normal",
+                        fontSize: "16px",
+                        fontWeight: 400,
+                        lineHeight: "24px",
+                        letterSpacing: "-0.336px",
+                        alignSelf: "stretch",
+                      }}
+                    >
+                      {tempRange[0]} ~ {tempRange[1]}년
+                    </Typography>
+                    <Slider
+                      value={tempRange}
+                      onChange={handleSliderChange}
+                      min={YEAR_MIN}
+                      max={YEAR_MAX}
+                      step={1}
+                      disableSwap
+                      size="small"
+                      sx={{
+                        alignSelf: "stretch",
+                        color: "#92E268",
+                        "& .MuiSlider-rail": {
+                          backgroundColor: "#E9EAF2",
+                          opacity: 1,
+                        },
+                        "& .MuiSlider-thumb": {
+                          border: "1px solid #73757F",
+                          backgroundColor: "#F7F8FA",
+                        },
+                      }}
+                    />
+                  </Box>
+                </Box>
+                <Box
+                  onClick={!isApplyDisabled ? handleYearApply : undefined}
+                  sx={{
+                    display: "flex",
+                    width: "208px",
+                    padding: "8px 0",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    borderRadius: "8px",
+                    backgroundColor: isApplyDisabled
+                      ? "label.disable"
+                      : "label.normal",
+                    cursor: isApplyDisabled ? "default" : "pointer",
+                    userSelect: "none",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      color: "#FAFAFC",
+                      fontSize: "16px",
+                      fontWeight: 400,
+                      lineHeight: "24px",
+                      letterSpacing: "-0.336px",
+                    }}
+                  >
+                    적용
+                  </Typography>
+                </Box>
+              </Box>
+            )}
+          </Box>
           <DropdownFilter
             label="논문 유형"
             clearable
@@ -474,20 +729,178 @@ const ResearcherPapersTab = ({
           }}
           isMobile={true}
         />
-        <DropdownFilter
-          label="발행연도"
-          clearable
-          options={YEAR_OPTIONS}
-          selectedValue={filter.year}
-          onSelect={(value) => {
-            if (value === "__clear__") {
-              updateFilter({ year: null });
-              return;
-            }
-            updateFilter({ year: value as number });
-          }}
-          isMobile={true}
-        />
+        {/* 발행연도 */}
+        <Box ref={yearRefMobile} sx={{ position: "relative" }}>
+          <Box
+            ref={yearMobileTriggerRef}
+            onClick={handleYearToggle}
+            sx={{
+              display: "flex",
+              height: "36px",
+              padding: "0 8px 0 16px",
+              alignItems: "center",
+              gap: "4px",
+              borderRadius: "216px",
+              backgroundColor: isYearApplied ? "#1E2026" : "fill.normal",
+              cursor: "pointer",
+              flexShrink: 0,
+            }}
+          >
+            <Typography
+              sx={{
+                color: isYearApplied ? "#FFF" : "label.alternative",
+                fontSize: "13px",
+                fontWeight: 400,
+                lineHeight: "22px",
+                letterSpacing: "-0.26px",
+                whiteSpace: "nowrap",
+                flexShrink: 0,
+              }}
+            >
+              {isYearApplied
+                ? `${filter.year_start} ~ ${filter.year_end}년`
+                : "발행연도"}
+            </Typography>
+            <Box
+              sx={{
+                display: "flex",
+                padding: "7px 8px 9px 8px",
+                justifyContent: "center",
+                alignItems: "center",
+                borderRadius: "24px",
+              }}
+            >
+              {isYearApplied ? (
+                <CloseIcon
+                  onClick={handleYearClear}
+                  sx={{
+                    width: 20,
+                    height: 20,
+                    color: "#FFF",
+                    cursor: "pointer",
+                  }}
+                />
+              ) : (
+                <KeyboardArrowDownIcon
+                  sx={{
+                    width: 20,
+                    height: 20,
+                    transform: yearOpen ? "rotate(180deg)" : "none",
+                  }}
+                />
+              )}
+            </Box>
+          </Box>
+
+          {yearOpen && mobilePanelPos && (
+            <Box
+              sx={{
+                position: "fixed",
+                top: mobilePanelPos.top,
+                left: mobilePanelPos.left,
+                zIndex: 1300,
+                display: "flex",
+                width: "204px",
+                padding: "12px 8px",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "0px",
+                borderRadius: "16px",
+                border: "1px solid",
+                borderColor: "label.alternative",
+                backgroundColor: "background.default",
+              }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  padding: "0 8px 8px 8px",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: "16px",
+                  alignSelf: "stretch",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-start",
+                    gap: "3px",
+                    flex: "1 0 0",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      display: "-webkit-box",
+                      WebkitBoxOrient: "vertical",
+                      WebkitLineClamp: 1,
+                      overflow: "hidden",
+                      color: "label.normal",
+                      fontSize: "13px",
+                      fontWeight: 400,
+                      lineHeight: "22px",
+                      letterSpacing: "-0.26px",
+                      alignSelf: "stretch",
+                    }}
+                  >
+                    {tempRange[0]} ~ {tempRange[1]}년
+                  </Typography>
+                  <Slider
+                    value={tempRange}
+                    onChange={handleSliderChange}
+                    min={YEAR_MIN}
+                    max={YEAR_MAX}
+                    step={1}
+                    disableSwap
+                    size="small"
+                    sx={{
+                      "&&": { padding: "13px 0" },
+                      alignSelf: "stretch",
+                      color: "#92E268",
+                      "& .MuiSlider-rail": {
+                        backgroundColor: "#E9EAF2",
+                        opacity: 1,
+                      },
+                      "& .MuiSlider-thumb": {
+                        border: "1px solid #73757F",
+                        backgroundColor: "#F7F8FA",
+                      },
+                    }}
+                  />
+                </Box>
+              </Box>
+              <Box
+                onClick={!isApplyDisabled ? handleYearApply : undefined}
+                sx={{
+                  display: "flex",
+                  width: "184px",
+                  padding: "8px 0",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  borderRadius: "8px",
+                  backgroundColor: isApplyDisabled
+                    ? "label.disable"
+                    : "label.normal",
+                  cursor: isApplyDisabled ? "default" : "pointer",
+                  userSelect: "none",
+                }}
+              >
+                <Typography
+                  sx={{
+                    color: "#FAFAFC",
+                    fontSize: "13px",
+                    fontWeight: 400,
+                    lineHeight: "22px",
+                    letterSpacing: "-0.26px",
+                  }}
+                >
+                  적용
+                </Typography>
+              </Box>
+            </Box>
+          )}
+        </Box>
         <DropdownFilter
           label="논문 유형"
           clearable

@@ -174,7 +174,8 @@ const BookmarkFolderDetailPage = () => {
 
   const [page, setPage] = useState(1);
   const [filter, setFilter] = useState<BookmarkFilter>({
-    year: null,
+    year_start: null,
+    year_end: null,
     type: null,
     kci: null,
     sci: null,
@@ -202,7 +203,8 @@ const BookmarkFolderDetailPage = () => {
       folder_id: folderId === "all" ? undefined : folderId,
       page,
       size: PAGE_SIZE,
-      year: filter.year ?? undefined,
+      year_start: filter.year_start ?? undefined,
+      year_end: filter.year_end ?? undefined,
       type: filter.type ?? undefined,
       kci: filter.kci ?? undefined,
       sci: filter.sci ?? undefined,

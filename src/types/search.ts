@@ -50,6 +50,7 @@ export interface SearchChatRequest {
   chip_type: ChipType | null;
   sort_order: SortOrder;
   pub_year_start: number | null;
+  pub_year_end: number | null;
   paper_type: string | null;
   kci_only: boolean | null;
   sci_only: boolean | null;

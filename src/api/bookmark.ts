@@ -17,8 +17,6 @@ export type BookmarkPaperTypeFilter =
   | "박사학위 논문"
   | "석사학위 논문";
 
-export type BookmarkYearFilter = number;
-
 export interface GetBookmarksParams {
   folder_id?: string;
   sort?: BookmarkSortType;
@@ -30,7 +28,8 @@ export interface GetBookmarksParams {
 
 export interface GetSavedBookmarksParams {
   folder_id?: string;
-  year?: BookmarkYearFilter;
+  year_start?: number;
+  year_end?: number;
   type?: string;
   kci?: boolean;
   sci?: boolean;
