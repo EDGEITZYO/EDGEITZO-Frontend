@@ -1,24 +1,22 @@
-import { Box, Typography, useTheme, useMediaQuery } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 
 interface OnboardingCompleteProps {
   onStart: () => void;
 }
 
 const OnboardingComplete = ({ onStart }: OnboardingCompleteProps) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-
   return (
     <Box
       sx={{
         display: "flex",
-        width: "440px",
+        width: { xs: "100%", sm: "440px" },
         flexDirection: "column",
         alignItems: "center",
         gap: "32px",
-        "@media (max-width: 599px)": {
-          width: "100%",
-        },
+        minHeight: { xs: "100vh", sm: "auto" },
+        backgroundColor: { xs: "background.default", sm: "transparent" },
+        px: { xs: "16px", sm: 0 },
+        justifyContent: { xs: "center", sm: "flex-start" },
       }}
     >
       {/* 이미지 + 글자 */}
@@ -31,13 +29,16 @@ const OnboardingComplete = ({ onStart }: OnboardingCompleteProps) => {
           alignSelf: "stretch",
         }}
       >
-        {/* 이미지 플레이스홀더 */}
+        {/* 이미지 */}
         <Box
+          component="img"
+          src="/signup_complete.png"
+          alt="온보딩 완료"
           sx={{
             height: "161px",
             alignSelf: "stretch",
-            backgroundColor: "fill.strong",
             borderRadius: "12px",
+            objectFit: "cover",
           }}
         />
 
@@ -96,26 +97,23 @@ const OnboardingComplete = ({ onStart }: OnboardingCompleteProps) => {
         onClick={onStart}
         sx={{
           display: "flex",
-          width: "440px",
+          width: { xs: "100%", sm: "440px" },
           height: "56px",
           padding: "8px 0",
           justifyContent: "center",
           alignItems: "center",
           borderRadius: "8px",
-          backgroundColor: "#1E2026",
+          backgroundColor: "label.normal",
           border: "none",
           cursor: "pointer",
-          "@media (max-width: 599px)": {
-            width: "100%",
-          },
         }}
       >
         <Typography
           sx={{
-            fontSize: isMobile ? "16px" : "18px",
-            fontWeight: isMobile ? 400 : 600,
-            lineHeight: isMobile ? "24px" : "29px",
-            letterSpacing: isMobile ? "-0.336px" : "-0.378px",
+            fontSize: { xs: "16px", sm: "18px" },
+            fontWeight: { xs: 400, sm: 600 },
+            lineHeight: { xs: "24px", sm: "29px" },
+            letterSpacing: { xs: "-0.336px", sm: "-0.378px" },
             color: "#FAFAFC",
           }}
         >

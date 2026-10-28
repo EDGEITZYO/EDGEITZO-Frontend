@@ -76,7 +76,9 @@ interface SignupVerifyFormProps {
 const SignupVerifyForm = ({ email, state }: SignupVerifyFormProps) => {
   const navigate = useNavigate();
   const [code, setCode] = useState("");
-  const [verifyError, setVerifyError] = useState(false);
+  const [verifyError, setVerifyError] = useState<
+    "wrong_code" | "expired" | null
+  >(null);
   const [cooldown, setCooldown] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const hasSentCode = useRef(false);
@@ -110,7 +112,12 @@ const SignupVerifyForm = ({ email, state }: SignupVerifyFormProps) => {
       navigate("/signup/complete", { state: { type: "email", ...state } });
     } catch (error: unknown) {
       if (axios.isAxiosError(error) && error.response?.status === 400) {
-        setVerifyError(true);
+        const message = error.response.data?.message ?? "";
+        if (message.includes("만료")) {
+          setVerifyError("expired");
+        } else {
+          setVerifyError("wrong_code");
+        }
       }
     }
   };
@@ -118,7 +125,7 @@ const SignupVerifyForm = ({ email, state }: SignupVerifyFormProps) => {
   const handleResend = async () => {
     if (cooldown > 0) return;
     setCooldown(RESEND_COOLDOWN);
-    setVerifyError(false);
+    setVerifyError(null);
     try {
       await authApi.sendCode({ email });
     } catch {
@@ -129,26 +136,21 @@ const SignupVerifyForm = ({ email, state }: SignupVerifyFormProps) => {
   return (
     <Box
       sx={{
-        width: "480px",
-        minWidth: "480px",
-        height: "608px",
-        padding: "24px 20px 32px 20px",
+        width: { xs: "100%", sm: "480px" },
+        minWidth: { xs: "unset", sm: "480px" },
+        height: { xs: "auto", sm: "608px" },
+        minHeight: { xs: "100vh", sm: "unset" },
+        pt: "24px",
+        pb: "32px",
+        px: { xs: "16px", sm: "20px" },
         borderRadius: { xs: 0, sm: "12px" },
         border: { xs: "none", sm: "1px solid #FAFAFC" },
         backgroundColor: "fill.normal",
         display: "flex",
         flexDirection: "column",
         alignItems: "flex-start",
-        gap: "54px",
+        gap: { xs: "32px", sm: "54px" },
         flexShrink: 0,
-        "@media (max-width: 599px)": {
-          width: "100%",
-          minWidth: "unset",
-          height: "640px",
-          borderRadius: 0,
-          border: "none",
-          px: "16px",
-        },
       }}
     >
       {/* 헤더 */}
@@ -163,10 +165,10 @@ const SignupVerifyForm = ({ email, state }: SignupVerifyFormProps) => {
         </IconButton>
         <Typography
           sx={{
-            fontSize: "18px",
+            fontSize: { xs: "18px", sm: "24px" },
             fontWeight: 600,
-            lineHeight: "29px",
-            letterSpacing: "-0.378px",
+            lineHeight: { xs: "29px", sm: "36px" },
+            letterSpacing: { xs: "-0.378px", sm: "-0.528px" },
             color: "label.normal",
           }}
         >
@@ -177,13 +179,13 @@ const SignupVerifyForm = ({ email, state }: SignupVerifyFormProps) => {
       {/* 하단 컨텐츠 */}
       <Box
         sx={{
-          height: "462px",
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
           alignItems: "center",
           alignSelf: "stretch",
           flexShrink: 0,
+          flexGrow: 1,
         }}
       >
         {/* 중간 영역 */}
@@ -225,7 +227,8 @@ const SignupVerifyForm = ({ email, state }: SignupVerifyFormProps) => {
                   alignItems: "center",
                   gap: "10px",
                   borderRadius: "98px",
-                  backgroundColor: "primary.main",
+                  background:
+                    "linear-gradient(0deg, rgba(0, 0, 0, 0.20) 0%, rgba(0, 0, 0, 0.20) 100%), #03C26C",
                 }}
               >
                 <EmailOutlinedIcon
@@ -282,16 +285,6 @@ const SignupVerifyForm = ({ email, state }: SignupVerifyFormProps) => {
                 </Typography>
               </Box>
             </Box>
-
-            {/* 이미지 플레이스홀더 */}
-            <Box
-              sx={{
-                height: "161px",
-                alignSelf: "stretch",
-                backgroundColor: "fill.strong",
-                borderRadius: "8px",
-              }}
-            />
           </Box>
 
           {/* 인증코드 입력 영역 */}
@@ -309,7 +302,7 @@ const SignupVerifyForm = ({ email, state }: SignupVerifyFormProps) => {
               value={code}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 setCode(e.target.value);
-                setVerifyError(false);
+                setVerifyError(null);
               }}
               placeholder="인증 코드 입력"
               fullWidth
@@ -326,10 +319,12 @@ const SignupVerifyForm = ({ email, state }: SignupVerifyFormProps) => {
                           padding: "8px 9px",
                           borderRadius: "24px",
                           backgroundColor:
-                            code.length > 0 ? "#1E2026" : "#D8DAE5",
+                            code.length > 0 ? "label.normal" : "label.disable",
                           "&:hover": {
                             backgroundColor:
-                              code.length > 0 ? "label.neutral" : "#D8DAE5",
+                              code.length > 0
+                                ? "label.neutral"
+                                : "label.disable",
                           },
                         }}
                       >
@@ -344,15 +339,15 @@ const SignupVerifyForm = ({ email, state }: SignupVerifyFormProps) => {
             />
 
             {/* 에러 */}
-            {verifyError && (
+            {verifyError !== null && (
               <Box
                 sx={{
                   display: "flex",
-                  width: "440px",
                   height: "24px",
                   padding: "0 8px 0 12px",
                   justifyContent: "space-between",
                   alignItems: "center",
+                  alignSelf: "stretch",
                 }}
               >
                 <Typography
@@ -364,22 +359,41 @@ const SignupVerifyForm = ({ email, state }: SignupVerifyFormProps) => {
                     color: "#D0220B",
                   }}
                 >
-                  올바른 인증 코드를 입력해주세요.
+                  {verifyError === "expired"
+                    ? "인증코드가 만료되었어요."
+                    : "올바른 인증 코드를 입력해주세요."}
                 </Typography>
-                <Typography
-                  onClick={handleResend}
-                  sx={{
-                    fontSize: "13px",
-                    fontWeight: 400,
-                    lineHeight: "22px",
-                    letterSpacing: "-0.26px",
-                    color: "#D0220B",
-                    textDecoration: "underline",
-                    cursor: "pointer",
-                  }}
-                >
-                  다시 전송하기
-                </Typography>
+                {verifyError === "expired" ? (
+                  <Typography
+                    onClick={handleResend}
+                    sx={{
+                      fontSize: "13px",
+                      fontWeight: 400,
+                      lineHeight: "22px",
+                      letterSpacing: "-0.26px",
+                      color: "#D0220B",
+                      textDecoration: "underline",
+                      cursor: "pointer",
+                    }}
+                  >
+                    다시 전송하기
+                  </Typography>
+                ) : (
+                  <Typography
+                    onClick={() => navigate("/signup")}
+                    sx={{
+                      fontSize: "13px",
+                      fontWeight: 400,
+                      lineHeight: "22px",
+                      letterSpacing: "-0.26px",
+                      color: "#D0220B",
+                      textDecoration: "underline",
+                      cursor: "pointer",
+                    }}
+                  >
+                    이메일 변경하기
+                  </Typography>
+                )}
               </Box>
             )}
           </Box>

@@ -51,9 +51,9 @@ const BookmarkPage = () => {
         sx={{
           display: "flex",
           justifyContent: "center",
-          alignItems: "flex-start",
-          pt: "170px",
-          pb: "64px",
+          alignItems: "center",
+          minHeight: "100vh",
+          py: { sm: "86px", lg: "120px" },
         }}
       >
         <BookmarkContent />

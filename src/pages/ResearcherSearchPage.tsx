@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, CircularProgress } from "@mui/material";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -13,6 +13,7 @@ import {
   useSaveRecentResearcherSearchMutation,
 } from "../queries/useResearcherQuery";
 import { type ResearcherSortType } from "../types/researcher";
+import { UserRoundX } from "lucide-react";
 
 // ─── 페이지네이션 유틸 ───────────────────────────────────
 
@@ -64,24 +65,13 @@ const contentSx: SxProps<Theme> = {
   width: "100%",
 };
 
-const desktopContentSx: SxProps<Theme> = {
-  display: { xs: "none", lg: "flex" },
+const contentAreaSx: SxProps<Theme> = {
+  display: { xs: "none", sm: "flex" },
   flexDirection: "column",
   alignItems: "center",
-  paddingTop: "169px",
-  paddingX: "144px",
-  paddingBottom: "60px",
-  gap: "24px",
-  width: "100%",
-};
-
-const tabletContentSx: SxProps<Theme> = {
-  display: { xs: "none", sm: "flex", lg: "none" },
-  flexDirection: "column",
-  alignItems: "center",
-  paddingTop: "166px",
-  paddingX: "64px",
-  paddingBottom: "96px",
+  paddingTop: { sm: "166px", lg: "169px" },
+  paddingX: { sm: "64px", lg: "144px" },
+  paddingBottom: { sm: "96px", lg: "60px" },
   gap: "24px",
   width: "100%",
 };
@@ -186,6 +176,60 @@ const pageArrowSx = (enabled: boolean): SxProps<Theme> => ({
 
 // ─── 컴포넌트 ────────────────────────────────────────────
 
+const LoadingView = () => (
+  <Box
+    sx={{
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center",
+      alignItems: "center",
+      gap: "16px",
+      py: "120px",
+      width: "100%",
+    }}
+  >
+    <CircularProgress size={32} sx={{ color: "primary.main" }} />
+    <Typography
+      sx={{
+        fontSize: "16px",
+        fontWeight: 400,
+        lineHeight: "24px",
+        letterSpacing: "-0.336px",
+        color: "label.alternative",
+      }}
+    >
+      연구자를 검색하고 있어요.
+    </Typography>
+  </Box>
+);
+
+const EmptyView = () => (
+  <Box
+    sx={{
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center",
+      alignItems: "center",
+      gap: "4px",
+      py: "120px",
+      width: "100%",
+    }}
+  >
+    <UserRoundX size={20} color="#A4A7B2" />
+    <Typography
+      sx={{
+        fontSize: "16px",
+        fontWeight: 400,
+        lineHeight: "27px",
+        letterSpacing: "-0.336px",
+        color: "label.alternative",
+      }}
+    >
+      해당하는 연구자를 찾을 수 없어요.
+    </Typography>
+  </Box>
+);
+
 const ResearcherSearchPage = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -286,91 +330,34 @@ const ResearcherSearchPage = () => {
       </Box>
 
       <Box sx={contentSx}>
-        {/* 데스크탑 */}
-        <Box sx={desktopContentSx}>
+        {/* 데스크탑/태블릿 */}
+        <Box sx={contentAreaSx}>
           <Box sx={innerSx}>
-            <Box sx={countRowSx}>
-              <Box
-                sx={{
-                  display: "flex",
-                  padding: "0 4px",
-                  alignItems: "center",
-                  gap: "8px",
-                  flex: "1 0 0",
-                }}
-              >
-                <Typography variant="h3" sx={{ color: "label.normal" }}>
-                  {isFetching ? "검색 중..." : `연구자 ${data?.total ?? 0}명`}
-                </Typography>
+            {!isFetching && (
+              <Box sx={countRowSx}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    padding: "0 4px",
+                    alignItems: "center",
+                    gap: "8px",
+                    flex: "1 0 0",
+                  }}
+                >
+                  <Typography variant="h3" sx={{ color: "label.normal" }}>
+                    {`연구자 ${data?.total ?? 0}명`}
+                  </Typography>
+                </Box>
+                <ResearcherSortDropdown
+                  value={sort}
+                  onChange={handleSortChange}
+                />
               </Box>
-              <ResearcherSortDropdown
-                value={sort}
-                onChange={handleSortChange}
-              />
-            </Box>
-            {researchers.length === 0 && !isFetching ? (
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  padding: "80px 0",
-                  width: "100%",
-                }}
-              >
-                <Typography variant="body1" sx={{ color: "label.alternative" }}>
-                  {data?.search_type === "name"
-                    ? "일치하는 연구자를 찾을 수 없습니다"
-                    : "해당 분야의 연구자를 찾을 수 없습니다"}
-                </Typography>
-              </Box>
-            ) : (
-              <>
-                {renderList(false)}
-                {renderPagination()}
-              </>
             )}
-          </Box>
-        </Box>
-
-        {/* 태블릿 */}
-        <Box sx={tabletContentSx}>
-          <Box sx={innerSx}>
-            <Box sx={countRowSx}>
-              <Box
-                sx={{
-                  display: "flex",
-                  padding: "0 4px",
-                  alignItems: "center",
-                  gap: "8px",
-                  flex: "1 0 0",
-                }}
-              >
-                <Typography variant="h3" sx={{ color: "label.normal" }}>
-                  {isFetching ? "검색 중..." : `연구자 ${data?.total ?? 0}명`}
-                </Typography>
-              </Box>
-              <ResearcherSortDropdown
-                value={sort}
-                onChange={handleSortChange}
-              />
-            </Box>
-            {researchers.length === 0 && !isFetching ? (
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  padding: "80px 0",
-                  width: "100%",
-                }}
-              >
-                <Typography variant="body1" sx={{ color: "label.alternative" }}>
-                  {data?.search_type === "name"
-                    ? "일치하는 연구자를 찾을 수 없습니다"
-                    : "해당 분야의 연구자를 찾을 수 없습니다"}
-                </Typography>
-              </Box>
+            {isFetching ? (
+              <LoadingView />
+            ) : researchers.length === 0 ? (
+              <EmptyView />
             ) : (
               <>
                 {renderList(false)}
@@ -415,22 +402,10 @@ const ResearcherSearchPage = () => {
               size="small"
             />
           </Box>
-          {researchers.length === 0 && !isFetching ? (
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                padding: "80px 16px",
-                width: "100%",
-              }}
-            >
-              <Typography variant="body1" sx={{ color: "label.alternative" }}>
-                {data?.search_type === "name"
-                  ? "일치하는 연구자를 찾을 수 없습니다"
-                  : "해당 분야의 연구자를 찾을 수 없습니다"}
-              </Typography>
-            </Box>
+          {isFetching ? (
+            <LoadingView />
+          ) : researchers.length === 0 ? (
+            <EmptyView />
           ) : (
             <>
               {renderList(true)}

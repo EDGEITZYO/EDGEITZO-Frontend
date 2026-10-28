@@ -33,8 +33,6 @@ const INITIAL_DIALOG_STATE: FolderDialogState = {
   targetFolder: null,
 };
 
-const NARROW_BREAKPOINT = "(max-width: 976px)";
-
 // ─── 페이지네이션 유틸 ────────────────────────────────────
 
 const getPaginationItems = (
@@ -82,17 +80,18 @@ const contentSx: SxProps<Theme> = {
   flexDirection: "column",
   alignItems: "center",
   gap: "24px",
-  pt: "170px",
+  pt: { sm: "133px", lg: "166px" },
   pb: "64px",
+  px: { sm: "64px" },
 };
 
-const filterRowSx = (isNarrow: boolean): SxProps<Theme> => ({
+const filterRowSx: SxProps<Theme> = {
   display: "flex",
-  alignItems: isNarrow ? "flex-start" : "center",
-  flexDirection: isNarrow ? "column" : "row",
+  alignItems: "center",
+  flexWrap: "wrap",
   gap: "9px",
-  width: isNarrow ? "475px" : "914px",
-});
+  width: "100%",
+};
 
 const countFrameSx: SxProps<Theme> = {
   display: "flex",
@@ -100,14 +99,10 @@ const countFrameSx: SxProps<Theme> = {
   alignItems: "center",
   gap: "8px",
   flex: "1 0 0",
+  whiteSpace: "nowrap",
 };
 
 const countTextSx: SxProps<Theme> = {
-  display: "-webkit-box",
-  WebkitBoxOrient: "vertical",
-  WebkitLineClamp: 1,
-  overflow: "hidden",
-  textOverflow: "ellipsis",
   color: "label.normal",
   fontSize: "24px",
   fontWeight: 600,
@@ -115,19 +110,19 @@ const countTextSx: SxProps<Theme> = {
   letterSpacing: "-0.528px",
 };
 
-const listSx = (isNarrow: boolean, isMobile: boolean): SxProps<Theme> => ({
+const listSx: SxProps<Theme> = {
   display: "flex",
-  width: isMobile ? "100%" : isNarrow ? "475px" : "914px",
+  width: "100%",
   padding: "16px",
   flexDirection: "column",
   alignItems: "flex-start",
-  gap: isMobile ? "16px" : "8px",
+  gap: { xs: "16px", sm: "8px" },
   borderRadius: "12px",
-  border: isMobile ? "none" : "1px solid #FAFAFC",
+  border: { xs: "none", sm: "1px solid #FAFAFC" },
   backgroundColor: "static.white",
   backdropFilter: "blur(2.9px)",
   boxSizing: "border-box",
-});
+};
 
 const paginationSx: SxProps<Theme> = {
   display: "flex",
@@ -176,7 +171,6 @@ const BookmarkFolderDetailPage = () => {
   const queryClient = useQueryClient();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const isNarrow = useMediaQuery(NARROW_BREAKPOINT) && !isMobile;
 
   const [page, setPage] = useState(1);
   const [filter, setFilter] = useState<BookmarkFilter>({
@@ -356,10 +350,10 @@ const BookmarkFolderDetailPage = () => {
 
         <Box
           sx={{
-            pb: "64px",
+            pb: "32px",
             display: "flex",
             flexDirection: "column",
-            gap: "24px",
+            gap: "16px",
           }}
         >
           {isBookmarksPending ? (
@@ -367,7 +361,7 @@ const BookmarkFolderDetailPage = () => {
               <CircularProgress />
             </Box>
           ) : papers.length > 0 ? (
-            <Box sx={listSx(false, true)}>
+            <Box sx={listSx}>
               {papers.map((paper) => (
                 <SavedPaperCard
                   key={paper.paper_id}
@@ -457,7 +451,7 @@ const BookmarkFolderDetailPage = () => {
 
       <Box sx={contentSx}>
         {/* 논문 개수 + 필터 */}
-        <Box sx={filterRowSx(isNarrow)}>
+        <Box sx={filterRowSx}>
           <Box sx={countFrameSx}>
             <Typography sx={countTextSx}>논문 {totalCount}개</Typography>
           </Box>
@@ -473,7 +467,7 @@ const BookmarkFolderDetailPage = () => {
             <CircularProgress />
           </Box>
         ) : papers.length > 0 ? (
-          <Box sx={listSx(isNarrow, false)}>
+          <Box sx={listSx}>
             {papers.map((paper) => (
               <SavedPaperCard
                 key={paper.paper_id}
