@@ -35,7 +35,11 @@ interface SearchResultPanelProps {
     result_items: SearchPaper[];
     filters: SearchFilters;
     total_count: number;
+    year_min: number;
+    year_max: number;
   } | null;
+  yearMin: number;
+  yearMax: number;
   feedbacks: Record<string, FeedbackType>;
   sortOrder: SortOrder;
   onClose: () => void;
@@ -71,9 +75,6 @@ const SORT_OPTIONS: { label: string; value: SortOrder }[] = [
   { label: "오래된순", value: "year_asc" },
   { label: "인용높은순", value: "citation_desc" },
 ];
-
-const YEAR_MIN = 2016;
-const YEAR_MAX = 2025;
 
 const PAPER_TYPE_OPTIONS: { label: string; value: PaperType }[] = [
   { label: "학술 저널", value: "학술 저널" },
@@ -278,6 +279,8 @@ const SearchResultPanel = ({
   panelData,
   feedbacks,
   sortOrder,
+  yearMin,
+  yearMax,
   bookmarkMap,
   filterYearStart,
   filterYearEnd,
@@ -306,8 +309,8 @@ const SearchResultPanel = ({
     useState<ResultPanelView>("list");
   const [yearOpen, setYearOpen] = useState(false);
   const [tempRange, setTempRange] = useState<[number, number]>([
-    YEAR_MIN,
-    YEAR_MAX,
+    yearMin,
+    yearMax,
   ]);
   const yearRef = useRef<HTMLDivElement>(null);
   const yearMobilePanelRef = useRef<HTMLDivElement>(null);
@@ -317,12 +320,11 @@ const SearchResultPanel = ({
   } | null>(null);
 
   const isYearApplied = filterYearStart !== null && filterYearEnd !== null;
-  const isApplyDisabled =
-    tempRange[0] === YEAR_MIN && tempRange[1] === YEAR_MAX;
+  const isApplyDisabled = tempRange[0] === yearMin && tempRange[1] === yearMax;
 
   const handleYearToggle = () => {
     if (!yearOpen) {
-      setTempRange([filterYearStart ?? YEAR_MIN, filterYearEnd ?? YEAR_MAX]);
+      setTempRange([filterYearStart ?? yearMin, filterYearEnd ?? yearMax]);
       if (isMobile) {
         const rect = yearRef.current?.getBoundingClientRect();
         if (rect && rect.width > 0) {
@@ -603,10 +605,9 @@ const SearchResultPanel = ({
                   <Slider
                     value={tempRange}
                     onChange={handleSliderChange}
-                    min={YEAR_MIN}
-                    max={YEAR_MAX}
+                    min={yearMin}
+                    max={yearMax}
                     step={1}
-                    disableSwap
                     size="small"
                     sx={{
                       alignSelf: "stretch",
@@ -707,10 +708,9 @@ const SearchResultPanel = ({
                     <Slider
                       value={tempRange}
                       onChange={handleSliderChange}
-                      min={YEAR_MIN}
-                      max={YEAR_MAX}
+                      min={yearMin}
+                      max={yearMax}
                       step={1}
-                      disableSwap
                       size="small"
                       sx={{
                         "&&": { padding: "13px 0" },

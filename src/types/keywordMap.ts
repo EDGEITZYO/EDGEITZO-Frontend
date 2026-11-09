@@ -155,6 +155,8 @@ export interface KMTrustBadge {
 }
 
 export interface KMNodePapersResponse {
+  year_min: number;
+  year_max: number;
   keyword: string;
   papers: KMNodePaper[];
   total: number;

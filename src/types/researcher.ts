@@ -112,6 +112,8 @@ export interface ResearcherPaperItem {
 
 // GET /api/v1/researchers/{researcher_id}/papers 응답 데이터
 export interface ResearcherPaperListResponse {
+  year_min: number;
+  year_max: number;
   researcher_id: string;
   total: number;
   page: number;

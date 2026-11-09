@@ -622,7 +622,6 @@ const CitationPaperListPanel = ({
                     min={yearMin}
                     max={yearMax}
                     step={1}
-                    disableSwap
                     size="small"
                     sx={{
                       alignSelf: "stretch",
@@ -726,7 +725,6 @@ const CitationPaperListPanel = ({
                       min={yearMin}
                       max={yearMax}
                       step={1}
-                      disableSwap
                       size="small"
                       sx={{
                         "&&": { padding: "13px 0" },
