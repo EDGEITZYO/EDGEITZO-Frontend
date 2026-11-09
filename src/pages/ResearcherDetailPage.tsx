@@ -252,6 +252,8 @@ const ResearcherDetailPage = () => {
             onPageChange={handlePageChange}
             onPaperClick={handlePaperClick}
             onBookmarkToggle={handleBookmarkToggle}
+            yearMin={papersData?.year_min ?? 2016}
+            yearMax={papersData?.year_max ?? 2025}
           />
         </Box>
       </Box>

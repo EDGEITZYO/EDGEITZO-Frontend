@@ -34,12 +34,11 @@ export interface ResearcherPapersTabProps {
   onPaperClick: (paper: ResearcherPaperItem) => void;
   onBookmarkToggle: (paper: ResearcherPaperItem) => void;
   toggleEl: ReactNode;
+  yearMin: number;
+  yearMax: number;
 }
 
 // ─── 필터 옵션 ────────────────────────────────────────────
-
-const YEAR_MIN = 2016;
-const YEAR_MAX = 2025;
 
 const PAPER_TYPE_OPTIONS: { label: string; value: PaperTypeFilter }[] = [
   { label: "학술 저널", value: "학술 저널" },
@@ -348,6 +347,8 @@ const ResearcherPapersTab = ({
   onPaperClick,
   onBookmarkToggle,
   toggleEl,
+  yearMin,
+  yearMax,
 }: ResearcherPapersTabProps) => {
   const [filter, setFilter] = useState<PaperFilter>({
     sort: "recent",
@@ -360,8 +361,8 @@ const ResearcherPapersTab = ({
 
   const [yearOpen, setYearOpen] = useState(false);
   const [tempRange, setTempRange] = useState<[number, number]>([
-    YEAR_MIN,
-    YEAR_MAX,
+    yearMin,
+    yearMax,
   ]);
   const yearRefDesktop = useRef<HTMLDivElement>(null);
   const yearRefMobile = useRef<HTMLDivElement>(null);
@@ -422,15 +423,11 @@ const ResearcherPapersTab = ({
   }, [yearOpen]);
 
   const isYearApplied = filter.year_start !== null && filter.year_end !== null;
-  const isApplyDisabled =
-    tempRange[0] === YEAR_MIN && tempRange[1] === YEAR_MAX;
+  const isApplyDisabled = tempRange[0] === yearMin && tempRange[1] === yearMax;
 
   const handleYearToggle = () => {
     if (!yearOpen) {
-      setTempRange([
-        filter.year_start ?? YEAR_MIN,
-        filter.year_end ?? YEAR_MAX,
-      ]);
+      setTempRange([filter.year_start ?? yearMin, filter.year_end ?? yearMax]);
       const mobileRect = yearMobileTriggerRef.current?.getBoundingClientRect();
       if (mobileRect && mobileRect.width > 0) {
         const panelWidth = 204;
@@ -627,10 +624,9 @@ const ResearcherPapersTab = ({
                     <Slider
                       value={tempRange}
                       onChange={handleSliderChange}
-                      min={YEAR_MIN}
-                      max={YEAR_MAX}
+                      min={yearMin}
+                      max={yearMax}
                       step={1}
-                      disableSwap
                       size="small"
                       sx={{
                         alignSelf: "stretch",
@@ -849,10 +845,9 @@ const ResearcherPapersTab = ({
                   <Slider
                     value={tempRange}
                     onChange={handleSliderChange}
-                    min={YEAR_MIN}
-                    max={YEAR_MAX}
+                    min={yearMin}
+                    max={yearMax}
                     step={1}
-                    disableSwap
                     size="small"
                     sx={{
                       "&&": { padding: "13px 0" },

@@ -28,6 +28,8 @@ interface ChatMessageProps {
     result_items: SearchPaper[];
     filters: SearchFilters;
     total_count: number;
+    year_min: number;
+    year_max: number;
   }) => void;
   onRetry: (messageId: string) => void;
   onEdit: (messageId: string, newContent: string) => void;
@@ -258,6 +260,8 @@ const AiMessage = ({
     result_items: SearchPaper[];
     filters: SearchFilters;
     total_count: number;
+    year_min: number;
+    year_max: number;
   }) => void;
   isMobile: boolean;
   isLastAiMessage: boolean;
@@ -411,6 +415,8 @@ const AiMessage = ({
                     keywords: [],
                   },
                   total_count: 0,
+                  year_min: 2016,
+                  year_max: 2025,
                 })
               }
               sx={{
@@ -503,6 +509,8 @@ const AiMessage = ({
                       result_items: resultSummaryBlock.result_items,
                       filters: resultSummaryBlock.filters,
                       total_count: resultSummaryBlock.total_count,
+                      year_min: resultSummaryBlock.year_min,
+                      year_max: resultSummaryBlock.year_max,
                     })
                   }
                   isMobile={isMobile}

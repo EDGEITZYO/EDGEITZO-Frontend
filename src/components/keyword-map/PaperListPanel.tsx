@@ -41,9 +41,6 @@ const SORT_OPTIONS: { label: string; value: KMPaperSortType }[] = [
   { label: "인용높은순", value: "citation" },
 ];
 
-const YEAR_MIN = 2016;
-const YEAR_MAX = 2025;
-
 const PAPER_TYPE_OPTIONS: { label: string; value: PaperType }[] = [
   { label: "학술 저널", value: "학술 저널" },
   { label: "박사학위 논문", value: "박사학위 논문" },
@@ -273,10 +270,13 @@ const PaperListPanel = () => {
     enabled: isPaperPanelOpen,
   });
 
+  const yearMin = data?.year_min ?? 2016;
+  const yearMax = data?.year_max ?? 2025;
+
   const [yearOpen, setYearOpen] = useState(false);
   const [tempRange, setTempRange] = useState<[number, number]>([
-    YEAR_MIN,
-    YEAR_MAX,
+    yearMin,
+    yearMax,
   ]);
   const yearRef = useRef<HTMLDivElement>(null);
   const yearMobilePanelRef = useRef<HTMLDivElement>(null);
@@ -287,14 +287,13 @@ const PaperListPanel = () => {
 
   const isYearApplied =
     paperFilter.year_start !== undefined && paperFilter.year_end !== undefined;
-  const isApplyDisabled =
-    tempRange[0] === YEAR_MIN && tempRange[1] === YEAR_MAX;
+  const isApplyDisabled = tempRange[0] === yearMin && tempRange[1] === yearMax;
 
   const handleYearToggle = () => {
     if (!yearOpen) {
       setTempRange([
-        paperFilter.year_start ?? YEAR_MIN,
-        paperFilter.year_end ?? YEAR_MAX,
+        paperFilter.year_start ?? yearMin,
+        paperFilter.year_end ?? yearMax,
       ]);
       if (isMobile) {
         const rect = yearRef.current?.getBoundingClientRect();
@@ -566,10 +565,9 @@ const PaperListPanel = () => {
                   <Slider
                     value={tempRange}
                     onChange={handleSliderChange}
-                    min={YEAR_MIN}
-                    max={YEAR_MAX}
+                    min={yearMin}
+                    max={yearMax}
                     step={1}
-                    disableSwap
                     size="small"
                     sx={{
                       alignSelf: "stretch",
@@ -671,10 +669,9 @@ const PaperListPanel = () => {
                     <Slider
                       value={tempRange}
                       onChange={handleSliderChange}
-                      min={YEAR_MIN}
-                      max={YEAR_MAX}
+                      min={yearMin}
+                      max={yearMax}
                       step={1}
-                      disableSwap
                       size="small"
                       sx={{
                         "&&": { padding: "13px 0" },

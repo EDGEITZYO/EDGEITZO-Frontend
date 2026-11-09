@@ -33,6 +33,8 @@ export interface ResearchFlowTabProps {
   onPageChange: (page: number) => void;
   onPaperClick: (paper: ResearcherPaperItem) => void;
   onBookmarkToggle: (paper: ResearcherPaperItem) => void;
+  yearMin: number;
+  yearMax: number;
 }
 
 // ─── 스타일 ───────────────────────────────────────────────
@@ -146,6 +148,8 @@ const ResearchFlowTab = ({
   onPageChange,
   onPaperClick,
   onBookmarkToggle,
+  yearMin,
+  yearMax,
 }: ResearchFlowTabProps) => {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
@@ -299,6 +303,8 @@ const ResearchFlowTab = ({
           toggleEl={
             <TabToggle activeTab={activeTab} onTabChange={setActiveTab} />
           }
+          yearMin={yearMin}
+          yearMax={yearMax}
         />
       )}
     </Box>

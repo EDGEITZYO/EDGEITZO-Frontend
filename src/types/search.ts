@@ -18,6 +18,8 @@ export type MessageBlock =
   | { type: "status"; status: "searching" | "complete"; paperCount?: number }
   | {
       type: "result_summary";
+      year_min: number;
+      year_max: number;
       total_count: number;
       keywords: string[];
       result_items: SearchPaper[];
@@ -121,6 +123,8 @@ export interface SearchFilters {
 export type HistoryStepType = "search" | "narrow" | "expand";
 
 export interface SearchHistoryItem {
+  year_min: number;
+  year_max: number;
   step_id: string;
   step_type: HistoryStepType;
   applied_filter: Record<string, unknown> | null;

@@ -460,6 +460,8 @@ const BookmarkFolderDetailPage = () => {
           <BookmarkFilterBar
             filter={filter}
             onFilterChange={handleFilterChange}
+            yearMin={bookmarkData?.year_min ?? 2016}
+            yearMax={bookmarkData?.year_max ?? 2025}
           />
         </Box>
 
