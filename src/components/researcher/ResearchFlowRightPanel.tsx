@@ -75,7 +75,7 @@ const flowSectionSx: SxProps<Theme> = {
   flexShrink: 1,
   flexBasis: "auto",
   minHeight: 0,
-  overflow: "hidden",
+  overflow: { xs: "visible", sm: "hidden" },
 };
 
 const clusterListSx: SxProps<Theme> = {
@@ -88,7 +88,8 @@ const clusterListSx: SxProps<Theme> = {
   flexShrink: 1,
   flexBasis: "auto",
   minHeight: 0,
-  overflowY: { xs: "visible", sm: "auto" },
+  height: { xs: "320px", sm: "auto" },
+  overflowY: "auto",
 };
 
 const infoValueFrameSx: SxProps<Theme> = {
