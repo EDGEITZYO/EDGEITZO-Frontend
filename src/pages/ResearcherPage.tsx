@@ -53,13 +53,13 @@ const ResearcherPage = () => {
 
   const handleSearch = (query: string) => {
     navigate(
-      `/researcher/search?q=${encodeURIComponent(query)}&sort=relevance&page=1`,
+      `/researcher/search?q=${encodeURIComponent(query)}&sort=citation_count&page=1`,
     );
   };
 
   const handleChipClick = (query: string) => {
     navigate(
-      `/researcher/search?q=${encodeURIComponent(query)}&sort=relevance&page=1`,
+      `/researcher/search?q=${encodeURIComponent(query)}&sort=citation_count&page=1`,
     );
   };
 

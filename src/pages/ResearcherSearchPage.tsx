@@ -235,7 +235,8 @@ const ResearcherSearchPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const query = searchParams.get("q") ?? "";
-  const sort = (searchParams.get("sort") ?? "relevance") as ResearcherSortType;
+  const sort = (searchParams.get("sort") ??
+    "citation_count") as ResearcherSortType;
   const page = Number(searchParams.get("page") ?? "1");
 
   const { data, isFetching } = useResearcherSearchQuery(query, page, sort);
