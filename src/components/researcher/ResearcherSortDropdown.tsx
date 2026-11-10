@@ -11,6 +11,7 @@ interface ResearcherSortDropdownProps {
 }
 
 const SORT_OPTIONS: { label: string; value: ResearcherSortType }[] = [
+  { label: "인용 높은 순", value: "citation_count" },
   { label: "관련도순", value: "relevance" },
   { label: "논문 개수 순", value: "paper_count" },
 ];

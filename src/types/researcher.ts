@@ -4,7 +4,7 @@ import { type PaperTrustBadge } from "./paper";
 export type ResearcherSearchType = "name" | "field";
 
 // 연구자 탐색 정렬 타입
-export type ResearcherSortType = "relevance" | "paper_count";
+export type ResearcherSortType = "relevance" | "paper_count" | "citation_count";
 
 // 연구자 검색 결과 항목
 export interface ResearcherItem {
