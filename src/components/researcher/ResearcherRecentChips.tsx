@@ -1,5 +1,5 @@
-import { Box, Typography } from "@mui/material";
-import { type SxProps, type Theme } from "@mui/material/styles";
+import { Box, Typography, useMediaQuery } from "@mui/material";
+import { type SxProps, type Theme, useTheme } from "@mui/material/styles";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { type ResearcherRecentSearchItem } from "../../types/researcher";
 
@@ -11,14 +11,17 @@ interface ResearcherRecentChipsProps {
 const wrapperSx: SxProps<Theme> = {
   display: "flex",
   paddingLeft: "8px",
-  alignItems: "flex-start",
+  flexDirection: { xs: "column", sm: "row" },
+  alignItems: { xs: "center", sm: "flex-start" },
   gap: "8px",
   alignSelf: "stretch",
+  width: "100%",
 };
 
 const labelWrapperSx: SxProps<Theme> = {
   display: "flex",
-  padding: "8px 13px",
+  height: { xs: "36px", sm: "auto" },
+  padding: { xs: "8px 8px 8px 13px", sm: "8px 13px" },
   justifyContent: "center",
   alignItems: "center",
   gap: "2px",
@@ -28,16 +31,18 @@ const labelWrapperSx: SxProps<Theme> = {
 
 const chipsWrapperSx: SxProps<Theme> = {
   display: "flex",
-  alignItems: "flex-start",
-  alignContent: "flex-start",
+  flexDirection: { xs: "column", sm: "row" },
+  alignItems: { xs: "center", sm: "flex-start" },
+  alignContent: { xs: "center", sm: "flex-start" },
+  alignSelf: { xs: "stretch", sm: "auto" },
   gap: "8px",
-  flex: "1 0 0",
+  flex: { xs: "none", sm: "1 0 0" },
   flexWrap: "wrap",
 };
 
 const chipSx: SxProps<Theme> = {
   display: "flex",
-  padding: "8px 13px",
+  padding: { xs: "4px 12px", sm: "8px 13px" },
   justifyContent: "center",
   alignItems: "center",
   gap: "10px",
@@ -50,6 +55,9 @@ const ResearcherRecentChips = ({
   items,
   onChipClick,
 }: ResearcherRecentChipsProps) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   if (items.length === 0) return null;
 
   return (
@@ -80,15 +88,15 @@ const ResearcherRecentChips = ({
         >
           <InfoOutlinedIcon
             sx={{
-              width: "16px",
-              height: "16px",
+              width: { xs: "12px", sm: "16px" },
+              height: { xs: "12px", sm: "16px" },
               color: "label.alternative",
             }}
           />
         </Box>
       </Box>
       <Box sx={chipsWrapperSx}>
-        {items.slice(0, 6).map((item, index) => (
+        {items.slice(0, isMobile ? 3 : 6).map((item, index) => (
           <Box
             key={`${item.query}-${index}`}
             sx={chipSx}

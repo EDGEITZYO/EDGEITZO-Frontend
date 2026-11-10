@@ -4,7 +4,7 @@ import { type PaperTrustBadge } from "./paper";
 export type ResearcherSearchType = "name" | "field";
 
 // 연구자 탐색 정렬 타입
-export type ResearcherSortType = "relevance" | "paper_count";
+export type ResearcherSortType = "relevance" | "paper_count" | "citation_count";
 
 // 연구자 검색 결과 항목
 export interface ResearcherItem {
@@ -112,6 +112,8 @@ export interface ResearcherPaperItem {
 
 // GET /api/v1/researchers/{researcher_id}/papers 응답 데이터
 export interface ResearcherPaperListResponse {
+  year_min: number;
+  year_max: number;
   researcher_id: string;
   total: number;
   page: number;

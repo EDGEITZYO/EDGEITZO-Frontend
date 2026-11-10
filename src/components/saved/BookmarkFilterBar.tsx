@@ -8,9 +8,6 @@ import { type BookmarkPaperTypeFilter } from "../../api/bookmark";
 
 // ─── 상수 ─────────────────────────────────────────────────
 
-const YEAR_MIN = 2016;
-const YEAR_MAX = 2025;
-
 const PAPER_TYPES: BookmarkPaperTypeFilter[] = [
   "학술 저널",
   "박사학위 논문",
@@ -22,6 +19,8 @@ const PAPER_TYPES: BookmarkPaperTypeFilter[] = [
 interface BookmarkFilterBarProps {
   filter: BookmarkFilter;
   onFilterChange: (filter: BookmarkFilter) => void;
+  yearMin: number;
+  yearMax: number;
 }
 
 // ─── 스타일 ───────────────────────────────────────────────
@@ -97,26 +96,24 @@ const toggleTextSx = (isActive: boolean): SxProps<Theme> => ({
 const BookmarkFilterBar = ({
   filter,
   onFilterChange,
+  yearMin,
+  yearMax,
 }: BookmarkFilterBarProps) => {
   const [yearOpen, setYearOpen] = useState(false);
   const [tempRange, setTempRange] = useState<[number, number]>([
-    YEAR_MIN,
-    YEAR_MAX,
+    yearMin,
+    yearMax,
   ]);
   const [typeOpen, setTypeOpen] = useState(false);
   const yearRef = useRef<HTMLDivElement>(null);
   const typeRef = useRef<HTMLDivElement>(null);
 
   const isYearApplied = filter.year_start !== null && filter.year_end !== null;
-  const isApplyDisabled =
-    tempRange[0] === YEAR_MIN && tempRange[1] === YEAR_MAX;
+  const isApplyDisabled = tempRange[0] === yearMin && tempRange[1] === yearMax;
 
   const handleYearToggle = () => {
     if (!yearOpen) {
-      setTempRange([
-        filter.year_start ?? YEAR_MIN,
-        filter.year_end ?? YEAR_MAX,
-      ]);
+      setTempRange([filter.year_start ?? yearMin, filter.year_end ?? yearMax]);
     }
     setYearOpen((prev) => !prev);
   };
@@ -312,10 +309,9 @@ const BookmarkFilterBar = ({
                 <Slider
                   value={tempRange}
                   onChange={handleSliderChange}
-                  min={YEAR_MIN}
-                  max={YEAR_MAX}
+                  min={yearMin}
+                  max={yearMax}
                   step={1}
-                  disableSwap
                   size="small"
                   sx={{
                     alignSelf: "stretch",

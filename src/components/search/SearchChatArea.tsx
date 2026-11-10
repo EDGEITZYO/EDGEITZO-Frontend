@@ -20,6 +20,8 @@ interface SearchChatAreaProps {
     result_items: SearchPaper[];
     filters: SearchFilters;
     total_count: number;
+    year_min: number;
+    year_max: number;
   }) => void;
   onRetry: (messageId: string) => void;
   onEdit: (messageId: string, newContent: string) => void;

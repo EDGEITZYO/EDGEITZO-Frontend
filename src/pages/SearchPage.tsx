@@ -39,6 +39,8 @@ interface PanelData {
   result_items: SearchPaper[];
   filters: SearchFilters;
   total_count: number;
+  year_min: number;
+  year_max: number;
 }
 
 // ─── Styles ───────────────────────────────────────────────
@@ -313,6 +315,14 @@ const SearchPage = () => {
                             ? [
                                 {
                                   type: "result_summary" as const,
+                                  year_min:
+                                    response.history[
+                                      response.history.length - 1
+                                    ]?.year_min ?? 2016,
+                                  year_max:
+                                    response.history[
+                                      response.history.length - 1
+                                    ]?.year_max ?? 2025,
                                   total_count: response.total_count,
                                   keywords: response.filters.keywords,
                                   result_items: response.result_items,
@@ -346,6 +356,12 @@ const SearchPage = () => {
                   result_items: response.result_items,
                   filters: response.filters,
                   total_count: response.total_count,
+                  year_min:
+                    response.history[response.history.length - 1]?.year_min ??
+                    2016,
+                  year_max:
+                    response.history[response.history.length - 1]?.year_max ??
+                    2025,
                 });
                 setView("result");
                 setIsPanelOpen(true);
@@ -501,11 +517,13 @@ const SearchPage = () => {
           },
           controller.signal,
         );
-        setActivePanelData({
+        setActivePanelData((prev) => ({
           result_items: response.result_items,
           filters: response.filters,
           total_count: response.total_count,
-        });
+          year_min: prev?.year_min ?? 2016,
+          year_max: prev?.year_max ?? 2025,
+        }));
         const existingIds = new Set(Object.keys(selectionReasonMap));
         const newPaperIds = response.result_items
           .map((p) => p.paper_id)
@@ -546,11 +564,13 @@ const SearchPage = () => {
           },
           controller.signal,
         );
-        setActivePanelData({
+        setActivePanelData((prev) => ({
           result_items: response.result_items,
           filters: response.filters,
           total_count: response.total_count,
-        });
+          year_min: prev?.year_min ?? 2016,
+          year_max: prev?.year_max ?? 2025,
+        }));
         const existingIds = new Set(Object.keys(selectionReasonMap));
         const newPaperIds = response.result_items
           .map((p) => p.paper_id)
@@ -792,6 +812,8 @@ const SearchPage = () => {
                 filterKci={filterKci}
                 filterSci={filterSci}
                 onFilterChange={handleFilterChange}
+                yearMin={activePanelData?.year_min ?? 2016}
+                yearMax={activePanelData?.year_max ?? 2025}
                 isFilterLoading={isFilterLoading}
                 selectionReasonMap={selectionReasonMap}
                 onPaperVisible={handlePaperVisible}
@@ -833,6 +855,8 @@ const SearchPage = () => {
                 filterKci={filterKci}
                 filterSci={filterSci}
                 onFilterChange={handleFilterChange}
+                yearMin={activePanelData?.year_min ?? 2016}
+                yearMax={activePanelData?.year_max ?? 2025}
                 isFilterLoading={isFilterLoading}
                 selectionReasonMap={selectionReasonMap}
                 onPaperVisible={handlePaperVisible}

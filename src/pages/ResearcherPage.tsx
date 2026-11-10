@@ -29,7 +29,7 @@ const innerSx: SxProps<Theme> = {
   width: { xs: "100%", lg: "912px" },
   flexDirection: "column",
   alignItems: { xs: "flex-start", sm: "center" },
-  gap: "42px",
+  gap: { xs: "24px", sm: "42px" },
 };
 
 const titleWrapperSx: SxProps<Theme> = {
@@ -43,7 +43,7 @@ const searchAreaSx: SxProps<Theme> = {
   display: "flex",
   flexDirection: "column",
   alignItems: "flex-start",
-  gap: "23px",
+  gap: { xs: "24px", sm: "23px" },
   alignSelf: "stretch",
 };
 
@@ -53,13 +53,13 @@ const ResearcherPage = () => {
 
   const handleSearch = (query: string) => {
     navigate(
-      `/researcher/search?q=${encodeURIComponent(query)}&sort=relevance&page=1`,
+      `/researcher/search?q=${encodeURIComponent(query)}&sort=citation_count&page=1`,
     );
   };
 
   const handleChipClick = (query: string) => {
     navigate(
-      `/researcher/search?q=${encodeURIComponent(query)}&sort=relevance&page=1`,
+      `/researcher/search?q=${encodeURIComponent(query)}&sort=citation_count&page=1`,
     );
   };
 
@@ -105,7 +105,7 @@ const ResearcherPage = () => {
             {recentSearches && recentSearches.length > 0 && (
               <Box
                 sx={{
-                  display: { xs: "none", sm: "flex" },
+                  display: "flex",
                   alignSelf: "stretch",
                 }}
               >

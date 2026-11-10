@@ -97,7 +97,7 @@ const ResearcherCard = ({ researcher, onClick }: ResearcherCardProps) => {
                 whiteSpace: "nowrap",
               }}
             >
-              논문 {researcher.total_papers}
+              피인용 {researcher.total_citations}
             </Typography>
           </Box>
           <Typography

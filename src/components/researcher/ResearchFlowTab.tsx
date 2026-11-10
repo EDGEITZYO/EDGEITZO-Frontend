@@ -1,10 +1,5 @@
 import { useState } from "react";
-import {
-  Box,
-  Typography,
-  CircularProgress,
-  useMediaQuery,
-} from "@mui/material";
+import { Box, Typography, useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import {
@@ -15,6 +10,7 @@ import ResearchFlowLeftPanel from "./ResearchFlowLeftPanel";
 import ResearchFlowRightPanel from "./ResearchFlowRightPanel";
 import ResearcherPapersTab from "./ResearcherPapersTab";
 import { type PaperFilter } from "./ResearcherPapersTab";
+import ResearchFlowSkeleton from "./ResearchFlowSkeleton";
 
 // ─── 타입 ─────────────────────────────────────────────────
 
@@ -33,6 +29,8 @@ export interface ResearchFlowTabProps {
   onPageChange: (page: number) => void;
   onPaperClick: (paper: ResearcherPaperItem) => void;
   onBookmarkToggle: (paper: ResearcherPaperItem) => void;
+  yearMin: number;
+  yearMax: number;
 }
 
 // ─── 스타일 ───────────────────────────────────────────────
@@ -40,9 +38,10 @@ export interface ResearchFlowTabProps {
 const sectionSx: SxProps<Theme> = {
   display: "flex",
   flexDirection: "column",
-  alignItems: "flex-start",
-  gap: "16px",
+  alignItems: { xs: "center", sm: "flex-start" },
+  gap: "12px",
   alignSelf: "stretch",
+  justifyContent: { sm: "center" },
 };
 
 const titleBoxSx: SxProps<Theme> = {
@@ -146,11 +145,12 @@ const ResearchFlowTab = ({
   onPageChange,
   onPaperClick,
   onBookmarkToggle,
+  yearMin,
+  yearMax,
 }: ResearchFlowTabProps) => {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
   const isMobileOrTablet = !isDesktop;
-
   const [activeTab, setActiveTab] = useState<TabType>("summary");
   const [selectedClusterId, setSelectedClusterId] = useState<number | null>(
     null,
@@ -198,17 +198,7 @@ const ResearchFlowTab = ({
       {/* 콘텐츠 */}
       {activeTab === "summary" ? (
         isResearchFlowPending ? (
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              padding: "80px 0",
-              width: "100%",
-            }}
-          >
-            <CircularProgress />
-          </Box>
+          <ResearchFlowSkeleton />
         ) : isResearchFlowError || researchFlow === undefined ? (
           <Box
             sx={{
@@ -299,6 +289,8 @@ const ResearchFlowTab = ({
           toggleEl={
             <TabToggle activeTab={activeTab} onTabChange={setActiveTab} />
           }
+          yearMin={yearMin}
+          yearMax={yearMax}
         />
       )}
     </Box>

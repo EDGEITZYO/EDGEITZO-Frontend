@@ -40,6 +40,8 @@ export interface BookmarkListResponse {
 }
 
 export interface SavedBookmarkListResponse {
+  year_min: number;
+  year_max: number;
   total: number;
   page: number;
   size: number;
