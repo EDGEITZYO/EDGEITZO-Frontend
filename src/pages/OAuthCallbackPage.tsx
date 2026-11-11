@@ -16,7 +16,7 @@ const OAuthCallbackPage = ({ type }: OAuthCallbackPageProps) => {
         .then(({ data }) => {
           navigate("/signup/complete", {
             replace: true,
-            state: { type: "social", name: data },
+            state: { type: "social", name: data.data.name },
           });
         })
         .catch(() => {
