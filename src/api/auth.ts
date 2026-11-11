@@ -1,6 +1,7 @@
 import apiClient from "./client";
 import type {
   ApiResponse,
+  GetMeResponse,
   EmailCheckRequest,
   SendCodeRequest,
   VerifyCodeRequest,
@@ -39,7 +40,7 @@ export const authApi = {
 
   start: () => apiClient.get<AuthStartResponse>("/auth/start"),
 
-  getMe: () => apiClient.get<string>("/auth/me"),
+  getMe: () => apiClient.get<ApiResponse<GetMeResponse>>("/auth/me"),
 
   guestLogin: () => apiClient.post<ApiResponse<TokenResponse>>("/auth/guest"),
 
