@@ -379,6 +379,7 @@ const LoginForm = () => {
 
         {/* 비밀번호 잊으셨나요 */}
         <Typography
+          onClick={() => navigate("/forgot-password")}
           sx={{
             fontSize: "16px",
             fontWeight: 400,
