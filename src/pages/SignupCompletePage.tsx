@@ -64,6 +64,9 @@ const SignupCompletePage = () => {
         sx={{
           minHeight: "100vh",
           backgroundColor: "background.default",
+          backgroundImage: { sm: "url('/login_bg.svg')" },
+          backgroundSize: { sm: "cover" },
+          backgroundPosition: { sm: "center" },
           display: "flex",
           alignItems: { xs: "stretch", sm: "center" },
           justifyContent: "center",
@@ -88,7 +91,7 @@ const SignupCompletePage = () => {
               width: { xs: "100%", sm: "480px" },
               pt: "24px",
               pb: "32px",
-              px: "20px",
+              px: { xs: 0, sm: "20px" },
               flexDirection: "column",
               justifyContent: "center",
               alignItems: "flex-start",
@@ -96,6 +99,7 @@ const SignupCompletePage = () => {
               flexShrink: 0,
               borderRadius: { xs: 0, sm: "12px" },
               border: { xs: "none", sm: "none" },
+              backgroundColor: "background.default",
             }}
           >
             {/* 내부 영역 */}
