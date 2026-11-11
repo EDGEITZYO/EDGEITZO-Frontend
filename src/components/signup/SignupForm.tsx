@@ -185,7 +185,7 @@ const SignupForm = () => {
         minWidth: { xs: "unset", sm: "480px" },
         height: { xs: "auto", sm: "608px" },
         minHeight: { xs: "100vh", sm: "unset" },
-        pt: "24px",
+        pt: { xs: "16px", sm: "24px" },
         pb: "32px",
         px: { xs: "16px", sm: "20px" },
         borderRadius: { xs: 0, sm: "12px" },

@@ -140,7 +140,7 @@ const SignupVerifyForm = ({ email, state }: SignupVerifyFormProps) => {
         minWidth: { xs: "unset", sm: "480px" },
         height: { xs: "auto", sm: "608px" },
         minHeight: { xs: "100vh", sm: "unset" },
-        pt: "24px",
+        pt: { xs: "16px", sm: "24px" },
         pb: "32px",
         px: { xs: "16px", sm: "20px" },
         borderRadius: { xs: 0, sm: "12px" },
@@ -149,7 +149,7 @@ const SignupVerifyForm = ({ email, state }: SignupVerifyFormProps) => {
         display: "flex",
         flexDirection: "column",
         alignItems: "flex-start",
-        gap: { xs: "32px", sm: "54px" },
+        gap: { xs: "58px", sm: "54px" },
         flexShrink: 0,
       }}
     >
