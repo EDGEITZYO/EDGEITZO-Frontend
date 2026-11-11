@@ -7,6 +7,8 @@ import LoginPage from "../pages/LoginPage";
 import SignupPage from "../pages/SignupPage";
 import SignupVerifyPage from "../pages/SignupVerifyPage";
 import SignupCompletePage from "../pages/SignupCompletePage";
+import ForgotPasswordPage from "../pages/ForgotPasswordPage";
+import ForgotPasswordCompletePage from "../pages/ForgotPasswordCompletePage";
 import OnboardingPage from "../pages/OnboardingPage";
 import HomePage from "../pages/HomePage";
 import SearchPage from "../pages/SearchPage";
@@ -65,6 +67,22 @@ const router = createBrowserRouter([
       <OnboardingGuard>
         <SignupCompletePage />
       </OnboardingGuard>
+    ),
+  },
+  {
+    path: "/forgot-password",
+    element: (
+      <GuestGuard>
+        <ForgotPasswordPage />
+      </GuestGuard>
+    ),
+  },
+  {
+    path: "/forgot-password/complete",
+    element: (
+      <GuestGuard>
+        <ForgotPasswordCompletePage />
+      </GuestGuard>
     ),
   },
 
