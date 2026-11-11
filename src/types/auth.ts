@@ -54,3 +54,20 @@ export interface ProfileRequest {
   purposes: string[];
   purpose_custom?: string;
 }
+
+// POST /auth/password-reset/send-code
+export interface PasswordResetSendCodeRequest {
+  email: string;
+}
+
+// POST /auth/password-reset/verify-code
+export interface PasswordResetVerifyCodeRequest {
+  email: string;
+  code: string;
+}
+
+// POST /auth/password-reset/confirm
+export interface PasswordResetConfirmRequest {
+  email: string;
+  new_password: string;
+}

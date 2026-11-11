@@ -9,6 +9,9 @@ import type {
   ProfileRequest,
   TokenResponse,
   AuthStartResponse,
+  PasswordResetSendCodeRequest,
+  PasswordResetVerifyCodeRequest,
+  PasswordResetConfirmRequest,
 } from "../types/auth";
 
 export const authApi = {
@@ -39,4 +42,13 @@ export const authApi = {
   getMe: () => apiClient.get<string>("/auth/me"),
 
   guestLogin: () => apiClient.post<ApiResponse<TokenResponse>>("/auth/guest"),
+
+  passwordResetSendCode: (data: PasswordResetSendCodeRequest) =>
+    apiClient.post<string>("/auth/password-reset/send-code", data),
+
+  passwordResetVerifyCode: (data: PasswordResetVerifyCodeRequest) =>
+    apiClient.post<string>("/auth/password-reset/verify-code", data),
+
+  passwordResetConfirm: (data: PasswordResetConfirmRequest) =>
+    apiClient.post<string>("/auth/password-reset/confirm", data),
 };
