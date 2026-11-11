@@ -7,6 +7,11 @@ export interface ApiResponse<T> {
   success: boolean;
   message: string;
   data: T;
+  meta: Record<string, unknown>;
+}
+
+export interface GetMeResponse {
+  name: string;
 }
 
 export interface AuthStartResponse {
