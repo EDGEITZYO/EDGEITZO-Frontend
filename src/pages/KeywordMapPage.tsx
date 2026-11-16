@@ -19,6 +19,7 @@ const KeywordMapPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const keyword = searchParams.get("keyword") ?? "";
+  const key = searchParams.get("key") ?? undefined;
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -36,10 +37,10 @@ const KeywordMapPage = () => {
   }, [reset, queryClient]);
 
   useEffect(() => {
-    if (!keyword) {
+    if (!keyword && !key) {
       navigate("/home", { replace: true });
     }
-  }, [keyword, navigate]);
+  }, [keyword, key, navigate]);
 
   const handleBack = () => {
     if (isMobile && isPaperPanelOpen) {
@@ -210,7 +211,7 @@ const KeywordMapPage = () => {
         }}
       >
         <ReactFlowProvider>
-          <KeywordMapGraph keyword={keyword} />
+          <KeywordMapGraph keyword={keyword} nodeKey={key} />
         </ReactFlowProvider>
         <PaperListPanel />
       </Box>

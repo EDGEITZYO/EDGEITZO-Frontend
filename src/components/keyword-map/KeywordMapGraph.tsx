@@ -124,9 +124,10 @@ const buildGraphFromResponse = (
 
 interface KeywordMapGraphProps {
   keyword: string;
+  nodeKey?: string;
 }
 
-const KeywordMapGraph = ({ keyword }: KeywordMapGraphProps) => {
+const KeywordMapGraph = ({ keyword, nodeKey }: KeywordMapGraphProps) => {
   const { data: mypageData } = useMypageQuery();
   const userId = mypageData?.profile.id;
 
@@ -186,7 +187,7 @@ const KeywordMapGraph = ({ keyword }: KeywordMapGraphProps) => {
   // ─── 초기 로딩 ──────────────────────────────────────
 
   useEffect(() => {
-    if (!keyword) return;
+    if (!keyword && !nodeKey) return;
     if (hasLoaded.current) return;
     hasLoaded.current = true;
 
@@ -196,6 +197,7 @@ const KeywordMapGraph = ({ keyword }: KeywordMapGraphProps) => {
       try {
         const res = await keywordMapApi.loadMap({
           keyword,
+          key: nodeKey,
           user_id: userId ?? undefined,
         });
         const { anchor, nodes: resNodes, edges: resEdges } = res.data.data;
@@ -209,7 +211,7 @@ const KeywordMapGraph = ({ keyword }: KeywordMapGraphProps) => {
     };
 
     loadGraph();
-  }, [keyword, userId, applyGraph, setIsLoading, setLoadError]);
+  }, [keyword, nodeKey, userId, applyGraph, setIsLoading, setLoadError]);
 
   // ─── expand 이벤트 수신 ───────────────────────────────
 
