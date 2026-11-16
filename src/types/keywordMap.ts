@@ -72,6 +72,7 @@ export interface KMGraphResponse {
 
 export interface KMLoadParams {
   keyword: string;
+  key?: string;
   user_id?: string;
 }
 

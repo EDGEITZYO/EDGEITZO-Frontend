@@ -32,6 +32,7 @@ export const paperKeys = {
 
 export const homeKeys = {
   all: ["home"] as const,
+  searchSuggestions: () => ["home", "search-suggestions"] as const,
 };
 
 export const savedKeys = {
