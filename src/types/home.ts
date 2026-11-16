@@ -49,3 +49,20 @@ export interface HomeData {
   recent_searches: RecentSearch[];
   recent_papers: RecentPaper[];
 }
+
+// ─── 추천 검색어 ───────────────────────────────────────────
+
+export type SearchSuggestionsBasis = "onboarding" | "history" | "none";
+
+export interface SuggestedKeyword {
+  name: string;
+  key: string;
+}
+
+export interface SearchSuggestionsData {
+  basis: SearchSuggestionsBasis;
+  ai_query: string | null;
+  keyword: SuggestedKeyword | null;
+  history_start: string | null;
+  history_end: string | null;
+}

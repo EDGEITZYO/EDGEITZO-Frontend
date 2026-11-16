@@ -1,33 +1,22 @@
 import { useRef, useState } from "react";
-import { Box, IconButton, InputBase, Typography } from "@mui/material";
+import {
+  Box,
+  IconButton,
+  InputBase,
+  Skeleton,
+  Typography,
+} from "@mui/material";
 import { ArrowRight, CornerDownRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useSearchSuggestionsQuery } from "../../queries/useSearchSuggestionsQuery";
+import type { SuggestedKeyword } from "../../types/home";
 
 type SearchMode = "AI" | "키워드";
 
-interface RecommendationSet {
-  ai: string;
-  keyword: string;
-}
+// ─── fallback (API null 응답 시) ──────────────────────────
 
-const RECOMMENDATION_SETS: RecommendationSet[] = [
-  {
-    ai: "바이오 폴리머로 하천 제방을 보강하는 논문 찾아줘.",
-    keyword: "항산화",
-  },
-  {
-    ai: "유전자 알고리즘으로 최적 위치를 선정한 논문 찾아줘.",
-    keyword: "바이오 폴리머",
-  },
-  {
-    ai: "천연물 추출물의 항산화 활성에 관한 논문을 찾아줘.",
-    keyword: "바이오가스",
-  },
-  {
-    ai: "암세포의 세포사멸(apoptosis)을 유도하는 연구가 궁금해.",
-    keyword: "미생물",
-  },
-];
+const FALLBACK_AI = "바이오 폴리머로 하천 제방을 보강하는 논문 찾아줘.";
+const FALLBACK_KEYWORD: SuggestedKeyword = { name: "항산화", key: "" };
 
 // ─── 추천 칩 ─────────────────────────────────────────────
 
@@ -101,10 +90,10 @@ const SearchBar = () => {
   const [mode, setMode] = useState<SearchMode>("AI");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const [recommendation] = useState<RecommendationSet>(() => {
-    const index = Math.floor(Math.random() * RECOMMENDATION_SETS.length);
-    return RECOMMENDATION_SETS[index];
-  });
+  const { data: suggestionsData, isPending } = useSearchSuggestionsQuery();
+
+  const aiText = suggestionsData?.ai_query ?? FALLBACK_AI;
+  const keywordSuggestion = suggestionsData?.keyword ?? FALLBACK_KEYWORD;
 
   const canSubmit = query.trim() !== "";
 
@@ -124,8 +113,19 @@ const SearchBar = () => {
   };
 
   const handleRecommendClick = (recMode: SearchMode) => {
-    const q = recMode === "AI" ? recommendation.ai : recommendation.keyword;
-    handleSubmit(q, recMode);
+    if (recMode === "AI") {
+      handleSubmit(aiText, recMode);
+    } else {
+      if (keywordSuggestion.key) {
+        navigate(
+          `/keyword-map?key=${encodeURIComponent(keywordSuggestion.key)}`,
+        );
+      } else {
+        navigate(
+          `/keyword-map?keyword=${encodeURIComponent(keywordSuggestion.name)}`,
+        );
+      }
+    }
   };
 
   // ─── 토글 ────────────────────────────────────────────────
@@ -163,7 +163,7 @@ const SearchBar = () => {
           key={m}
           onClick={() => setMode(m)}
           sx={{
-            position: "relative", // 흰 칩 위에 올라오게
+            position: "relative",
             zIndex: 1,
             display: "flex",
             width: "57px",
@@ -370,16 +370,35 @@ const SearchBar = () => {
             alignSelf: { xs: "stretch", sm: "auto" },
           }}
         >
-          <RecommendationChip
-            recMode="AI"
-            text={recommendation.ai}
-            onClick={handleRecommendClick}
-          />
-          <RecommendationChip
-            recMode="키워드"
-            text={recommendation.keyword}
-            onClick={handleRecommendClick}
-          />
+          {isPending ? (
+            <>
+              <Skeleton
+                variant="rounded"
+                width={320}
+                height={40}
+                sx={{ borderRadius: "24px" }}
+              />
+              <Skeleton
+                variant="rounded"
+                width={180}
+                height={40}
+                sx={{ borderRadius: "24px" }}
+              />
+            </>
+          ) : (
+            <>
+              <RecommendationChip
+                recMode="AI"
+                text={aiText}
+                onClick={handleRecommendClick}
+              />
+              <RecommendationChip
+                recMode="키워드"
+                text={keywordSuggestion.name}
+                onClick={handleRecommendClick}
+              />
+            </>
+          )}
         </Box>
       </Box>
     </Box>
