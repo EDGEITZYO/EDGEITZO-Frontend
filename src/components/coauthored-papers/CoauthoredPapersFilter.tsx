@@ -79,7 +79,7 @@ const DropdownFilter = ({
           alignItems: "center",
           gap: isMobile ? "4px" : "16px",
           borderRadius: "216px",
-          backgroundColor: isSelected ? "#1E2026" : "fill.normal",
+          backgroundColor: isSelected ? "#1E2026" : isMobile ? "#F7F8FA" : "fill.normal",
           cursor: disabled ? "not-allowed" : isSelected ? "default" : "pointer",
           flexShrink: 0,
           opacity: disabled ? 0.4 : 1,
@@ -137,6 +137,7 @@ const DropdownFilter = ({
               borderColor: "label.alternative",
               boxShadow: "none",
               padding: "8px",
+              backgroundColor: "background.default",
             },
           },
         }}
@@ -340,7 +341,7 @@ const AuthorRoleDropdown = ({
           alignItems: "center",
           justifyContent: "space-between",
           borderRadius: "216px",
-          backgroundColor: isSelected ? "#1E2026" : "fill.normal",
+          backgroundColor: isSelected ? "#1E2026" : isMobile ? "#F7F8FA" : "fill.normal",
           cursor: "pointer",
           flexShrink: 0,
         }}
@@ -600,7 +601,7 @@ const AuthorRoleDropdown = ({
             zIndex: 1300,
             display: "flex",
             flexDirection: "column",
-            width: `${window.innerWidth - 32}px`,
+            width: "150px",
             padding: "12px 8px",
             gap: "12px",
             borderRadius: "16px",
@@ -1153,7 +1154,7 @@ const CoauthoredPapersFilter = ({
               alignItems: "center",
               gap: "4px",
               borderRadius: "216px",
-              backgroundColor: isYearApplied ? "#1E2026" : "fill.normal",
+              backgroundColor: isYearApplied ? "#1E2026" : "#F7F8FA",
               cursor: "pointer",
               flexShrink: 0,
             }}

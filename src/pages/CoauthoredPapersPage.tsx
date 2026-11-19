@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import { FileX } from "lucide-react";
 import { type SxProps, type Theme } from "@mui/material/styles";
@@ -118,8 +118,6 @@ const CoauthoredPapersPage = () => {
     researcherId: string;
     coauthorId: string;
   }>();
-  const [searchParams] = useSearchParams();
-  const q = searchParams.get("q") ?? "";
   const queryClient = useQueryClient();
 
   const [paperParams, setPaperParams] =
@@ -265,7 +263,7 @@ const CoauthoredPapersPage = () => {
         </Box>
         <Box sx={{ display: "flex", alignItems: "center", gap: "4px" }}>
           <Typography variant="h5" sx={{ color: "secondary.dark" }}>
-            {q.length > 0 ? q : researcherName}
+            {researcherName} · {coauthorName}
           </Typography>
           <Typography variant="h5" sx={{ color: "label.normal" }}>
             함께 작성한 논문

@@ -33,7 +33,8 @@ const profileSectionSx: SxProps<Theme> = {
   "@media (max-width: 599px)": {
     flexDirection: "column",
     justifyContent: "center",
-    alignItems: "center",
+    alignItems: "flex-start",
+    alignContent: "flex-start",
     rowGap: "16px",
     columnGap: "32px",
   },
@@ -327,7 +328,7 @@ const CoauthorSummarySection = ({ summary }: CoauthorSummarySectionProps) => {
           </Box>
 
           {/* 연결 아이콘 */}
-          <Box sx={linkIconBoxSx}>
+          <Box sx={{ ...linkIconBoxSx, display: { xs: "none", sm: "flex" } }}>
             <Link size={20} color="#029B56" />
           </Box>
 

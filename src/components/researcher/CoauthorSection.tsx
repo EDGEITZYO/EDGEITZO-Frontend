@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { Avatar, Box, Popover, Typography } from "@mui/material";
+import {
+  Avatar,
+  Box,
+  Popover,
+  Typography,
+  useTheme,
+  useMediaQuery,
+} from "@mui/material";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import { type CoauthorItem } from "../../types/researcher";
 
@@ -137,6 +144,73 @@ const popoverButtonSx: SxProps<Theme> = {
   cursor: "pointer",
 };
 
+const mobPopoverPaperSx: SxProps<Theme> = {
+  width: "328px",
+  padding: "12px 16px 16px 16px",
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "center",
+  alignItems: "flex-start",
+  gap: "12px",
+  borderRadius: "12px",
+  backgroundColor: "rgba(30, 32, 38, 0.90)",
+  backdropFilter: "blur(2px)",
+  boxShadow: "none",
+};
+
+const mobPopoverNameTextSx: SxProps<Theme> = {
+  display: "-webkit-box",
+  WebkitBoxOrient: "vertical",
+  WebkitLineClamp: 1,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  color: "#FAFAFC",
+  fontSize: "18px",
+  fontWeight: 500,
+  lineHeight: "30px",
+  letterSpacing: "-0.378px",
+};
+
+const mobPopoverSubInfoTextSx: SxProps<Theme> = {
+  display: "-webkit-box",
+  WebkitBoxOrient: "vertical",
+  WebkitLineClamp: 5,
+  alignSelf: "stretch",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  color: "#F7F8FA",
+  fontSize: "13px",
+  fontWeight: 400,
+  lineHeight: "22px",
+  letterSpacing: "-0.26px",
+};
+
+const mobPopoverButtonSx: SxProps<Theme> = {
+  display: "flex",
+  padding: "12px 0",
+  justifyContent: "center",
+  alignItems: "center",
+  flex: "1 0 0",
+  borderRadius: "8px",
+  border: "1px solid",
+  borderColor: "line.neutral",
+  backgroundColor: "background.default",
+  cursor: "pointer",
+};
+
+const mobPopoverButtonTextSx: SxProps<Theme> = {
+  display: "-webkit-box",
+  WebkitBoxOrient: "vertical",
+  WebkitLineClamp: 1,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  color: "#1E2026",
+  fontSize: "16px",
+  fontWeight: 400,
+  lineHeight: "24px",
+  letterSpacing: "-0.336px",
+};
+
 const getCardInstitutionText = (coauthor: CoauthorItem): string | null => {
   return coauthor.institution ?? null;
 };
@@ -189,6 +263,8 @@ const CoauthorCard = ({
 );
 
 const CoauthorSection = ({ coauthors }: CoauthorSectionProps) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const navigate = useNavigate();
   const { id: researcherId } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
@@ -262,11 +338,7 @@ const CoauthorSection = ({ coauthors }: CoauthorSectionProps) => {
             key={coauthor.researcher_id}
             coauthor={coauthor}
             sx={mobileCoauthorItemSx}
-            onClick={() =>
-              navigate(
-                `/researcher/${coauthor.researcher_id}?q=${encodeURIComponent(q)}`,
-              )
-            }
+            onClick={(e) => handleOpen(e, coauthor)}
           />
         ))}
       </Box>
@@ -279,7 +351,7 @@ const CoauthorSection = ({ coauthors }: CoauthorSectionProps) => {
         transformOrigin={{ vertical: "top", horizontal: "center" }}
         disableScrollLock
         slotProps={{
-          paper: { sx: popoverPaperSx },
+          paper: { sx: isMobile ? mobPopoverPaperSx : popoverPaperSx },
         }}
       >
         {selectedCoauthor && (
@@ -288,15 +360,19 @@ const CoauthorSection = ({ coauthors }: CoauthorSectionProps) => {
               <Box sx={popoverInfoSx}>
                 <Box sx={popoverNameRowSx}>
                   <Typography
-                    variant="h5"
-                    sx={{
-                      display: "-webkit-box",
-                      WebkitBoxOrient: "vertical",
-                      WebkitLineClamp: 1,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      color: "#FAFAFC",
-                    }}
+                    {...(!isMobile && { variant: "h5" })}
+                    sx={
+                      isMobile
+                        ? mobPopoverNameTextSx
+                        : {
+                            display: "-webkit-box",
+                            WebkitBoxOrient: "vertical",
+                            WebkitLineClamp: 1,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            color: "#FAFAFC",
+                          }
+                    }
                   >
                     {selectedCoauthor.name ?? "-"}
                   </Typography>
@@ -304,32 +380,40 @@ const CoauthorSection = ({ coauthors }: CoauthorSectionProps) => {
                 <Box sx={popoverSubInfoSx}>
                   {selectedCoauthor.institution && (
                     <Typography
-                      variant="body1"
-                      sx={{
-                        display: "-webkit-box",
-                        WebkitBoxOrient: "vertical",
-                        WebkitLineClamp: 5,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        alignSelf: "stretch",
-                        color: "#F7F8FA",
-                      }}
+                      {...(!isMobile && { variant: "body1" })}
+                      sx={
+                        isMobile
+                          ? mobPopoverSubInfoTextSx
+                          : {
+                              display: "-webkit-box",
+                              WebkitBoxOrient: "vertical",
+                              WebkitLineClamp: 5,
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              alignSelf: "stretch",
+                              color: "#F7F8FA",
+                            }
+                      }
                     >
                       {selectedCoauthor.institution}
                     </Typography>
                   )}
                   {selectedCoauthor.keywords.length > 0 && (
                     <Typography
-                      variant="body1"
-                      sx={{
-                        display: "-webkit-box",
-                        WebkitBoxOrient: "vertical",
-                        WebkitLineClamp: 5,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        alignSelf: "stretch",
-                        color: "#F7F8FA",
-                      }}
+                      {...(!isMobile && { variant: "body1" })}
+                      sx={
+                        isMobile
+                          ? mobPopoverSubInfoTextSx
+                          : {
+                              display: "-webkit-box",
+                              WebkitBoxOrient: "vertical",
+                              WebkitLineClamp: 5,
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              alignSelf: "stretch",
+                              color: "#F7F8FA",
+                            }
+                      }
                     >
                       대표 키워드 {selectedCoauthor.keywords.length}개
                     </Typography>
@@ -338,32 +422,46 @@ const CoauthorSection = ({ coauthors }: CoauthorSectionProps) => {
               </Box>
             </Box>
             <Box sx={popoverButtonRowSx}>
-              <Box sx={popoverButtonSx} onClick={handleDetailClick}>
+              <Box
+                sx={isMobile ? mobPopoverButtonSx : popoverButtonSx}
+                onClick={handleDetailClick}
+              >
                 <Typography
-                  variant="h5"
-                  sx={{
-                    color: "label.normal",
-                    display: "-webkit-box",
-                    WebkitBoxOrient: "vertical",
-                    WebkitLineClamp: 1,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
+                  {...(!isMobile && { variant: "h5" })}
+                  sx={
+                    isMobile
+                      ? mobPopoverButtonTextSx
+                      : {
+                          color: "label.normal",
+                          display: "-webkit-box",
+                          WebkitBoxOrient: "vertical",
+                          WebkitLineClamp: 1,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }
+                  }
                 >
                   상세 정보
                 </Typography>
               </Box>
-              <Box sx={popoverButtonSx} onClick={handleCoauthoredPapersClick}>
+              <Box
+                sx={isMobile ? mobPopoverButtonSx : popoverButtonSx}
+                onClick={handleCoauthoredPapersClick}
+              >
                 <Typography
-                  variant="h5"
-                  sx={{
-                    color: "label.normal",
-                    display: "-webkit-box",
-                    WebkitBoxOrient: "vertical",
-                    WebkitLineClamp: 1,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
+                  {...(!isMobile && { variant: "h5" })}
+                  sx={
+                    isMobile
+                      ? mobPopoverButtonTextSx
+                      : {
+                          color: "label.normal",
+                          display: "-webkit-box",
+                          WebkitBoxOrient: "vertical",
+                          WebkitLineClamp: 1,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }
+                  }
                 >
                   함께 작성한 논문
                 </Typography>
