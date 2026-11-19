@@ -16,6 +16,8 @@ const OnboardingComplete = ({ onStart }: OnboardingCompleteProps) => {
         minHeight: { xs: "100vh", sm: "auto" },
         backgroundColor: { xs: "background.default", sm: "transparent" },
         px: { xs: "16px", sm: 0 },
+        pt: { xs: "24px", sm: 0 },
+        pb: { xs: "32px", sm: 0 },
         justifyContent: { xs: "center", sm: "flex-start" },
       }}
     >
@@ -85,7 +87,12 @@ const OnboardingComplete = ({ onStart }: OnboardingCompleteProps) => {
                 textAlign: "center",
               }}
             >
-              입력하신 정보는 마이페이지에서 언제든 수정할 수 있어요
+              입력하신 정보는 마이페이지에서{" "}
+              <Box
+                component="br"
+                sx={{ display: { xs: "block", sm: "none" } }}
+              />
+              언제든 수정할 수 있어요
             </Typography>
           </Box>
         </Box>

@@ -10,6 +10,10 @@ import type {
   ResearcherPaperListResponse,
   CoauthorListResponse,
   ResearchFlowResponse,
+  CoauthorPairSummaryResponse,
+  CoauthoredPaperListResponse,
+  CoauthoredPaperSortType,
+  CoauthoredPaperRoleFilter,
 } from "../types/researcher";
 
 export interface GetResearcherSearchParams {
@@ -29,6 +33,23 @@ export interface GetResearcherPapersParams {
   paper_type?: string;
   kci?: boolean;
   sci?: boolean;
+}
+
+export interface GetCoauthorPairSummaryParams {
+  keyword_limit?: number;
+}
+
+export interface GetCoauthoredPapersParams {
+  sort?: CoauthoredPaperSortType;
+  researcher_role?: CoauthoredPaperRoleFilter | null;
+  coauthor_role?: CoauthoredPaperRoleFilter | null;
+  paper_type?: string | null;
+  year_start?: number | null;
+  year_end?: number | null;
+  kci?: boolean | null;
+  sci?: boolean | null;
+  page?: number;
+  size?: number;
 }
 
 export const researcherApi = {
@@ -66,5 +87,25 @@ export const researcherApi = {
   getResearchFlow: (researcherId: string) =>
     apiClient.get<ApiResponse<ResearchFlowResponse>>(
       `/researchers/${researcherId}/research-flow`,
+    ),
+
+  getCoauthorPairSummary: (
+    researcherId: string,
+    coauthorId: string,
+    params?: GetCoauthorPairSummaryParams,
+  ) =>
+    apiClient.get<ApiResponse<CoauthorPairSummaryResponse>>(
+      `/researchers/${researcherId}/coauthors/${coauthorId}`,
+      { params },
+    ),
+
+  getCoauthoredPapers: (
+    researcherId: string,
+    coauthorId: string,
+    params?: GetCoauthoredPapersParams,
+  ) =>
+    apiClient.get<ApiResponse<CoauthoredPaperListResponse>>(
+      `/researchers/${researcherId}/coauthors/${coauthorId}/papers`,
+      { params },
     ),
 };

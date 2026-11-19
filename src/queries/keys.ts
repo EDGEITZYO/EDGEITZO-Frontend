@@ -32,6 +32,7 @@ export const paperKeys = {
 
 export const homeKeys = {
   all: ["home"] as const,
+  searchSuggestions: () => ["home", "search-suggestions"] as const,
 };
 
 export const savedKeys = {
@@ -61,6 +62,30 @@ export const researcherKeys = {
     [...researcherKeys.all, "coauthors", researcherId] as const,
   researchFlow: (researcherId: string) =>
     [...researcherKeys.all, "research-flow", researcherId] as const,
+  coauthorPairSummary: (
+    researcherId: string,
+    coauthorId: string,
+    params?: object,
+  ) =>
+    [
+      ...researcherKeys.all,
+      "coauthor-pair-summary",
+      researcherId,
+      coauthorId,
+      params,
+    ] as const,
+  coauthoredPapers: (
+    researcherId: string,
+    coauthorId: string,
+    params?: object,
+  ) =>
+    [
+      ...researcherKeys.all,
+      "coauthored-papers",
+      researcherId,
+      coauthorId,
+      params,
+    ] as const,
 };
 
 export const externalPaperKeys = {

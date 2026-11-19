@@ -24,6 +24,7 @@ import OAuthCallbackPage from "../pages/OAuthCallbackPage";
 import ResearcherPage from "../pages/ResearcherPage";
 import ResearcherSearchPage from "../pages/ResearcherSearchPage";
 import ResearcherDetailPage from "../pages/ResearcherDetailPage";
+import CoauthoredPapersPage from "../pages/CoauthoredPapersPage";
 
 const router = createBrowserRouter([
   // 랜딩 (로그인 상태면 /home으로)
@@ -202,6 +203,14 @@ const router = createBrowserRouter([
     element: (
       <AuthGuard>
         <ResearcherDetailPage />
+      </AuthGuard>
+    ),
+  },
+  {
+    path: "/researcher/:researcherId/coauthored-papers/:coauthorId",
+    element: (
+      <AuthGuard>
+        <CoauthoredPapersPage />
       </AuthGuard>
     ),
   },
