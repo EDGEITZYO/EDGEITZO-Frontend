@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Avatar, Box, Popover, Typography } from "@mui/material";
 import { type SxProps, type Theme } from "@mui/material/styles";
 import { type CoauthorItem } from "../../types/researcher";
@@ -116,13 +116,20 @@ const popoverSubInfoSx: SxProps<Theme> = {
   alignSelf: "stretch",
 };
 
-const detailButtonSx: SxProps<Theme> = {
+const popoverButtonRowSx: SxProps<Theme> = {
+  display: "flex",
+  alignItems: "flex-start",
+  gap: "12px",
+  alignSelf: "stretch",
+};
+
+const popoverButtonSx: SxProps<Theme> = {
   display: "flex",
   height: "56px",
-  padding: "8px 16px",
+  padding: "8px 0",
   justifyContent: "center",
   alignItems: "center",
-  alignSelf: "stretch",
+  flex: "1 0 0",
   borderRadius: "8px",
   border: "1px solid",
   borderColor: "line.neutral",
@@ -183,6 +190,7 @@ const CoauthorCard = ({
 
 const CoauthorSection = ({ coauthors }: CoauthorSectionProps) => {
   const navigate = useNavigate();
+  const { id: researcherId } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const q = searchParams.get("q") ?? "";
 
@@ -208,6 +216,14 @@ const CoauthorSection = ({ coauthors }: CoauthorSectionProps) => {
     if (!selectedCoauthor) return;
     navigate(
       `/researcher/${selectedCoauthor.researcher_id}?q=${encodeURIComponent(q)}`,
+    );
+    handleClose();
+  };
+
+  const handleCoauthoredPapersClick = () => {
+    if (!selectedCoauthor || !researcherId) return;
+    navigate(
+      `/researcher/${researcherId}/coauthored-papers/${selectedCoauthor.researcher_id}?q=${encodeURIComponent(q)}`,
     );
     handleClose();
   };
@@ -321,15 +337,37 @@ const CoauthorSection = ({ coauthors }: CoauthorSectionProps) => {
                 </Box>
               </Box>
             </Box>
-            <Box sx={detailButtonSx} onClick={handleDetailClick}>
-              <Typography
-                variant="h5"
-                sx={{
-                  color: "label.normal",
-                }}
-              >
-                상세 정보
-              </Typography>
+            <Box sx={popoverButtonRowSx}>
+              <Box sx={popoverButtonSx} onClick={handleDetailClick}>
+                <Typography
+                  variant="h5"
+                  sx={{
+                    color: "label.normal",
+                    display: "-webkit-box",
+                    WebkitBoxOrient: "vertical",
+                    WebkitLineClamp: 1,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  상세 정보
+                </Typography>
+              </Box>
+              <Box sx={popoverButtonSx} onClick={handleCoauthoredPapersClick}>
+                <Typography
+                  variant="h5"
+                  sx={{
+                    color: "label.normal",
+                    display: "-webkit-box",
+                    WebkitBoxOrient: "vertical",
+                    WebkitLineClamp: 1,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  함께 작성한 논문
+                </Typography>
+              </Box>
             </Box>
           </>
         )}
