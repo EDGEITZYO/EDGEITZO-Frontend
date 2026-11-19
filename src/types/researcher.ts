@@ -178,3 +178,107 @@ export interface ResearchFlowResponse {
   summary_source: SummarySource;
   clusters: ResearchFlowCluster[];
 }
+
+// ─── 공저자 함께 작성한 논문 ───────────────────────────────
+
+// 공저자 쌍 프로필 (두 연구자 각각)
+export interface CoauthorPairProfile {
+  researcher_id: string;
+  name: string | null;
+  institution: string | null;
+  department: string | null;
+  department_display: string | null;
+  department_source: string | null;
+}
+
+// 공통 연구 키워드
+export type CommonKeywordSource = "repeated" | "single_paper" | "ai" | "recent";
+
+export interface CommonKeyword {
+  keyword: string;
+  source: CommonKeywordSource;
+  paper_count: number;
+}
+
+// GET /api/v1/researchers/{researcher_id}/coauthors/{coauthor_id} 응답 데이터
+export interface CoauthorPairSummaryResponse {
+  researcher: CoauthorPairProfile;
+  coauthor: CoauthorPairProfile;
+  co_paper_count: number;
+  period_start_year: number | null;
+  period_end_year: number | null;
+  common_keywords: CommonKeyword[];
+}
+
+// 논문 저자 역할 타입
+export type AuthorRoleType =
+  | "first"
+  | "corresponding"
+  | "co_corresponding"
+  | "participant";
+
+// 논문 저자 역할 정보
+export interface PaperAuthorRole {
+  researcher_id: string;
+  name: string | null;
+  author_order: number | null;
+  roles: AuthorRoleType[];
+  role_labels: string[];
+}
+
+// 함께 작성한 논문 정렬 타입
+export type CoauthoredPaperSortType = "recent" | "citations";
+
+// 함께 작성한 논문 역할 필터 타입
+export type CoauthoredPaperRoleFilter =
+  | "first"
+  | "corresponding"
+  | "participant";
+
+// 함께 작성한 논문 항목
+export interface CoauthoredPaperItem {
+  paper_id: string | null;
+  external_id: string | null;
+  title: string | null;
+  journal_name: string | null;
+  pub_year: number | null;
+  pub_month: string | null;
+  published_at: string | null;
+  authors: string[];
+  abstract: string | null;
+  keywords: string[];
+  citation_count: number | null;
+  paper_type: string | null;
+  kci_registered: boolean;
+  sci_indexed: boolean | null;
+  doi: string | null;
+  trust_badge: Pick<
+    PaperTrustBadge,
+    "kci" | "sci" | "citation_count" | "degree_type"
+  > | null;
+  external_url: string | null;
+  is_internal: boolean;
+  detail_id: string | null;
+  can_open_detail: boolean;
+  can_bookmark: boolean;
+  is_bookmarked: boolean;
+  read_at: string | null;
+  role: string | null;
+  author_order: number | null;
+  researcher_role: PaperAuthorRole;
+  coauthor_role: PaperAuthorRole;
+  author_count: number;
+  other_author_count: number;
+}
+
+// GET /api/v1/researchers/{researcher_id}/coauthors/{coauthor_id}/papers 응답 데이터
+export interface CoauthoredPaperListResponse {
+  researcher_id: string;
+  coauthor_id: string;
+  total: number;
+  page: number;
+  size: number;
+  sort: CoauthoredPaperSortType;
+  citation_sort_available: boolean;
+  items: CoauthoredPaperItem[];
+}

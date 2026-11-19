@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   researcherApi,
   type GetResearcherPapersParams,
+  type GetCoauthorPairSummaryParams,
+  type GetCoauthoredPapersParams,
 } from "../api/researcher";
 import { researcherKeys } from "./keys";
 import type {
@@ -13,6 +15,8 @@ import type {
   ResearcherPaperListResponse,
   CoauthorListResponse,
   ResearchFlowResponse,
+  CoauthorPairSummaryResponse,
+  CoauthoredPaperListResponse,
 } from "../types/researcher";
 
 export function useResearcherSearchQuery(
@@ -103,5 +107,49 @@ export function useResearchFlowQuery(researcherId: string) {
     },
     enabled: researcherId.length > 0,
     staleTime: 1000 * 60 * 10,
+  });
+}
+
+export function useCoauthorPairSummaryQuery(
+  researcherId: string,
+  coauthorId: string,
+  params?: GetCoauthorPairSummaryParams,
+) {
+  return useQuery<CoauthorPairSummaryResponse>({
+    queryKey: researcherKeys.coauthorPairSummary(
+      researcherId,
+      coauthorId,
+      params,
+    ),
+    queryFn: async () => {
+      const res = await researcherApi.getCoauthorPairSummary(
+        researcherId,
+        coauthorId,
+        params,
+      );
+      return res.data.data;
+    },
+    enabled: researcherId.length > 0 && coauthorId.length > 0,
+    staleTime: 1000 * 60 * 10,
+  });
+}
+
+export function useCoauthoredPapersQuery(
+  researcherId: string,
+  coauthorId: string,
+  params?: GetCoauthoredPapersParams,
+) {
+  return useQuery<CoauthoredPaperListResponse>({
+    queryKey: researcherKeys.coauthoredPapers(researcherId, coauthorId, params),
+    queryFn: async () => {
+      const res = await researcherApi.getCoauthoredPapers(
+        researcherId,
+        coauthorId,
+        params,
+      );
+      return res.data.data;
+    },
+    enabled: researcherId.length > 0 && coauthorId.length > 0,
+    staleTime: 1000 * 60 * 5,
   });
 }
