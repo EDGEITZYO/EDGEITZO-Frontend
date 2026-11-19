@@ -30,6 +30,11 @@ interface ResearcherNavConfig {
   query: string;
 }
 
+interface CoauthoredPapersNavConfig {
+  researcherName: string;
+  coauthorName: string;
+}
+
 interface TopNavBarProps {
   onBack: () => void;
   onLogoClick?: () => void;
@@ -39,6 +44,7 @@ interface TopNavBarProps {
   searchConfig?: SearchNavConfig;
   keywordMapConfig?: KeywordMapNavConfig;
   researcherConfig?: ResearcherNavConfig;
+  coauthoredPapersConfig?: CoauthoredPapersNavConfig;
 }
 
 const navBarSx: SxProps<Theme> = {
@@ -211,6 +217,7 @@ const TopNavBar = ({
   searchConfig,
   keywordMapConfig,
   researcherConfig,
+  coauthoredPapersConfig,
 }: TopNavBarProps) => {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
@@ -267,6 +274,17 @@ const TopNavBar = ({
             {researcherConfig.query}
           </Typography>
           <Typography sx={searchQuerySx}>검색 결과</Typography>
+        </Box>
+      )}
+
+      {/* 함께 작성한 논문 네비 */}
+      {coauthoredPapersConfig && (
+        <Box sx={{ ...searchNavWrapperSx, gap: "4px" }}>
+          <Typography sx={{ ...searchQuerySx, color: "#3BA502" }}>
+            {coauthoredPapersConfig.researcherName} ·{" "}
+            {coauthoredPapersConfig.coauthorName}
+          </Typography>
+          <Typography sx={searchQuerySx}>함께 작성한 논문</Typography>
         </Box>
       )}
 
